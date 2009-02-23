@@ -1,4 +1,4 @@
-# Generic makefile
+# Defines rules for generic packages.
 
 # GET_HOST(platform)
 GET_HOST=$(subst mingw,i386-mingw32,$(subst linux,$(shell uname -m)-linux,$(1)))
@@ -39,6 +39,8 @@ $(1)-$(2)-distrib:
 	@echo "$(1)-$(2)-distrib"
 $(1)-$(2)-clean:
 	cd $(2)/src/$(1)* && make clean
+$(1)-$(2)-all:
+	make $(1)-$(2)-build && make $(1)-$(2)-install
 .PHONY: \
 	$(1)-$(2)-extract \
 	$(1)-$(2)-build \

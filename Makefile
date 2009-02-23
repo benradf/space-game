@@ -1,27 +1,41 @@
 # MMOEngine Global Makefile
 #
-# make PLATFORM="mingw" PACKAGES="lua"
-
-PLATFORMS=linux mingw
-PACKAGES=enet argtable lua
-
-PATH+=:$(shell pwd)/mingw/usr/bin
-
-all: build install
+# Usage: make PLATFORM="mingw" PACKAGES="lua" all
+#
 
 include scripts/generic.mk
 
-define RULE_DEPS
-$(eval $(1): $(foreach PKG,$(PACKAGES),$(foreach PLT,$(PLATFORMS),$(PKG)-$(PLT)-$(1))))
-.PHONY: $(1)
-endef
+# Default platforms.
+PLATFORMS=linux mingw
 
-$(call RULE_DEPS,extract)
-$(call RULE_DEPS,build)
-$(call RULE_DEPS,install)
-$(call RULE_DEPS,distrib)
-$(call RULE_DEPS,clean)
+# Default packages.
+PACKAGES=enet argtable lua
 
+# Update environment path variable.
+PATH+=:$(shell pwd)/mingw/usr/bin
+
+# Function for top level rules.
+DEF_RULE=$(eval .PHONY: $(1)) \
+	$(eval $(1): $(foreach PKG,$(PACKAGES), \
+	$(foreach PLT,$(PLATFORMS),$(PKG)-$(PLT)-$(1))))
+
+# Define top level rules.
+$(call DEF_RULE,all)
+$(call DEF_RULE,extract)
+$(call DEF_RULE,build)
+$(call DEF_RULE,install)
+$(call DEF_RULE,distrib)
+$(call DEF_RULE,clean)
+
+# Function for package dependencies.
+PKG_DEP=$(foreach PLT,$(PLATFORMS), \
+	$(eval $(1)-$(PLT)-all: $(2)-$(PLT)-all))
+
+# Declare package dependencies.
+$(call PKG_DEP,lua,enet)
+$(call PKG_DEP,enet,argtable)
+
+# Define specific rules.
 $(foreach PKG,$(PACKAGES), \
 	$(if $(shell ls scripts/$(PKG).mk 2>/dev/null), \
 		$(eval include scripts/$(PKG).mk) \
@@ -31,6 +45,4 @@ $(foreach PKG,$(PACKAGES), \
 		) \
 	) \
 )
-
-.PHONY: all
 

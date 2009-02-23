@@ -1,4 +1,4 @@
-# Lua specific makefile
+# Lua specific makefile.
 
 lua-linux-extract:
 	rm -rvf linux/src/lua*; tar -xzvf common/pkg/lua*.tar.gz -C linux/src/ $(call APPLY_PATCHES,lua,linux)
@@ -30,6 +30,12 @@ lua-linux-clean:
 lua-mingw-clean:
 	cd mingw/src/lua* && make clean
 
+lua-linux-all:
+	make lua-linux-build && make lua-linux-install
+
+lua-mingw-all:
+	make lua-mingw-build && make lua-mingw-install
+
 .PHONY: \
 	lua-linux-extract \
 	lua-mingw-extract \
@@ -40,5 +46,7 @@ lua-mingw-clean:
 	lua-linux-distrib \
 	lua-mingw-distrib \
 	lua-linux-clean \
-	lua-mingw-clean
+	lua-mingw-clean \
+	lua-linux-all \
+	lua-mingw-all
 
