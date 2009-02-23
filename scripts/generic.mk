@@ -11,25 +11,34 @@ define UNPACK
 	$(error Unknown package format: $(1)))))
 endef
 
+# APPLY_PATCHES(package,platform)
+define APPLY_PATCHES
+	$(foreach PATCH,$(wildcard common/patch/$(1)*.patch.gz), \
+		&& zcat $(PATCH) | patch -p1 -d $(2)/src/$(1)*/)
+endef
+
+# GET_BUILD_TOOLS(platform)
+GET_BUILD_TOOLS=$(call BUILD_TOOLS,$(subst mingw,i386-mingw32msvc-,$(subst linux,,$(1))))
+BUILD_TOOLS=CC="$(1)gcc" CXX="$(1)g++" AR="$(1)ar" RANLIB="$(1)ranlib"
+
 # RULE_SET(package,platform)
 define RULE_SET
 $(1)-$(2)-extract: 
 	rm -rvf $(2)/src/$(1)*; \
-	$(call UNPACK,$(wildcard common/pkg/$(1)*),$(2)/src)
+	$(call UNPACK,$(wildcard common/pkg/$(1)*),$(2)/src) \
+	$(call APPLY_PATCHES,$(1),$(2))
 $(1)-$(2)-build:
-	pushd $(2)/src/$(1)* && \
-	($(if $(shell ls $(2)/src/$(1)*/Makefile 2>/dev/null),,./configure \
+	cd $(2)/src/$(1)* && \
+	$(if $(shell ls $(2)/src/$(1)*/Makefile 2>/dev/null),,./configure \
 		--prefix=$(shell pwd)/$(2) \
 		--host=$(call GET_HOST,$(2)) &&) \
-	make; popd)
+	make $(call GET_BUILD_TOOLS,$(2))
 $(1)-$(2)-install:
-	pushd $(2)/src/$(1)* && \
-	(make install; popd)
+	cd $(2)/src/$(1)* && make install
 $(1)-$(2)-distrib:
 	@echo "$(1)-$(2)-distrib"
 $(1)-$(2)-clean:
-	pushd $(2)/src/$(1)* && \
-	(make clean; popd)
+	cd $(2)/src/$(1)* && make clean
 .PHONY: \
 	$(1)-$(2)-extract \
 	$(1)-$(2)-build \

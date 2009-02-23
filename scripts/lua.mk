@@ -1,22 +1,22 @@
 # Lua specific makefile
 
 lua-linux-extract:
-	rm -rvf linux/src/lua*; tar -xzvf common/pkg/lua*.tar.gz -C linux/src/
+	rm -rvf linux/src/lua*; tar -xzvf common/pkg/lua*.tar.gz -C linux/src/ $(call APPLY_PATCHES,lua,linux)
 
 lua-mingw-extract:
-	rm -rvf mingw/src/lua*; tar -xzvf common/pkg/lua*.tar.gz -C mingw/src/
+	rm -rvf mingw/src/lua*; tar -xzvf common/pkg/lua*.tar.gz -C mingw/src/ $(call APPLY_PATCHES,lua,mingw)
 
 lua-linux-build:
-	pushd linux/src/lua* && (make linux; popd)
+	cd linux/src/lua* && make $(call GET_BUILD_TOOLS,linux) linux
 
 lua-mingw-build:
-	pushd mingw/src/lua* && (make mingw; popd)
+	cd mingw/src/lua* && make $(call GET_BUILD_TOOLS,mingw) mingw
 
 lua-linux-install:
-	pushd linux/src/lua* && (make INSTALL_TOP="`pwd`/../.." install; popd)
+	cd linux/src/lua* && make INSTALL_TOP="`pwd`/../.." install
 
 lua-mingw-install:
-	pushd mingw/src/lua* && (make INSTALL_TOP="`pwd`/../.." install; popd)
+	cd mingw/src/lua* && make INSTALL_TOP="`pwd`/../.." install
 
 lua-linux-distrib:
 	@echo "lua-linux-distrib: nothing to do"
@@ -25,10 +25,10 @@ lua-mingw-distrib:
 	@echo "lua-mingw-distrib: nothing to do"
 
 lua-linux-clean:
-	pushd linux/src/lua* && (make clean; popd)
+	cd linux/src/lua* && make clean
 
 lua-mingw-clean:
-	pushd mingw/src/lua* && (make clean; popd)
+	cd mingw/src/lua* && make clean
 
 .PHONY: \
 	lua-linux-extract \

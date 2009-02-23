@@ -2,8 +2,10 @@
 #
 # make PLATFORM="mingw" PACKAGES="lua"
 
-PLATFORMS=linux
+PLATFORMS=linux mingw
 PACKAGES=enet argtable lua
+
+PATH+=:$(shell pwd)/mingw/usr/bin
 
 all: build install
 
