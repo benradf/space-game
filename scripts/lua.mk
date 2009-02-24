@@ -1,40 +1,48 @@
 # Lua specific makefile.
 
 lua-linux-extract:
-	rm -rvf linux/src/lua*; tar -xzvf common/pkg/lua*.tar.gz -C linux/src/ $(call APPLY_PATCHES,lua,linux)
+	@echo -e "\033[01;32m$@\033[00m"; rm -rvf linux/src/lua*; \
+	tar -xzvf common/pkg/lua*.tar.gz -C linux/src/ $(call APPLY_PATCHES,lua,linux)
 
 lua-mingw-extract:
-	rm -rvf mingw/src/lua*; tar -xzvf common/pkg/lua*.tar.gz -C mingw/src/ $(call APPLY_PATCHES,lua,mingw)
+	@echo -e "\033[01;32m$@\033[00m"; rm -rvf mingw/src/lua*; \
+	tar -xzvf common/pkg/lua*.tar.gz -C mingw/src/ $(call APPLY_PATCHES,lua,mingw)
 
 lua-linux-build:
-	cd linux/src/lua* && make $(call GET_BUILD_TOOLS,linux) linux
+	@echo -e "\033[01;31m$@\033[00m"; cd linux/src/lua* && \
+	$(MAKE) $(call GET_BUILD_TOOLS,linux) linux
 
 lua-mingw-build:
-	cd mingw/src/lua* && make $(call GET_BUILD_TOOLS,mingw) mingw
+	@echo -e "\033[01;31m$@\033[00m"; cd mingw/src/lua* && \
+	$(MAKE) $(call GET_BUILD_TOOLS,mingw) mingw
 
 lua-linux-install:
-	cd linux/src/lua* && make INSTALL_TOP="`pwd`/../.." install
+	@echo -e "\033[01;36m$@\033[00m"; cd linux/src/lua* && \
+	$(MAKE) INSTALL_TOP="`pwd`/../.." install
 
 lua-mingw-install:
-	cd mingw/src/lua* && make INSTALL_TOP="`pwd`/../.." install
+	@echo -e "\033[01;36m$@\033[00m"; cd mingw/src/lua* && \
+	$(MAKE) INSTALL_TOP="`pwd`/../.." install
 
 lua-linux-distrib:
-	@echo "lua-linux-distrib: nothing to do"
 
 lua-mingw-distrib:
-	@echo "lua-mingw-distrib: nothing to do"
 
 lua-linux-clean:
-	cd linux/src/lua* && make clean
+	@echo -e "\033[01;34m$@\033[00m"; \
+	cd linux/src/lua* && $(MAKE) clean
 
 lua-mingw-clean:
-	cd mingw/src/lua* && make clean
+	@echo -e "\033[01;34m$@\033[00m"; \
+	cd mingw/src/lua* && $(MAKE) clean
 
 lua-linux-all:
-	make lua-linux-build && make lua-linux-install
+	$(MAKE) lua-linux-build && \
+	$(MAKE) lua-linux-install
 
 lua-mingw-all:
-	make lua-mingw-build && make lua-mingw-install
+	$(MAKE) lua-mingw-build && \
+	$(MAKE) lua-mingw-install
 
 .PHONY: \
 	lua-linux-extract \
