@@ -153,3 +153,9 @@ $(foreach CPT,$(COMPONENTS), \
 	) \
 )
 
+total:
+	$(MAKE) clean
+	$(MAKE) extract
+	$(MAKE) all
+
+.PHONY: total
