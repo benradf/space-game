@@ -19,6 +19,9 @@ endif
 # Do not build these combinations.
 BLACKLIST=server-mingw
 
+# Packages and components in one list.
+COMBINED=$(PACKAGES) $(COMPONENTS)
+
 # GET_HOST(platform)
 GET_HOST=$(subst mingw,i386-mingw32,$(subst linux,$(shell uname -m)-linux,$(1)))
 
@@ -108,7 +111,7 @@ PATH+=:$(PWD)/mingw/usr/bin
 
 # Function for top level rules.
 DEF_RULE=$(eval .PHONY: $(1)) $(eval $(1): \
-	$(foreach PKG,$(PACKAGES) $(COMPONENTS),$(foreach PLT,$(PLATFORMS), \
+	$(foreach PKG,$(COMBINED),$(foreach PLT,$(PLATFORMS), \
 	$(if $(filter-out $(BLACKLIST),$(PKG)-$(PLT)),$(PKG)-$(PLT)-$(1)))))
 
 # Define top level rules.
@@ -120,8 +123,12 @@ $(call DEF_RULE,distrib)
 $(call DEF_RULE,clean)
 
 # Function for package dependencies.
-PKG_DEP=$(foreach PLT,$(PLATFORMS), \
-	$(eval $(1)-$(PLT)-all: $(2)-$(PLT)-all))
+PKG_DEP=$(foreach PLT,$(PLATFORMS),$(eval \
+	$(if $(filter-out $(BLACKLIST),$(1)-$(PLT)), \
+	$(if $(filter-out $(BLACKLIST),$(2)-$(PLT)), \
+	$(if $(filter $(addsuffix -$(PLT),$(COMBINED)),$(1)-$(PLT)), \
+	$(if $(filter $(addsuffix -$(PLT),$(COMBINED)),$(2)-$(PLT)), \
+	$(1)-$(PLT)-all: $(2)-$(PLT)-all))))))
 
 # Declare package dependencies.
 $(call PKG_DEP,server,core)
