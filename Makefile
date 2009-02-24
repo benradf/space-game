@@ -43,7 +43,8 @@ BUILD_TOOLS=CC="$(1)gcc" CXX="$(1)g++" AR="$(1)ar" RANLIB="$(1)ranlib"
 # PACKAGE_RULES(package,platform)
 define PACKAGE_RULES
 $(1)-$(2)-extract: 
-	@echo -e "\033[01;32m$$@\033[00m"; rm -rvf $(2)/src/$(1)*; \
+	@echo -e "\033[01;32m$$@\033[00m"; \
+	rm -rvf $(2)/src/$(1)*; mkdir -p $(2)/src && \
 	$(call UNPACK,$(wildcard common/pkg/$(1)*),$(2)/src) \
 	$(call APPLY_PATCHES,$(1),$(2))
 $(1)-$(2)-build:
