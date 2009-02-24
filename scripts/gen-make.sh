@@ -1,15 +1,22 @@
 #!/bin/bash
 
 # Process args.
-while getopts "p:n:i:j:l:" arg; do
+while getopts "p:n:i:j:l:h:r:" arg; do
     case $arg in
         p) path="$OPTARG" ;;
         n) linkname="$OPTARG" ;;
         i) incpath=`echo "$OPTARG" | sed 's/\([^ \t]\+\)[ \t]*/\\\\\n\t-I\1 /g'` ;;
         j) libpath=`echo "$OPTARG" | sed 's/\([^ \t]\+\)[ \t]*/\\\\\n\t-L\1 /g'` ;;
         l) libs=`echo "$OPTARG" | sed 's/\([^ \t]\+\)[ \t]*/-l\1 /g'` ;;
+        h) headers="$OPTARG" ;;
+        r) root="$OPTARG" ;;
     esac
 done
+
+if [ -z $linkname ]; then
+    echo "gen-make.sh: must use -n to specify a linkname." 1>&2
+    exit 1
+fi
 
 phony=".PHONY: all clean dist"
 islibs=`echo $linkname | sed '/^lib.*\.a$/!d'`
@@ -19,6 +26,9 @@ if [ $islibd ]; then
 fi
 if [ $path ]; then
     cd $path
+fi
+if [ -z $root ]; then
+    root=$PWD
 fi
 
 # Get list of source files.
@@ -35,14 +45,17 @@ echo
 echo "# Set variables."
 if [ $islibs ] || [ $islibd ]; then
     echo "LIB=$linkname"
+    installdir=lib
 else
     echo "BIN=$linkname"
+    installdir=bin
 fi
 echo "NAME=`echo $linkname | sed 's/^lib\(.*\).\(a\|so\)$/\1/'`"
-echo 'ROOT?=../..'
-echo 'BUILDROOT?=$(ROOT)/build'
-echo 'PLATFORM?=linux64'
-echo 'BUILDPATH=$(BUILDROOT)/$(PLATFORM)/$(NAME)'
+echo 'ROOT?='"$root"
+echo 'BUILDROOT?=$(ROOT)'
+echo 'PLATFORM?=linux'
+echo 'PREFIX=$(ROOT)/$(PLATFORM)'
+echo 'BUILDPATH=$(BUILDROOT)/$(PLATFORM)/tmp/$(NAME)'
 echo "OBJS=$sources" | sed 's/ \(\w*\)\.cpp/ \\\n\t\$(BUILDPATH)\/\1\.o/g'
 echo 'CFLAGS:=$(CFLAGS) '"$incpath"
 echo 'CXXFLAGS:=$(CXXFLAGS) '"$incpath"
@@ -63,8 +76,17 @@ echo 'clean:'
 echo '	rm $(BUILDPATH)/*'
 echo
 
-# Generate linking target.
-echo "# Link object files."
+# Generate install target.
+echo '# Install link target and headers.'
+echo 'install: $(BUILDPATH)/'"$linkname $headers"
+echo '	cp -v $(BUILDPATH)/'"$linkname"' $(PREFIX)/'"$installdir"
+if [ "$headers" ]; then 
+    echo '	cp -v '"$headers"' $(PREFIX)/include'
+fi
+echo
+
+# Generate Link target.
+echo '# Link object files.'
 if [ $islibs ]; then
     echo '$(BUILDPATH)/$(LIB): $(OBJS)'
     echo '	$(AR) cru $(BUILDPATH)/$(LIB) $(OBJS)'
@@ -100,3 +122,6 @@ done
 echo
 
 echo "$phony"
+
+exit 0
+
