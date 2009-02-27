@@ -2,52 +2,86 @@
 #include <enet/enet.h>
 #include <core.hpp>
 #include <assert.h>
-#include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/device/array.hpp>
 
 
-net::Peer::Peer(void* data)
+net::Peer::Peer(void* data) :
+    _packet(0), _peer(static_cast<ENetPeer*>(data))
 {
-
+    enet_address_get_host_ip(&_peer->address, _ip, sizeof(_ip));
 }
 
 net::Peer::~Peer()
 {
+    disconnect(true);
+}
 
+/// \brief Terminates the connection.
+/// In normal operation this function begins the disconnect process. When the
+/// disconnect is complete the Interface controlling the peer is notified by 
+/// the Interface::handleDisconnect function being called. However if the
+/// disconnect is forced no such notification is given and the caller is 
+/// responsible for freeing the Peer.
+/// \param force If set the disconnect is immediate.
+void net::Peer::disconnect(bool force)
+{
+    if (force) {
+        enet_peer_disconnect_now(_peer, 0);
+    } else {
+        enet_peer_disconnect(_peer, 0);
+    }
 }
 
 void net::Peer::sendPing(uint64_t time)
 {
-
+    packetBegin(MSG_PING);
+    packetWrite(time);
+    packetEnd();
 }
 
 void net::Peer::sendKeyExchange(uint64_t key)
 {
-    packetBegin();
+    packetBegin(MSG_KEYEXCHANGE);
     packetWrite(key);
     packetEnd();
 }
 
 void net::Peer::sendPlayerLogin(const char* username, char (&password)[16])
 {
-    packetBegin();
+    packetBegin(MSG_PLAYERLOGIN);
     packetWrite(username);
     packetWrite(password);
     packetEnd();
 }
 
-void net::Peer::packetBegin()
+const char* net::Peer::getIPAddress() const
 {
+    return _ip;
+}
+
+uint16_t net::Peer::getRemotePort() const
+{
+    return _peer->address.port;
+}
+
+void net::Peer::packetBegin(MsgType type)
+{
+    assert(_packet == 0);
     _packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
-    _packetWriter.open(static_cast<char*>(_packet->data), packet->dataLength);
+    _packetWriter.open(reinterpret_cast<char*>(_packet->data), _packet->dataLength);
+
+    assert(_packetWriter.is_open());
+
+    _packetWriter << static_cast<uint8_t>(type);
 }
 
 void net::Peer::packetEnd()
 {
     size_t size = _packetWriter.tellp();
-    assert(size <= _packet.dataLength);
+    assert(size <= _packet->dataLength);
     enet_packet_resize(_packet, size);
-    _packet.Writer.close();
+    enet_peer_send(_peer, 0, _packet);
+    _packetWriter.close();
+    _packet = 0;
 }
 
 template<typename T>
@@ -64,14 +98,14 @@ void net::Peer::packetWrite(T (&array)[N])
     assert(_packetWriter.is_open());
 
     for (int i = 0; i < N; i++) 
-        writer << array[i];
+        _packetWriter << array[i];
 }
 
 void net::Peer::packetWrite(const char* str)
 {
     assert(_packetWriter.is_open());
 
-    uint16_t len = strlen(str);
+    uint8_t len = strlen(str);
     _packetWriter << len << str;
 }
 
@@ -85,7 +119,7 @@ void net::Peer::handleKeyExchange(uint64_t key)
 
 }
 
-void net::Peer::handlePlayerLogin(const char* username, char (&password)[16])
+void net::Peer::handlePlayerLogin(const char* username, MD5Hash& password)
 {
 
 }
@@ -93,16 +127,18 @@ void net::Peer::handlePlayerLogin(const char* username, char (&password)[16])
 
 net::Interface::Interface()
 {
-    // need to do enet_initialize() outside net::Interface since we may have multiple InterfaceS
+    if ((_host = enet_host_create(0, 1, 0, 0)) == 0)
+        throw NetworkException("enet_host_create failed");
+}
 
+net::Interface::Interface(uint16_t port, uint32_t addr)
+{
     ENetAddress address;
-    address.host = ENET_HOST_ANY;
+    address.host = addr;
     address.port = 12345;
 
     if ((_host = enet_host_create(&address, 1024, 0, 0)) == 0)
         throw NetworkException("enet_host_create failed");
-
-
 }
 
 net::Interface::~Interface()
@@ -121,6 +157,7 @@ void* net::Interface::connect(const char* host, uint16_t port)
         throw NetworkException("enet_host_connect failed");
 
     _connecting.insert(peer);
+    peer->data = 0;
 
     return peer;
 }
@@ -150,39 +187,84 @@ void net::Interface::eventConnect(ENetEvent& event)
 {
     _connecting.erase(event.peer);
 
-    PeerID id = makePeerID(event.peer->address);
-    std::auto_ptr<Peer> peer = handleConnect(&event);
-    _connected.insert(std::make_pair(id, peer.get()));
-    peer.release();
+    event.peer->data = handleConnect(event.peer);
 }
 
 void net::Interface::eventReceive(ENetEvent& event)
 {
-    // TODO
+    assert(event.peer->data != 0);
+    Peer& peer = *reinterpret_cast<Peer*>(event.peer->data);
+
+    ENetPacket* packet = event.packet;
+    PacketReader reader(reinterpret_cast<char*>(
+        packet->data), packet->dataLength);
+
+    uint8_t type;
+    reader >> type;
+
+    switch (type) {
+        case MSG_PING:
+            handlePing(peer, reader);
+            break;
+        case MSG_KEYEXCHANGE:
+            handleKeyExchange(peer, reader);
+            break;
+        case MSG_PLAYERLOGIN:
+            handlePlayerLogin(peer, reader);
+            break;
+        default:
+            // TODO Reply with "unknown msg".
+            break;
+    }
+
+    enet_packet_destroy(event.packet);
 }
 
 void net::Interface::eventDisconnect(ENetEvent& event)
 {
     _connecting.erase(event.peer);
 
-    PeerID id = makePeerID(event.peer->address);
-    PeerMap::iterator iter = _connected.find(id);
-    if (iter == _connected.end()) 
-        return;
-
-    std::auto_ptr<Peer> peer(iter->second);
-    _connected.erase(iter);
-    handleDisconnect(peer);
+    if (event.peer->data != 0) 
+        handleDisconnect(reinterpret_cast<Peer*>(event.peer->data));
 }
 
-std::auto_ptr<net::Peer> net::Interface::handleConnect(void* data)
+void net::Interface::handlePing(Peer& peer, PacketReader& reader)
 {
-    return std::auto_ptr<Peer>(new Peer(data));
+    uint64_t time;
+    reader >> time;
+
+    peer.handlePing(time);
 }
 
-void net::Interface::handleDisconnect(std::auto_ptr<Peer> peer)
+void net::Interface::handleKeyExchange(Peer& peer, PacketReader& reader)
 {
-    peer.reset(0);
+    uint64_t key;
+    reader >> key;
+
+    peer.handleKeyExchange(key);
+}
+
+void net::Interface::handlePlayerLogin(Peer& peer, PacketReader& reader)
+{
+    StringBuf username;
+    readString(reader, username);
+
+    MD5Hash password;
+    reader.read(password, sizeof(password));
+
+    peer.handlePlayerLogin(username, password);
+}
+
+uint8_t net::Interface::readString(PacketReader& reader, StringBuf& buffer) const
+{
+    uint8_t len = 0;
+    reader >> len;
+
+    reader.read(buffer, len);
+    len = reader.gcount();
+    buffer[len] = 0;
+
+    return len;
 }
 
 
