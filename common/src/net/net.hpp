@@ -34,6 +34,10 @@ enum MsgType {
 };
 
 
+void initialise();
+void cleanup();
+
+
 /// \brief Base object for remote Peer.
 /// Users of this network module should derive their own peer objects from 
 /// this one. That way they can override the message handler functions this

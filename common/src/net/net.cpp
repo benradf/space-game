@@ -6,10 +6,27 @@
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
 
+
 #include "net.hpp"
 #include <core.hpp>
 #include <assert.h>
 #include <enet/enet.h>
+
+
+/// \brief Initialise network module.
+/// This function must be called before creating any Interface objects.
+void net::initialise()
+{
+    enet_initialize();
+}
+
+/// \brief Cleanup network module.
+/// This function must be called before the program terminates and after all 
+/// Interface objects have been deleted.
+void net::cleanup()
+{
+    enet_deinitialize();
+}
 
 
 /// \brief Construct peer base object.
