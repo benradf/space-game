@@ -1,20 +1,31 @@
+/// \file net.hpp
+/// \brief Network module
+/// \author Ben Radford 
+/// \date 2nd March 2009
+///
+/// Copyright (c) 2009 Ben Radford. All rights reserved.
+///
+
+
 #ifndef NET_HPP
 #define NET_HPP
 
+
+#include <memory>
 #include <stdint.h>
 #include <enet/enet.h>
-#include <tr1/unordered_map>
 #include <tr1/unordered_set>
-#include <memory>
+#include <tr1/unordered_map>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/array.hpp>
 
-#include <foreach.hpp>
-#define foreach BOOST_FOREACH
-
-typedef char MD5Hash[16];
 
 namespace net {
+
+
+typedef uint64_t PeerID;
+typedef char MD5Hash[16];
+
 
 enum MsgType {
     MSG_PING,
@@ -22,6 +33,11 @@ enum MsgType {
     MSG_PLAYERLOGIN,
 };
 
+
+/// \brief Base object for remote Peer.
+/// Users of this network module should derive their own peer objects from 
+/// this one. That way they can override the message handler functions this
+/// class provides and receive notification of the messages they care about.
 class Peer {
     public:
         Peer(void* data);
@@ -53,18 +69,19 @@ class Peer {
 
         typedef boost::iostreams::stream<boost::iostreams::array_sink> PacketWriter;
 
-        PacketWriter _packetWriter;
-        ENetPacket* _packet;
-        ENetPeer* _peer;
-        char _ip[16];
+        PacketWriter _packetWriter;  ///< Packet stream for writing new packet.
+        ENetPacket* _packet;         ///< ENet packet object to be sent.
+        ENetPeer* _peer;             ///< ENet peer object.
+        char _ip[16];                ///< Buffer for IP in dotted quad form.
 };
 
-typedef uint64_t PeerID;
-inline PeerID makePeerID(ENetAddress& address)
-{
-    return (static_cast<PeerID>(address.port) << 32) | address.host;
-}
 
+/// \brief Interface to network module.
+/// This object handles messages for existing peers and remote and local 
+/// connection requests. The Interface::doTasks function should be called 
+/// regularly. Users should derive their own network interfaces from this
+/// Interface object. This way they can receive notification of important 
+/// events by implementing the pure virtual functions this class has.
 class Interface {
     public:
         Interface();
@@ -73,7 +90,7 @@ class Interface {
 
         void* connect(const char* host, uint16_t port);
 
-        bool connectionInProgress(void* data) const;
+        bool connectionInProgress(void* handle) const;
 
         void doTasks();
         
@@ -96,11 +113,20 @@ class Interface {
 
         uint8_t readString(PacketReader& reader, StringBuf& buffer) const;
 
-        ENetHost* _host;
-        PeerSet _connecting;
+        ENetHost* _host;      ///< ENetHost object for this network interface.
+        PeerSet _connecting;  ///< Set of ENetPeerS that are connecting.
 };
 
+
+/// \return Unique ID for peer based on its address.
+inline PeerID makePeerID(ENetAddress& address)
+{
+    return (static_cast<PeerID>(address.port) << 32) | address.host;
+}
+
+
 }  // namespace net
+
 
 #endif  // NET_HPP
 
