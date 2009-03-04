@@ -11,6 +11,9 @@
 #define MESSAGES_HPP
 
 
+#include "typedefs.hpp"
+
+
 namespace msg {
 
 

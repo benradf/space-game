@@ -64,6 +64,9 @@ exec 3<>$SPEC
 exec 4<>$MSGHDR 1>&4
 file-comments "$MSGHDR" "$MSGDESC"
 open-header-guard "$MSGHDR"
+echo "#include \"typedefs.hpp\""
+echo
+echo
 echo "namespace msg {"
 echo
 echo
@@ -99,11 +102,15 @@ echo
 exec 6<>$HANDLERHDR 1>&6
 file-comments "$HANDLERHDR" "$HANDLERDESC"
 open-header-guard "$HANDLERHDR"
+echo "#include \"typedefs.hpp\""
+echo
+echo
 echo "namespace msg {"
 echo
 echo
 echo "class MessageHandler {"
 echo "    public:"
+echo "        virtual ~MessageHandler();"
 
 # Open handler source.
 exec 7<>$HANDLERSRC 1>&7
@@ -192,7 +199,6 @@ exec 1>&5 5>&-
 
 # Close handler header.
 exec 1>&6 6>&-
-echo
 echo "};"
 echo
 echo

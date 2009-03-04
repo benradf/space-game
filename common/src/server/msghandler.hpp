@@ -11,18 +11,21 @@
 #define MSGHANDLER_HPP
 
 
+#include "typedefs.hpp"
+
+
 namespace msg {
 
 
 class MessageHandler {
     public:
+        virtual ~MessageHandler();
         virtual void handleMsgUnitFar(int unit1, int unit2);
         virtual void handleMsgUnitNear(int unit1, int unit2);
         virtual void handleMsgUnitMove(int unit, int& pos);
         virtual void handleMsgUnitWarp(int unit, int& pos);
         virtual void handleMsgUnitEnter(int unit);
         virtual void handleMsgUnitLeave(int unit);
-
 };
 
 
