@@ -1,0 +1,6 @@
+MsgUnitFar(int unit1, int unit2)
+MsgUnitNear(int unit1, int unit2)
+MsgUnitMove(int unit, int& pos)
+MsgUnitWarp(int unit, int& pos)
+MsgUnitEnter(int unit)
+MsgUnitLeave(int unit)
