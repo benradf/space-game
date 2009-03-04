@@ -47,6 +47,10 @@ class Peer {
         Peer(void* data);
         virtual ~Peer();
 
+        PeerID getID() const;
+        uint16_t getRemotePort() const;
+        const char* getIPAddress() const;
+
         void disconnect(bool force = false);
 
         void sendPing(uint64_t time);
@@ -56,10 +60,6 @@ class Peer {
         virtual void handlePing(uint64_t time);
         virtual void handleKeyExchange(uint64_t key);
         virtual void handlePlayerLogin(const char* username, MD5Hash& password);
-
-    protected:
-        const char* getIPAddress() const;
-        uint16_t getRemotePort() const;
 
     private:
         void packetBegin(MsgType type);

@@ -29,6 +29,8 @@ void net::cleanup()
 }
 
 
+////////// net::Peer //////////
+
 /// \brief Construct peer base object.
 /// \param data This should be the data passed to the connect handler.
 net::Peer::Peer(void* data) :
@@ -41,6 +43,24 @@ net::Peer::Peer(void* data) :
 net::Peer::~Peer()
 {
     disconnect(true);
+}
+
+/// \return Unique identifier for peer.
+net::PeerID net::Peer::getID() const
+{
+    return makePeerID(_peer->address);
+}
+
+/// \return Port used on remote peer.
+uint16_t net::Peer::getRemotePort() const
+{
+    return _peer->address.port;
+}
+
+/// \return Remote IP address in dotted quad notation.
+const char* net::Peer::getIPAddress() const
+{
+    return _ip;
 }
 
 /// \brief Terminates the connection.
@@ -86,18 +106,6 @@ void net::Peer::sendPlayerLogin(const char* username, char (&password)[16])
     packetWrite(username);
     packetWrite(password);
     packetEnd();
-}
-
-/// \return Remote IP address in dotted quad notation.
-const char* net::Peer::getIPAddress() const
-{
-    return _ip;
-}
-
-/// \return Port used on remote peer.
-uint16_t net::Peer::getRemotePort() const
-{
-    return _peer->address.port;
 }
 
 /// \brief Indicates the beginning of a new packet.
@@ -174,6 +182,9 @@ void net::Peer::handlePlayerLogin(const char* username, MD5Hash& password)
 {
 
 }
+
+
+////////// net::Interface //////////
 
 /// \brief Construct network Interface object.
 /// This constructor is intended for "client" interfaces. These interfaces only

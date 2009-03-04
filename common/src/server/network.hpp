@@ -1,30 +1,45 @@
+/// \file network.hpp
+/// \brief Server network handler
+/// \author Ben Radford 
+/// \date 2nd March 2009
+///
+/// Copyright (c) 2009 Ben Radford. All rights reserved.
+///
+
+
 #ifndef NETWORK_HPP
 #define NETWORK_HPP
 
 
-#include <memory>
-#include <tr1/unordered_map>
-#include "concurrency.hpp"
-#include "settings.hpp"
-#include <script.hpp>
 #include <net.hpp>
-#include "scriptmodule.hpp"
+#include <tr1/unordered_map>
 
 
-class Network : public LuaObject {
+class RemoteClient : net::Peer {
     public:
-        Network(lua_State* lua);
+        RemoteClient(void* data);
+        virtual ~RemoteClient();
 
-    protected:
-        virtual ~Network();
-        
     private:
-        int luaHandleTasks(lua_State* lua);
 
-        //ENetHost* _server;
-        //std::auto_ptr<Net::Controller> _controller;
 };
 
 
+class ServerInterface : public net::Interface {
+    public:
+        ServerInterface();
+        virtual ~ServerInterface();
+
+        bool hasClient(net::PeerID id) const;
+        RemoteClient& getClient(net::PeerID id) const;
+
+    private:
+        virtual net::Peer* handleConnect(void* data);
+        virtual void handleDisconnect(net::Peer* peer);
+
+        typedef int ClientMap;
+};
+
 
 #endif  // NETWORK_HPP
+

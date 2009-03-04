@@ -205,8 +205,8 @@ int VirtualMachine::luaSendMessage(lua_State* lua)
 
 int VirtualMachine::luaInitNetwork(lua_State* lua)
 {
-    new(lua) Network(lua);
-    return 1;
+    //new(lua) Network(lua);
+    return 0;
 }
 
 void VirtualMachine::pushLuaValue(RPCQueue::LockForWrite& rpc, lua_State* lua, int index)
