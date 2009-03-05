@@ -14,32 +14,45 @@
 
 ////////// PostOffice //////////
 
-PostOffice::PostOffice()
-    //_srcs(NUMBOX)//, _dsts(NUMBOX)
+PostOffice::PostOffice() :
+    _srcsLock(_srcs[0]), _dstsLock(_dsts[0])
 {
-    Src src;
+    Log::log->info("PostOffice: message routing: startup");
 }
 
 PostOffice::~PostOffice()
 {
-
+    Log::log->info("PostOffice: message routing: shutdown");
 }
 
 Job::RetType PostOffice::run()
 {
     typedef std::auto_ptr<msg::Message> MsgPtr;
 
-    foreach (Src& src, *SrcVec::LockForWrite(_srcs)) {
-        if (src.inbox.empty()) 
-            src.inbox.transfer();
+    AutoWriteLock<Src> srcLock(_srcsLock);
+    AutoWriteLock<Dst> dstLock(_dstsLock);
 
-        while (!src.inbox.empty()) {
-            MsgPtr message(src.inbox.get());
-            foreach (Dst& dst, *DstVec::LockForWrite(_dsts)) {
-                if (message->matches(dst.subscription)) 
-                    dst.outbox.put(*message);
+    for (int i = 0; i < NUMBOX; i++) {
+        if (_srcs[i].inbox.closed()) 
+            continue;
+
+        _srcs[i].inbox.transfer();
+
+        while (!_srcs[i].inbox.empty()) {
+            MsgPtr message(_srcs[i].inbox.get());
+
+            for (int j = 0; j < NUMBOX; j++) {
+                if (message->matches(_dsts[j].subscription)) 
+                    _dsts[j].outbox.put(*message);
             }
         }
+    }
+
+    for (int i = 0; i < NUMBOX; i++) {
+        if (_dsts[i].outbox.closed()) 
+            continue;
+
+        _dsts[i].outbox.transfer();
     }
 
     return YIELD;
@@ -47,9 +60,11 @@ Job::RetType PostOffice::run()
 
 void PostOffice::registerOutbox(Outbox& outbox)
 {
-    foreach (Src& src, *SrcVec::LockForWrite(_srcs)) {
-        if (src.inbox.closed()) {
-            src.inbox.connectTo(outbox);
+    AutoWriteLock<Src> srcLock(_srcsLock);
+
+    for (int i = 0; i < NUMBOX; i++) {
+        if (_srcs[i].inbox.closed()) {
+            _srcs[i].inbox.connectTo(outbox);
             return;
         }
     }
@@ -61,10 +76,12 @@ void PostOffice::registerOutbox(Outbox& outbox)
 
 void PostOffice::registerInbox(Inbox& inbox, int subscription)
 {
-    foreach (Dst& dst, *DstVec::LockForWrite(_dsts)) {
-        if (dst.outbox.closed()) {
-            dst.outbox.connectTo(inbox);
-            dst.subscription = subscription;
+    AutoWriteLock<Dst> dstLock(_dstsLock);
+
+    for (int i = 0; i < NUMBOX; i++) {
+        if (_dsts[i].outbox.closed()) {
+            _dsts[i].outbox.connectTo(inbox);
+            _dsts[i].subscription = subscription;
             return;
         }
     }

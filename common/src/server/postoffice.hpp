@@ -41,13 +41,13 @@ class PostOffice : public Job {
             int subscription;
         };
 
-        static const int NUMBOX = 32;
+        static const int NUMBOX = 2;
 
-        typedef Lockable<Src>::Vector SrcVec;
-        typedef Lockable<Dst>::Vector DstVec;
+        Src _srcs[NUMBOX];
+        Dst _dsts[NUMBOX];
 
-        SrcVec _srcs;
-        DstVec _dsts;
+        Lock<Src> _srcsLock;
+        Lock<Dst> _dstsLock;
 };
 
 
