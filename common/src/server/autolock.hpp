@@ -44,8 +44,8 @@ class AutoReadLock {
         AutoReadLock(Lock<T>& lock);
         ~AutoReadLock();
         
-        T* operator->();
-        T& operator*();
+        const T* operator->() const;
+        const T& operator*() const;
         
     private:
         AutoReadLock(const AutoReadLock&);
@@ -82,7 +82,7 @@ struct Lockable {
             Template();
 
             struct LockForRead : public AutoReadLock<S> {
-                LockForRead(Template& obj);
+                LockForRead(const Template& obj);
             };
 
             struct LockForWrite : public AutoWriteLock<S> {
@@ -93,8 +93,8 @@ struct Lockable {
             Template(const Template&);
             Template& operator=(const Template&);
 
+            mutable Lock<S> _lock;
             S _struct;
-            Lock<S> _lock;
     };
 
     typedef Template<std::vector<T> > Vector;
@@ -124,13 +124,13 @@ inline AutoReadLock<T>::~AutoReadLock()
 }
 
 template<typename T>
-inline T* AutoReadLock<T>::operator->()
+inline const T* AutoReadLock<T>::operator->() const
 {
     return &_lock.getObject();
 }
 
 template<typename T>
-inline T& AutoReadLock<T>::operator*()
+inline const T& AutoReadLock<T>::operator*() const
 {
     return _lock.getObject();
 }
@@ -176,7 +176,7 @@ inline Lockable<T>::Template<S>::Template()
 
 template<typename T>
 template<typename S>
-inline Lockable<T>::Template<S>::LockForRead::LockForRead(Template& obj)
+inline Lockable<T>::Template<S>::LockForRead::LockForRead(const Template& obj)
     : AutoReadLock<S>(obj._lock)
 {
     

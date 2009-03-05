@@ -51,19 +51,42 @@ function close-header-guard() {
     echo
 }
 
+# Write message types.
+function write-message-types() {
+    exec 1>&4 3<&- 3<>$SPEC
+    echo "enum MsgType {"
+    MAXWIDTH="1"
+    while read MSG <&3; do
+        MSGNAME=`echo $MSG | sed 's/^\(.*\)(.*)$/\1/'`
+        MSGTYPE=`echo $MSGNAME | sed 's/^\([A-Z][a-z]*\).*$/\1/' | tr [a-z] [A-Z]`
+        if [ ${#MSGTYPE} -gt $MAXWIDTH ]; then
+            MAXWIDTH=${#MSGTYPE}
+        fi
+    done
+    FLAGVALUE="1"
+    exec 3<&- 3<>$SPEC
+    while read MSG <&3; do
+        MSGNAME=`echo $MSG | sed 's/^\(.*\)(.*)$/\1/'`
+        echo $MSGNAME | sed 's/^\([A-Z][a-z]*\).*$/\1/' | tr [a-z] [A-Z]
+    done | sort -u |
+    while read MSGTYPE; do
+        printf "    MSG_%-${MAXWIDTH}s = 0x%04x,\n" $MSGTYPE $FLAGVALUE
+        FLAGVALUE=$(($FLAGVALUE * 2))
+    done
+    echo "};"
+}
+
 # Change directory.
 cd common/src/server
 
 # Remove previously generated files.
 rm $MSGHDR $MSGSRC $HANDLERHDR $HANDLERSRC
 
-# Open specification.
-exec 3<>$SPEC
-
 # Open message header.
 exec 4<>$MSGHDR 1>&4
 file-comments "$MSGHDR" "$MSGDESC"
 open-header-guard "$MSGHDR"
+echo "#include <memory>"
 echo "#include \"typedefs.hpp\""
 echo
 echo
@@ -73,10 +96,15 @@ echo
 echo "class MessageHandler;"
 echo
 echo
+write-message-types
+echo
+echo
 echo "class Message {"
 echo "    public:"
 echo "        virtual ~Message();"
+echo "        virtual std::auto_ptr<Message> clone() const = 0;"
 echo "        virtual void dispatch(MessageHandler& handler) = 0;"
+echo "        virtual bool matches(int subscription) = 0;"
 echo
 echo "    private:"
 echo
@@ -90,6 +118,8 @@ file-comments "$MSGSRC" "$MSGDESC"
 echo "#include \"$MSGHDR\""
 echo "#include \"$HANDLERHDR\""
 echo
+echo
+echo "////////// msg::Message //////////"
 echo
 echo "msg::Message::~Message()"
 echo "{"
@@ -122,10 +152,12 @@ echo "////////// msg::MessageHandler //////////"
 echo
 
 # Write message defs.
+exec 3<&- 3<>$SPEC
 while read MSG <&3; do
     MSGNAME=`echo $MSG | sed 's/^\(.*\)(.*)$/\1/'`
     ARGLIST=`echo $MSG | sed 's/^.*(\(.*\))$/\1/'`
     ARGS=`echo $ARGLIST | sed 's/, /\n/g;s/&//g'`
+    MSGTYPE=`echo $MSGNAME | sed 's/^\([A-Z][a-z]*\).*$/\1/' | tr [a-z] [A-Z]`
 
     # Message header.
     exec 1>&4
@@ -133,7 +165,9 @@ while read MSG <&3; do
     echo "    public:"
     echo "        $MSG;"
     echo "        virtual ~$MSGNAME();"
+    echo "        virtual std::auto_ptr<Message> clone() const;"
     echo "        virtual void dispatch(MessageHandler& handler);"
+    echo "        virtual bool matches(int subscription);"
     echo
     echo "    private:"
     echo -e "$ARGS" |
@@ -158,9 +192,15 @@ while read MSG <&3; do
     echo "{"
     echo
     echo "}"
+    echo
     echo "msg::$MSGNAME::~$MSGNAME()"
     echo "{"
     echo
+    echo "}"
+    echo
+    echo "std::auto_ptr<msg::Message> msg::$MSGNAME::clone() const"
+    echo "{"
+    echo "    return std::auto_ptr<Message>(new $MSGNAME(*this));"
     echo "}"
     echo
     echo "void msg::$MSGNAME::dispatch(MessageHandler& handler)"
@@ -170,6 +210,11 @@ while read MSG <&3; do
         echo -n $ARG | sed 's/^\(.*\) \(.*\)$/_\2, /'
     done | sed 's/\(.*\), $/\1/'
     echo ");"
+    echo "}"
+    echo
+    echo "bool msg::$MSGNAME::matches(int subscription)"
+    echo "{"
+    echo "    return ((subscription & MSG_$MSGTYPE) != 0);"
     echo "}"
     echo
     echo

@@ -86,7 +86,7 @@ void VirtualMachine::removeInstance(Instance::ID id)
 VirtualMachine* VirtualMachine::localLookup(Instance::ID id)
 {
     AutoReadLock<InstanceToVM> instances(_instanceToVMLock);
-    InstanceToVM::iterator pos = instances->find(id);
+    InstanceToVM::const_iterator pos = instances->find(id);
 
     if (pos != instances->end()) 
         return pos->second;

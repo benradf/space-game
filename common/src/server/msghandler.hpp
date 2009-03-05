@@ -1,7 +1,7 @@
 /// \file msghandler.hpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 4th March 2009
+/// \date 5th March 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -20,12 +20,12 @@ namespace msg {
 class MessageHandler {
     public:
         virtual ~MessageHandler();
-        virtual void handleMsgUnitFar(int unit1, int unit2);
-        virtual void handleMsgUnitNear(int unit1, int unit2);
-        virtual void handleMsgUnitMove(int unit, int& pos);
-        virtual void handleMsgUnitWarp(int unit, int& pos);
-        virtual void handleMsgUnitEnter(int unit);
-        virtual void handleMsgUnitLeave(int unit);
+        virtual void handleUnitFar(int unit1, int unit2);
+        virtual void handleUnitNear(int unit1, int unit2);
+        virtual void handleUnitMove(int unit, int& pos);
+        virtual void handleUnitWarp(int unit, int& pos);
+        virtual void handleUnitEnter(int unit);
+        virtual void handleUnitLeave(int unit);
 };
 
 

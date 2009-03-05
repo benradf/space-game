@@ -39,6 +39,7 @@ class Lock {
         bool roLocked() const;
         
         T& getObject();
+        const T& getObject() const;
         
     protected:
         
@@ -220,6 +221,14 @@ inline bool Lock<T>::roLocked() const
 /// \return The object.
 template<typename T>
 inline T& Lock<T>::getObject()
+{
+    return _object;
+}
+
+/// Used to access the object guarded by this lock.
+/// \return The object.
+template<typename T>
+inline const T& Lock<T>::getObject() const
 {
     return _object;
 }

@@ -1,7 +1,7 @@
 /// \file messages.hpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 4th March 2009
+/// \date 5th March 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -11,6 +11,7 @@
 #define MESSAGES_HPP
 
 
+#include <memory>
 #include "typedefs.hpp"
 
 
@@ -20,33 +21,30 @@ namespace msg {
 class MessageHandler;
 
 
+enum MsgType {
+    MSG_UNIT = 0x0001,
+};
+
+
 class Message {
     public:
         virtual ~Message();
+        virtual std::auto_ptr<Message> clone() const = 0;
         virtual void dispatch(MessageHandler& handler) = 0;
+        virtual bool matches(int subscription) = 0;
 
     private:
 
 };
 
 
-class MsgUnitFar : public Message {
+class UnitFar : public Message {
     public:
-        MsgUnitFar(int unit1, int unit2);
-        virtual ~MsgUnitFar();
+        UnitFar(int unit1, int unit2);
+        virtual ~UnitFar();
+        virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
-
-    private:
-        int _unit1;
-        int _unit2;
-};
-
-
-class MsgUnitNear : public Message {
-    public:
-        MsgUnitNear(int unit1, int unit2);
-        virtual ~MsgUnitNear();
-        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
 
     private:
         int _unit1;
@@ -54,11 +52,27 @@ class MsgUnitNear : public Message {
 };
 
 
-class MsgUnitMove : public Message {
+class UnitNear : public Message {
     public:
-        MsgUnitMove(int unit, int& pos);
-        virtual ~MsgUnitMove();
+        UnitNear(int unit1, int unit2);
+        virtual ~UnitNear();
+        virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        int _unit1;
+        int _unit2;
+};
+
+
+class UnitMove : public Message {
+    public:
+        UnitMove(int unit, int& pos);
+        virtual ~UnitMove();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
 
     private:
         int _unit;
@@ -66,11 +80,13 @@ class MsgUnitMove : public Message {
 };
 
 
-class MsgUnitWarp : public Message {
+class UnitWarp : public Message {
     public:
-        MsgUnitWarp(int unit, int& pos);
-        virtual ~MsgUnitWarp();
+        UnitWarp(int unit, int& pos);
+        virtual ~UnitWarp();
+        virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
 
     private:
         int _unit;
@@ -78,22 +94,26 @@ class MsgUnitWarp : public Message {
 };
 
 
-class MsgUnitEnter : public Message {
+class UnitEnter : public Message {
     public:
-        MsgUnitEnter(int unit);
-        virtual ~MsgUnitEnter();
+        UnitEnter(int unit);
+        virtual ~UnitEnter();
+        virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
 
     private:
         int _unit;
 };
 
 
-class MsgUnitLeave : public Message {
+class UnitLeave : public Message {
     public:
-        MsgUnitLeave(int unit);
-        virtual ~MsgUnitLeave();
+        UnitLeave(int unit);
+        virtual ~UnitLeave();
+        virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
 
     private:
         int _unit;

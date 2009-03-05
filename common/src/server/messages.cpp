@@ -1,7 +1,7 @@
 /// \file messages.cpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 4th March 2009
+/// \date 5th March 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -11,117 +11,185 @@
 #include "msghandler.hpp"
 
 
+////////// msg::Message //////////
+
 msg::Message::~Message()
 {
 
 }
 
 
-////////// msg::MsgUnitFar //////////
+////////// msg::UnitFar //////////
 
-msg::MsgUnitFar::MsgUnitFar(int unit1, int unit2) :
+msg::UnitFar::UnitFar(int unit1, int unit2) :
     _unit1(unit1), _unit2(unit2)
 {
 
 }
-msg::MsgUnitFar::~MsgUnitFar()
+
+msg::UnitFar::~UnitFar()
 {
 
 }
 
-void msg::MsgUnitFar::dispatch(MessageHandler& handler)
+std::auto_ptr<msg::Message> msg::UnitFar::clone() const
 {
-    handler.handleMsgUnitFar(_unit1, _unit2);
+    return std::auto_ptr<Message>(new UnitFar(*this));
+}
+
+void msg::UnitFar::dispatch(MessageHandler& handler)
+{
+    handler.handleUnitFar(_unit1, _unit2);
+}
+
+bool msg::UnitFar::matches(int subscription)
+{
+    return ((subscription & MSG_UNIT) != 0);
 }
 
 
-////////// msg::MsgUnitNear //////////
+////////// msg::UnitNear //////////
 
-msg::MsgUnitNear::MsgUnitNear(int unit1, int unit2) :
+msg::UnitNear::UnitNear(int unit1, int unit2) :
     _unit1(unit1), _unit2(unit2)
 {
 
 }
-msg::MsgUnitNear::~MsgUnitNear()
+
+msg::UnitNear::~UnitNear()
 {
 
 }
 
-void msg::MsgUnitNear::dispatch(MessageHandler& handler)
+std::auto_ptr<msg::Message> msg::UnitNear::clone() const
 {
-    handler.handleMsgUnitNear(_unit1, _unit2);
+    return std::auto_ptr<Message>(new UnitNear(*this));
+}
+
+void msg::UnitNear::dispatch(MessageHandler& handler)
+{
+    handler.handleUnitNear(_unit1, _unit2);
+}
+
+bool msg::UnitNear::matches(int subscription)
+{
+    return ((subscription & MSG_UNIT) != 0);
 }
 
 
-////////// msg::MsgUnitMove //////////
+////////// msg::UnitMove //////////
 
-msg::MsgUnitMove::MsgUnitMove(int unit, int& pos) :
+msg::UnitMove::UnitMove(int unit, int& pos) :
     _unit(unit), _pos(pos)
 {
 
 }
-msg::MsgUnitMove::~MsgUnitMove()
+
+msg::UnitMove::~UnitMove()
 {
 
 }
 
-void msg::MsgUnitMove::dispatch(MessageHandler& handler)
+std::auto_ptr<msg::Message> msg::UnitMove::clone() const
 {
-    handler.handleMsgUnitMove(_unit, _pos);
+    return std::auto_ptr<Message>(new UnitMove(*this));
+}
+
+void msg::UnitMove::dispatch(MessageHandler& handler)
+{
+    handler.handleUnitMove(_unit, _pos);
+}
+
+bool msg::UnitMove::matches(int subscription)
+{
+    return ((subscription & MSG_UNIT) != 0);
 }
 
 
-////////// msg::MsgUnitWarp //////////
+////////// msg::UnitWarp //////////
 
-msg::MsgUnitWarp::MsgUnitWarp(int unit, int& pos) :
+msg::UnitWarp::UnitWarp(int unit, int& pos) :
     _unit(unit), _pos(pos)
 {
 
 }
-msg::MsgUnitWarp::~MsgUnitWarp()
+
+msg::UnitWarp::~UnitWarp()
 {
 
 }
 
-void msg::MsgUnitWarp::dispatch(MessageHandler& handler)
+std::auto_ptr<msg::Message> msg::UnitWarp::clone() const
 {
-    handler.handleMsgUnitWarp(_unit, _pos);
+    return std::auto_ptr<Message>(new UnitWarp(*this));
+}
+
+void msg::UnitWarp::dispatch(MessageHandler& handler)
+{
+    handler.handleUnitWarp(_unit, _pos);
+}
+
+bool msg::UnitWarp::matches(int subscription)
+{
+    return ((subscription & MSG_UNIT) != 0);
 }
 
 
-////////// msg::MsgUnitEnter //////////
+////////// msg::UnitEnter //////////
 
-msg::MsgUnitEnter::MsgUnitEnter(int unit) :
+msg::UnitEnter::UnitEnter(int unit) :
     _unit(unit)
 {
 
 }
-msg::MsgUnitEnter::~MsgUnitEnter()
+
+msg::UnitEnter::~UnitEnter()
 {
 
 }
 
-void msg::MsgUnitEnter::dispatch(MessageHandler& handler)
+std::auto_ptr<msg::Message> msg::UnitEnter::clone() const
 {
-    handler.handleMsgUnitEnter(_unit);
+    return std::auto_ptr<Message>(new UnitEnter(*this));
+}
+
+void msg::UnitEnter::dispatch(MessageHandler& handler)
+{
+    handler.handleUnitEnter(_unit);
+}
+
+bool msg::UnitEnter::matches(int subscription)
+{
+    return ((subscription & MSG_UNIT) != 0);
 }
 
 
-////////// msg::MsgUnitLeave //////////
+////////// msg::UnitLeave //////////
 
-msg::MsgUnitLeave::MsgUnitLeave(int unit) :
+msg::UnitLeave::UnitLeave(int unit) :
     _unit(unit)
 {
 
 }
-msg::MsgUnitLeave::~MsgUnitLeave()
+
+msg::UnitLeave::~UnitLeave()
 {
 
 }
 
-void msg::MsgUnitLeave::dispatch(MessageHandler& handler)
+std::auto_ptr<msg::Message> msg::UnitLeave::clone() const
 {
-    handler.handleMsgUnitLeave(_unit);
+    return std::auto_ptr<Message>(new UnitLeave(*this));
+}
+
+void msg::UnitLeave::dispatch(MessageHandler& handler)
+{
+    handler.handleUnitLeave(_unit);
+}
+
+bool msg::UnitLeave::matches(int subscription)
+{
+    return ((subscription & MSG_UNIT) != 0);
 }
 
 
