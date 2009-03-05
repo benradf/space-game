@@ -1,5 +1,5 @@
 /// \file fifo.hpp
-/// Generic FIFO queue.
+/// \brief Generic FIFO queue.
 /// \author Ben Radford 
 /// \date 5th March 2009
 ///

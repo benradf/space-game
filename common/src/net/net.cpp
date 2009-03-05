@@ -13,14 +13,14 @@
 #include <enet/enet.h>
 
 
-/// \brief Initialise network module.
+/// Initialise network module.
 /// This function must be called before creating any Interface objects.
 void net::initialise()
 {
     enet_initialize();
 }
 
-/// \brief Cleanup network module.
+/// Cleanup network module.
 /// This function must be called before the program terminates and after all 
 /// Interface objects have been deleted.
 void net::cleanup()
@@ -31,7 +31,7 @@ void net::cleanup()
 
 ////////// net::Peer //////////
 
-/// \brief Construct peer base object.
+/// Construct peer base object.
 /// \param data This should be the data passed to the connect handler.
 net::Peer::Peer(void* data) :
     _packet(0), _peer(static_cast<ENetPeer*>(data))
@@ -39,7 +39,7 @@ net::Peer::Peer(void* data) :
     enet_address_get_host_ip(&_peer->address, _ip, sizeof(_ip));
 }
 
-/// \brief Clean up peer base object.
+/// Clean up peer base object.
 net::Peer::~Peer()
 {
     disconnect(true);
@@ -63,7 +63,7 @@ const char* net::Peer::getIPAddress() const
     return _ip;
 }
 
-/// \brief Terminates the connection.
+/// Terminates the connection.
 /// In normal operation this function begins the disconnect process. When the
 /// disconnect is complete the Interface controlling the peer is notified by 
 /// the Interface::handleDisconnect function being called. However if the
@@ -79,7 +79,7 @@ void net::Peer::disconnect(bool force)
     }
 }
 
-/// \brief Send a ping message.
+/// Send a ping message.
 /// \param time Time to include with ping.
 void net::Peer::sendPing(uint64_t time)
 {
@@ -88,7 +88,7 @@ void net::Peer::sendPing(uint64_t time)
     packetEnd();
 }
 
-/// \brief Send our encryption key to remote peer.
+/// Send our encryption key to remote peer.
 /// \param key Encryption key to send.
 void net::Peer::sendKeyExchange(uint64_t key)
 {
@@ -97,7 +97,7 @@ void net::Peer::sendKeyExchange(uint64_t key)
     packetEnd();
 }
 
-/// \brief Initiate a player login with remote server.
+/// Initiate a player login with remote server.
 /// \param username Username of player logging in.
 /// \param password Hash of player password.
 void net::Peer::sendPlayerLogin(const char* username, char (&password)[16])
@@ -108,7 +108,7 @@ void net::Peer::sendPlayerLogin(const char* username, char (&password)[16])
     packetEnd();
 }
 
-/// \brief Indicates the beginning of a new packet.
+/// Indicates the beginning of a new packet.
 /// After calling this, the Peer::packetWrite functions may be called to write 
 /// the actual contents of the message.
 /// \param type Type of message to begin.
@@ -123,7 +123,7 @@ void net::Peer::packetBegin(MsgType type)
     _packetWriter << static_cast<uint8_t>(type);
 }
 
-/// \brief Finalise and then transmit packet.
+/// Finalise and then transmit packet.
 void net::Peer::packetEnd()
 {
     size_t size = _packetWriter.tellp();
@@ -134,7 +134,7 @@ void net::Peer::packetEnd()
     _packet = 0;
 }
 
-/// \brief Write a generic value to packet.
+/// Write a generic value to packet.
 /// \param value Value to write.
 template<typename T>
 void net::Peer::packetWrite(T value)
@@ -144,7 +144,7 @@ void net::Peer::packetWrite(T value)
     _packetWriter << value;
 }
 
-/// \brief Write an array to packet.
+/// Write an array to packet.
 /// \param array Array to write.
 template<typename T, int N>
 void net::Peer::packetWrite(T (&array)[N])
@@ -155,7 +155,7 @@ void net::Peer::packetWrite(T (&array)[N])
         _packetWriter << array[i];
 }
 
-/// \brief Write a null terminated string.
+/// Write a null terminated string.
 /// \param str String to write to packet.
 void net::Peer::packetWrite(const char* str)
 {
@@ -165,19 +165,19 @@ void net::Peer::packetWrite(const char* str)
     _packetWriter << len << str;
 }
 
-/// \brief Default handler.
+/// Default handler.
 void net::Peer::handlePing(uint64_t time)
 {
 
 }
 
-/// \brief Default handler.
+/// Default handler.
 void net::Peer::handleKeyExchange(uint64_t key)
 {
 
 }
 
-/// \brief Default handler.
+/// Default handler.
 void net::Peer::handlePlayerLogin(const char* username, MD5Hash& password)
 {
 
@@ -186,7 +186,7 @@ void net::Peer::handlePlayerLogin(const char* username, MD5Hash& password)
 
 ////////// net::Interface //////////
 
-/// \brief Construct network Interface object.
+/// Construct network Interface object.
 /// This constructor is intended for "client" interfaces. These interfaces only
 /// need to connect to remote peers, not listen for connections themselves.
 net::Interface::Interface()
@@ -195,7 +195,7 @@ net::Interface::Interface()
         throw NetworkException("enet_host_create failed");
 }
 
-/// \brief Construct network Interface object to listen on specified address.
+/// Construct network Interface object to listen on specified address.
 /// This constructor should be used by "server" interfaces that need to listen
 /// and accept remote connections.
 /// \param port Local port to listen on.
@@ -210,13 +210,13 @@ net::Interface::Interface(uint16_t port, uint32_t addr)
         throw NetworkException("enet_host_create failed");
 }
 
-/// \brief Cleanup network Interface object.
+/// Cleanup network Interface object.
 net::Interface::~Interface()
 {
     enet_host_destroy(_host);
 }
 
-/// \brief Initiate a remote connection on this Interface.
+/// Initiate a remote connection on this Interface.
 /// This function returns immediately. When the connection is successfully
 /// established the Interface::handleConnect function will be called. While the
 /// connection is still being negotiated the Interface::connectionInProgress
@@ -249,7 +249,7 @@ bool net::Interface::connectionInProgress(void* handle) const
     return (_connecting.find(handle) != _connecting.end());
 }
 
-/// \brief Process incoming/outgoing messages and handle connection requests.
+/// Process incoming/outgoing messages and handle connection requests.
 void net::Interface::doTasks()
 {
     ENetEvent event;
@@ -266,7 +266,7 @@ void net::Interface::doTasks()
     }
 }
 
-/// \brief Process an ENet connect event.
+/// Process an ENet connect event.
 /// \param event ENet event object.
 void net::Interface::eventConnect(ENetEvent& event)
 {
@@ -275,7 +275,7 @@ void net::Interface::eventConnect(ENetEvent& event)
     event.peer->data = handleConnect(event.peer);
 }
 
-/// \brief Process an ENet receive event.
+/// Process an ENet receive event.
 /// \param event ENet event object.
 void net::Interface::eventReceive(ENetEvent& event)
 {
@@ -307,7 +307,7 @@ void net::Interface::eventReceive(ENetEvent& event)
     enet_packet_destroy(event.packet);
 }
 
-/// \brief Process an ENet disconnect event.
+/// Process an ENet disconnect event.
 /// \param event ENet event object.
 void net::Interface::eventDisconnect(ENetEvent& event)
 {
@@ -317,7 +317,7 @@ void net::Interface::eventDisconnect(ENetEvent& event)
         handleDisconnect(reinterpret_cast<Peer*>(event.peer->data));
 }
 
-/// \brief Deserialise Ping message.
+/// Deserialise Ping message.
 /// \param peer Remote peer message was received from.
 /// \param reader Packet stream to read from.
 void net::Interface::handlePing(Peer& peer, PacketReader& reader)
@@ -328,7 +328,7 @@ void net::Interface::handlePing(Peer& peer, PacketReader& reader)
     peer.handlePing(time);
 }
 
-/// \brief Deserialise KeyExchange message.
+/// Deserialise KeyExchange message.
 /// \param peer Remote peer message was received from.
 /// \param reader Packet stream to read from.
 void net::Interface::handleKeyExchange(Peer& peer, PacketReader& reader)
@@ -339,7 +339,7 @@ void net::Interface::handleKeyExchange(Peer& peer, PacketReader& reader)
     peer.handleKeyExchange(key);
 }
 
-/// \brief Deserialise PlayerLogin message.
+/// Deserialise PlayerLogin message.
 /// \param peer Remote peer message was received from.
 /// \param reader Packet stream to read from.
 void net::Interface::handlePlayerLogin(Peer& peer, PacketReader& reader)
@@ -353,7 +353,7 @@ void net::Interface::handlePlayerLogin(Peer& peer, PacketReader& reader)
     peer.handlePlayerLogin(username, password);
 }
 
-/// \brief Read a null terminated string.
+/// Read a null terminated string.
 /// \param reader Packet stream to read from.
 /// \param buffer Buffer to read string into.
 /// \return Length of string.

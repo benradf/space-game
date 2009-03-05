@@ -38,7 +38,7 @@ void initialise();
 void cleanup();
 
 
-/// \brief Base object for remote Peer.
+/// Base object for remote Peer.
 /// Users of this network module should derive their own peer objects from 
 /// this one. That way they can override the message handler functions this
 /// class provides and receive notification of the messages they care about.
@@ -80,7 +80,7 @@ class Peer {
 };
 
 
-/// \brief Interface to network module.
+/// Interface to network module.
 /// This object handles messages for existing peers and remote and local 
 /// connection requests. The Interface::doTasks function should be called 
 /// regularly. Users should derive their own network interfaces from this
