@@ -22,9 +22,16 @@ template<typename T> class Put;
 template<typename T> class Get;
 
 
-static const int FIFOSIZE = 10;
+static const int FIFOSIZE = 10;  ///< Space to reserve on each end of FIFO.
 
 
+/// \brief Writable end of a FIFO pipe.
+/// Each end of a FIFO pipe exists independently of the other. This allows 
+/// separate ownership and lifetimes. An actual FIFO pipe is formed by 
+/// connecting a fifo::Put and a fifo::Get together (see Put::connectTo). When 
+/// one end of an established FIFO pipe is destroyed the pipe is automatically 
+/// broken and all objects in transit are deleted. The remaining end may be 
+/// reused as part of another FIFO pipe.
 template<typename T>
 class Put {
     public:
@@ -35,7 +42,7 @@ class Put {
 
         void clear();
         void transfer();
-        void put(T& value);
+        void put(T& object);
         void connectTo(Get<T>& get);
         bool closed() const;
         bool empty() const;
@@ -46,12 +53,19 @@ class Put {
         typedef typename Lockable<T*>::Vector Vector;
         typedef typename Vector::LockForWrite AutoLock;
 
-        Get<T>* _get;
-        Vector _vec;
+        Get<T>* _get;  ///< Pointer to other end of pipe.
+        Vector _vec;   ///< Holds objects written to pipe.
 
 };
 
 
+/// \brief Readable end of a FIFO pipe.
+/// Each end of a FIFO pipe exists independently of the other. This allows 
+/// separate ownership and lifetimes. An actual FIFO pipe is formed by 
+/// connecting a fifo::Put and a fifo::Get together (see Get::connectTo). When 
+/// one end of an established FIFO pipe is destroyed the pipe is automatically 
+/// broken and all objects in transit are deleted. The remaining end may be 
+/// reused as part of another FIFO pipe.
 template<typename T>
 class Get {
     public:
@@ -73,9 +87,9 @@ class Get {
         typedef typename Lockable<T*>::Vector Vector;
         typedef typename Vector::LockForWrite AutoLock;
 
-        Put<T>* _put;
-        Vector _vec;
-        int _index;
+        Put<T>* _put;  ///< Pointer to other end of pipe.
+        Vector _vec;   ///< Holds objects to be read from pipe.
+        int _index;    ///< Index of next object to be read.
 
 };
 
