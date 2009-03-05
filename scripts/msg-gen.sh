@@ -150,6 +150,11 @@ echo
 echo
 echo "////////// msg::MessageHandler //////////"
 echo
+echo "msg::MessageHandler::~MessageHandler()"
+echo "{"
+echo
+echo "}"
+echo
 
 # Write message defs.
 exec 3<&- 3<>$SPEC
