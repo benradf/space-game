@@ -44,7 +44,7 @@ class Put {
 
         void clear();
         void transfer();
-        void put(T& object);
+        void put(const T& object);
         void connectTo(Get<T>& get);
         bool closed() const;
         bool empty() const;
@@ -52,12 +52,14 @@ class Put {
     private:
         void disconnect();
 
+        typedef AutoWriteLock<Put> HalfLockFIFO;
         typedef typename Lockable<T*>::Vector Vector;
-        typedef typename Vector::LockForRead AutoReadLock;
-        typedef typename Vector::LockForWrite AutoWriteLock;
+        typedef typename Vector::LockForRead ReadLock;
+        typedef typename Vector::LockForWrite WriteLock;
 
-        Get<T>* _get;  ///< Pointer to other end of pipe.
-        Vector _vec;   ///< Holds objects written to pipe.
+        Lock<Put> _lock;  ///< Lock for this half of pipe.
+        Get<T>* _get;     ///< Pointer to other end of pipe.
+        Vector _vec;      ///< Holds objects written to pipe.
 
 };
 
@@ -85,16 +87,31 @@ class Get {
         bool empty() const;
 
     private:
-        void disconnect();
+        void transfer(bool referred);
+        void disconnect(bool referred);
 
+        typedef AutoWriteLock<Get> HalfLockFIFO;
         typedef typename Lockable<T*>::Vector Vector;
-        typedef typename Vector::LockForRead AutoReadLock;
-        typedef typename Vector::LockForWrite AutoWriteLock;
+        typedef typename Vector::LockForRead ReadLock;
+        typedef typename Vector::LockForWrite WriteLock;
 
-        Put<T>* _put;  ///< Pointer to other end of pipe.
-        Vector _vec;   ///< Holds objects to be read from pipe.
-        int _index;    ///< Index of next object to be read.
+        Lock<Get> _lock;  ///< Lock for this half of pipe.
+        Put<T>* _put;     ///< Pointer to other end of pipe.
+        Vector _vec;      ///< Holds objects to be read from pipe.
+        int _index;       ///< Index of next object to be read.
 
+        class LockFIFO {
+            public:
+                LockFIFO(Get* get, bool bothEnds);
+                ~LockFIFO();
+                
+                bool halfLocked() const;
+
+            private:
+                bool _bothEnds;
+                Get<T>* _get;
+                Put<T>* _put;
+        };
 };
 
 
@@ -106,9 +123,9 @@ class Get {
 /// Create the writable end of a FIFO pipe.
 template<typename T>
 fifo::Put<T>::Put() :
-    _get(0)
+    _get(0), _lock(*this)
 {
-    AutoWriteLock(_vec)->reserve(FIFOSIZE);
+    WriteLock(_vec)->reserve(FIFOSIZE);
 }
 
 /// Destroy the writable end of a FIFO pipe.
@@ -122,22 +139,23 @@ fifo::Put<T>::~Put()
 template<typename T>
 void fifo::Put<T>::clear()
 {
-    foreach (T*& p, *AutoWriteLock(_vec)) {
+    WriteLock vec(_vec);
+
+    foreach (T*& p, *vec)
         delete p;
-        p = 0;
-    }
+
+    vec->clear();
 }
 
 /// Transfer objects to other end of FIFO pipe.
-/// Note that this function does nothing if the readable end of the pipe has
-/// objects still waiting to be read.
+/// This function simply locks this end of the pipe and invokes the transfer 
+/// function on the get side.
 template<typename T>
 void fifo::Put<T>::transfer()
 {
-    assert(!closed());
-    assert(_get->_put == this);
-
-    _get->transfer();
+    HalfLockFIFO lock(_lock);
+    if (_get != 0) 
+        _get->transfer(true);
 }
 
 /// Puts an object into the FIFO pipe.
@@ -146,11 +164,13 @@ void fifo::Put<T>::transfer()
 /// to the transfer function (on either end).
 /// \param object The object to put into the pipe.
 template<typename T>
-void fifo::Put<T>::put(T& object)
+void fifo::Put<T>::put(const T& object)
 {
-    assert(!closed());
+    if (closed()) 
+        return;
+
     std::auto_ptr<T> p(object.clone());
-    AutoWriteLock(_vec)->push_back(p.get());
+    WriteLock(_vec)->push_back(p.get());
     p.release();
 }
 
@@ -175,17 +195,18 @@ inline bool fifo::Put<T>::closed() const
 template<typename T>
 inline bool fifo::Put<T>::empty() const
 {
-    return AutoReadLock(_vec)->empty();
+    return WriteLock(_vec)->empty();
 }
 
 /// Disconnect FIFO pipe and free any objects that are in transit.
+/// This function simply locks this end of the pipe and invokes the disconnect
+/// function on the get side.
 template<typename T>
 void fifo::Put<T>::disconnect()
 {
-    assert((_get == 0) || (_get->_put == this));
-
+    HalfLockFIFO lock(_lock);
     if (_get != 0) 
-        _get->disconnect();
+        _get->disconnect(true);
 }
 
 
@@ -194,41 +215,36 @@ void fifo::Put<T>::disconnect()
 /// Create the readable end of a FIFO pipe.
 template<typename T>
 fifo::Get<T>::Get() :
-    _put(0), _index(0)
+    _put(0), _index(0), _lock(*this)
 {
-    AutoWriteLock(_vec)->reserve(FIFOSIZE);
+    WriteLock(_vec)->reserve(FIFOSIZE);
 }
 
 /// Destroy the readable end of a FIFO pipe.
 template<typename T>
 fifo::Get<T>::~Get()
 {
-    disconnect();
+    disconnect(false);
 }
 
 /// Delete all objects waiting to be read from FIFO pipe.
 template<typename T>
 void fifo::Get<T>::clear()
 {
-    foreach (T*& p, *AutoWriteLock(_vec)) {
+    WriteLock vec(_vec);
+
+    foreach (T*& p, *vec)
         delete p;
-        p = 0;
-    }
+
+    vec->clear();
+    _index = 0;
 }
 
 /// Transfer objects from other end of FIFO pipe.
-/// Note that this function does nothing if the readable end of the pipe has
-/// objects still waiting to be read.
 template<typename T>
 void fifo::Get<T>::transfer()
 {
-    assert(_put != 0);
-    assert(_put->_get == this);
-
-    if (!empty()) 
-        return;
-
-    AutoWriteLock(_put->_vec)->swap(*AutoWriteLock(_vec));
+    transfer(false);
 }
 
 /// Gets an object from the FIFO pipe.
@@ -242,7 +258,7 @@ std::auto_ptr<T> fifo::Get<T>::get()
 {
     assert(!empty());
 
-    AutoWriteLock vec(_vec);
+    WriteLock vec(_vec);
 
     std::auto_ptr<T> p((*vec)[_index]);
     (*vec)[_index++] = 0;
@@ -257,9 +273,13 @@ std::auto_ptr<T> fifo::Get<T>::get()
 template<typename T>
 void fifo::Get<T>::connectTo(Put<T>& put)
 {
-    disconnect();
+    disconnect(false);
     put.disconnect();
     
+    // This is not thread safe: fix it!
+    //Get<T>::HalfLockFIFO getLock(_lock);
+    //Put<T>::HalfLockFIFO putLock(put._lock);
+
     _put = &put;
     put._get = this;
 }
@@ -275,23 +295,84 @@ inline bool fifo::Get<T>::closed() const
 template<typename T>
 inline bool fifo::Get<T>::empty() const
 {
-    return (_index == AutoReadLock(_vec)->size());
+    return (_index == ReadLock(_vec)->size());
 }
 
-/// Disconnect FIFO pipe and free any objects that are in transit.
+/// Transfer objects from other end of FIFO pipe.
+/// Note that this function does nothing if the readable end of the pipe has
+/// objects still waiting to be read. The referred parameter is provided for 
+/// when this function is invoked from the Put end. When that happens the Put
+/// end will already be locked so it should not be locked again.
+/// \param referred Whether the Put end should be locked.
 template<typename T>
-void fifo::Get<T>::disconnect()
+void fifo::Get<T>::transfer(bool referred)
 {
-    assert((_put == 0) || (_put->_get == this));
+    LockFIFO lock(this, !referred);
+
+    if (lock.halfLocked() || !empty())
+        return;
 
     clear();
 
-    if (_put != 0) {
-        _put->clear();
+    WriteLock(_put->_vec)->swap(*WriteLock(_vec));
+}
+
+/// Disconnect FIFO pipe and free any objects that are in transit.
+/// This function needs to lock both ends of the pipe in order to perform the
+/// disconnect. However, if it is invoked from an already locked Put end it 
+/// should not attempt to lock that end again. The referred parameter is 
+/// provided for this purpose.
+/// \param referred Whether the Put end should be locked.
+template<typename T>
+void fifo::Get<T>::disconnect(bool referred)
+{
+    LockFIFO lock(this, !referred);
+
+    if (!lock.halfLocked()) {
         _put->_get = 0;
+        _put->clear();
     }
 
     _put = 0;
+    clear();
+}
+
+
+////////// fifo::Get::LockFIFO //////////
+
+template<typename T>
+fifo::Get<T>::LockFIFO::LockFIFO(Get* get, bool bothEnds) :
+    _get(get), _put(0), _bothEnds(bothEnds)
+{
+    assert(_get != 0);
+
+    while (true) {
+        _get->_lock.rwWaitLock();
+
+        _put = _get->_put;
+
+        assert((_get->_put == 0) || (_get->_put->_get == _get));
+
+        if (!_bothEnds || (_put == 0) || _put->_lock.rwTryLock())
+            return;
+
+        _get->_lock.rwUnlock();
+    }
+}
+
+template<typename T>
+fifo::Get<T>::LockFIFO::~LockFIFO()
+{
+    if (_bothEnds && (_put != 0))
+        _put->_lock.rwUnlock();
+
+    _get->_lock.rwUnlock();
+}
+
+template<typename T>
+bool fifo::Get<T>::LockFIFO::halfLocked() const
+{
+    return (_put == 0);
 }
 
 
