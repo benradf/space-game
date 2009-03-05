@@ -2,7 +2,7 @@
 #define TYPEDEFS_HPP
 
 
-
+#include <string>
 
 
 
