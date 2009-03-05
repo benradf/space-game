@@ -29,13 +29,13 @@ Job::RetType PostOffice::run()
 {
     typedef std::auto_ptr<msg::Message> MsgPtr;
 
-    foreach (Src& src, _srcs) {
+    foreach (Src& src, *SrcVec::LockForWrite(_srcs)) {
         if (src.inbox.empty()) 
             src.inbox.transfer();
 
         while (!src.inbox.empty()) {
             MsgPtr message(src.inbox.get());
-            foreach (Dst& dst, _dsts) {
+            foreach (Dst& dst, *DstVec::LockForWrite(_dsts)) {
                 if (message->matches(dst.subscription)) 
                     dst.outbox.put(*message);
             }
@@ -47,7 +47,7 @@ Job::RetType PostOffice::run()
 
 void PostOffice::registerOutbox(Outbox& outbox)
 {
-    foreach (Src& src, _srcs) {
+    foreach (Src& src, *SrcVec::LockForWrite(_srcs)) {
         if (src.inbox.closed()) {
             src.inbox.connectTo(outbox);
             return;
@@ -61,7 +61,7 @@ void PostOffice::registerOutbox(Outbox& outbox)
 
 void PostOffice::registerInbox(Inbox& inbox, int subscription)
 {
-    foreach (Dst& dst, _dsts) {
+    foreach (Dst& dst, *DstVec::LockForWrite(_dsts)) {
         if (dst.outbox.closed()) {
             dst.outbox.connectTo(inbox);
             dst.subscription = subscription;

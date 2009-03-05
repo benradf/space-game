@@ -12,6 +12,7 @@
 
 
 #include "fifo.hpp"
+#include "autolock.hpp"
 #include "messages.hpp"
 #include "concurrency.hpp"
 
@@ -42,8 +43,11 @@ class PostOffice : public Job {
 
         static const int NUMBOX = 32;
 
-        std::vector<Src> _srcs;
-        std::vector<Dst> _dsts;
+        typedef Lockable<Src>::Vector SrcVec;
+        typedef Lockable<Dst>::Vector DstVec;
+
+        SrcVec _srcs;
+        DstVec _dsts;
 };
 
 

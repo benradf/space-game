@@ -8,6 +8,7 @@
 #include <core.hpp>
 #include "settings.hpp"
 #include "scriptmodule.hpp"
+#include "postoffice.hpp"
 #include "network.hpp"
 #include "idle.hpp"
 
@@ -36,6 +37,9 @@ void serverMain()
 #endif
     // Create idle job.
     pool.add(std::auto_ptr<Job>(new Idle(100000)));
+
+    // Create message passing system.
+    pool.add(std::auto_ptr<Job>(new PostOffice));
 
     VMSet vmSet;
     Job::Ptr vm1(new VirtualMachine(vmSet, 1000));
