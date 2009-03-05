@@ -46,12 +46,14 @@ class AutoReadLock {
         
         const T* operator->() const;
         const T& operator*() const;
+
+        void resetLock();
         
     private:
         AutoReadLock(const AutoReadLock&);
         AutoReadLock& operator=(const AutoReadLock&);
         
-        Lock<T>& _lock;
+        Lock<T>* _lock;
 };
 
 
@@ -70,7 +72,7 @@ class AutoWriteLock {
         AutoWriteLock(const AutoWriteLock&);
         AutoWriteLock& operator=(const AutoWriteLock&);
         
-        Lock<T>& _lock;
+        Lock<T>* _lock;
 };
 
 
@@ -112,27 +114,37 @@ struct Lockable {
 
 template<typename T>
 inline AutoReadLock<T>::AutoReadLock(Lock<T>& lock)
-    : _lock(lock)
+    : _lock(&lock)
 {
-    _lock.roWaitLock();
+    _lock->roWaitLock();
 }
 
 template<typename T>
 inline AutoReadLock<T>::~AutoReadLock()
 {
-    _lock.roUnlock();
+    if (_lock != 0) 
+        _lock->roUnlock();
 }
 
 template<typename T>
 inline const T* AutoReadLock<T>::operator->() const
 {
-    return &_lock.getObject();
+    return &_lock->getObject();
 }
 
 template<typename T>
 inline const T& AutoReadLock<T>::operator*() const
 {
-    return _lock.getObject();
+    return _lock->getObject();
+}
+
+template<typename T>
+inline void AutoReadLock<T>::resetLock()
+{
+    assert(_lock != 0);
+
+    _lock->roUnlock();
+    _lock = 0;
 }
 
 
@@ -140,31 +152,41 @@ inline const T& AutoReadLock<T>::operator*() const
 
 template<typename T>
 inline AutoWriteLock<T>::AutoWriteLock(Lock<T>& lock)
-    : _lock(lock)
+    : _lock(&lock)
 {
-    _lock.rwWaitLock();
+    _lock->rwWaitLock();
 }
 
 template<typename T>
 inline AutoWriteLock<T>::~AutoWriteLock()
 {
-    _lock.rwUnlock();
+    if (_lock != 0) 
+        _lock->rwUnlock();
 }
 
 template<typename T>
 inline T* AutoWriteLock<T>::operator->()
 {
-    return &_lock.getObject();
+    return &_lock->getObject();
 }
 
 template<typename T>
 inline T& AutoWriteLock<T>::operator*()
 {
-    return _lock.getObject();
+    return _lock->getObject();
+}
+
+template<typename T>
+inline void AutoWriteLock<T>::resetLock()
+{
+    assert(_lock != 0);
+
+    _lock->rwUnlock();
+    _lock = 0;
 }
 
 
-////////// ALQueue //////////
+////////// Lockable::Template //////////
 
 template<typename T>
 template<typename S>
