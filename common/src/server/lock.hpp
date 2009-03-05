@@ -44,6 +44,9 @@ class Lock {
     protected:
         
     private:
+        Lock(const Lock&);
+        Lock& operator=(const Lock&);
+
         unsigned char _rw;  ///< Read-write lock flag.
         unsigned char _ro;  ///< Read-only lock count.
         T& _object;         ///< Object to manage locks for.
