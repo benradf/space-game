@@ -79,12 +79,12 @@ T* Lock<T>::rwTryLock()
     asm volatile (
         "              lock cmpxchgb %%dl, %1;"
         "              cmpb $0, %%al;         "
-        "              jne tryrw_done%=;      "
+        "              jne rwtry_done%=;      "
         "              orb %2, %%al;          "
         "              cmpb $0, %%al;         "
-        "              je tryrw_done%=;       "
+        "              je rwtry_done%=;       "
         "              lock andb $0, %1;      "
-        "tryrw_done%=:                        "
+        "rwtry_done%=:                        "
         : "=a"(lock)
         : "m"(_rw), "m"(_ro), "a"(0), "d"(1)
     );
@@ -110,9 +110,10 @@ inline T& Lock<T>::rwWaitLock()
         "               lock cmpxchgb %%dl, %0;"
         "               cmpb $0, %%al;         "
         "               jne rwwait_spin%=;     "
-        "               cmpb $0, %1;           "
+        "               orb %1, %%al;          "
+        "               cmpb $0, %%al;         "
         "               je rwwait_done%=;      "
-        "               movb $0, %0;           "
+        "               lock andb $0, %0;      "
         "               jmp rwwait_spin%=;     "
         "rwwait_done%=:                        "
         : : "m"(_rw), "m"(_ro), "a"(0), "d"(1)
@@ -146,20 +147,19 @@ const T* Lock<T>::roTryLock()
     
     // Try and get lock.
     asm volatile (
-        "lock cmpxchgb %%dl, %1;"
+        "              lock cmpxchgb %%dl, %1;"
+        "              cmpb $0, %%al;         "
+        "              jne rotry_done%=;      "
+        "              lock incb %2;          "
+        "              lock andb $0, %1;      "
+        "rotry_done%=:                        "
         : "=a"(lock)
-        : "m"(_rw), "a"(0), "d"(1)
+        : "m"(_rw), "m"(_ro), "a"(0), "d"(1)
     );
     
     // Did we get the lock?
     if (lock != 0)
         return 0;
-    
-    // Increment ro lock count.
-    _ro++;
-    
-    // Release rw lock.
-    asm volatile ("lock andb $0, %0" : : "m"(_rw));
     
     return &_object;
 }
@@ -174,19 +174,15 @@ const T* Lock<T>::roTryLock()
 template<typename T>
 inline const T& Lock<T>::roWaitLock()
 {
-    // Spin until we get rw lock.
     asm volatile (
-        "rowait_spin%=: lock cmpxchgb %%dl, %0;"
+        "rowait_spin%=: xorb %%al, %%al;       "
+        "               lock cmpxchgb %%dl, %0;"
         "               cmpb $0, %%al;         "
         "               jne rowait_spin%=;     "
-        : : "m"(_rw), "a"(0), "d"(1)
+        "               lock incb %1;          "
+        "               lock andb $0, %0;      "
+        : : "m"(_rw), "m"(_ro), "a"(0), "d"(1)
     );
-    
-    // Increment ro lock count.
-    _ro++;
-    
-    // Release rw lock.
-    asm volatile ("lock andb $0, %0" : : "m"(_rw));
     
     return _object;
 }
