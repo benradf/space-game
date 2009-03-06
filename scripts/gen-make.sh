@@ -57,8 +57,8 @@ echo 'PLATFORM?=linux'
 echo 'PREFIX=$(ROOT)/$(PLATFORM)'
 echo 'BUILDPATH=$(BUILDROOT)/$(PLATFORM)/tmp/$(NAME)'
 echo "OBJS=$sources" | sed 's/ \(\w*\)\.cpp/ \\\n\t\$(BUILDPATH)\/\1\.o/g'
-echo 'CFLAGS:=$(CFLAGS) '"$incpath"
-echo 'CXXFLAGS:=$(CXXFLAGS) '"$incpath"
+echo 'CFLAGS:=-g $(CFLAGS) '"$incpath"
+echo 'CXXFLAGS:=-g $(CXXFLAGS) '"$incpath"
 echo 'LDFLAGS:=$(LDFLAGS) '"$libpath"
 echo 'RANLIB?=ranlib'
 echo
