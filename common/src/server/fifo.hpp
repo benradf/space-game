@@ -276,9 +276,11 @@ void fifo::Get<T>::connectTo(Put<T>& put)
     disconnect(false);
     put.disconnect();
     
-    // This is not thread safe: fix it!
-    //Get<T>::HalfLockFIFO getLock(_lock);
-    //Put<T>::HalfLockFIFO putLock(put._lock);
+    typename Get<T>::HalfLockFIFO getLock(_lock);
+    typename Put<T>::HalfLockFIFO putLock(put._lock);
+
+    if (!closed() || !put.closed()) 
+        return;
 
     _put = &put;
     put._get = this;
