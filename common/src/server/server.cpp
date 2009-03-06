@@ -41,11 +41,13 @@ void serverMain()
     // Create message passing system.
     pool.add(std::auto_ptr<Job>(new PostOffice));
 
+#if 0
     VMSet vmSet;
     Job::Ptr vm1(new VirtualMachine(vmSet, 1000));
     //Job::Ptr vm2(new VirtualMachine(vmSet, 2000));
     pool.add(vm1);
     //pool.add(vm2);
+#endif
     
     // Create worker threads.
     std::vector<boost::shared_ptr<Worker> > workers;
