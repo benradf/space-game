@@ -195,7 +195,7 @@ inline bool fifo::Put<T>::closed() const
 template<typename T>
 inline bool fifo::Put<T>::empty() const
 {
-    return WriteLock(_vec)->empty();
+    return ReadLock(_vec)->empty();
 }
 
 /// Disconnect FIFO pipe and free any objects that are in transit.
@@ -297,7 +297,9 @@ inline bool fifo::Get<T>::closed() const
 template<typename T>
 inline bool fifo::Get<T>::empty() const
 {
-    return (_index == ReadLock(_vec)->size());
+    ReadLock vec(_vec);
+
+    return (_index == vec->size());
 }
 
 /// Transfer objects from other end of FIFO pipe.
