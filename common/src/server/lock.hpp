@@ -106,7 +106,8 @@ inline T& Lock<T>::rwWaitLock()
 {
     // Spin until we get rw lock and ro == 0.
     asm volatile (
-        "rwwait_spin%=: lock cmpxchgb %%dl, %0;"
+        "rwwait_spin%=: xorb %%al, %%al;       "
+        "               lock cmpxchgb %%dl, %0;"
         "               cmpb $0, %%al;         "
         "               jne rwwait_spin%=;     "
         "               cmpb $0, %1;           "
