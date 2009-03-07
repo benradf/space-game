@@ -16,8 +16,8 @@ using namespace msg;
 
 ////////// RemoteClient //////////
 
-RemoteClient::RemoteClient(void* data) :
-    net::Peer(data)
+RemoteClient::RemoteClient(NetworkInterface& interface, void* data) :
+    net::Peer(data), _interface(interface), _player(0)
 {
 
 }
@@ -49,7 +49,7 @@ Job::RetType NetworkInterface::main()
 
 net::Peer* NetworkInterface::handleConnect(void* data)
 {
-    new RemoteClient(data);
+    new RemoteClient(*this, data);
 }
 
 void NetworkInterface::handleDisconnect(net::Peer* peer)

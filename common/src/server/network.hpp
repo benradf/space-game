@@ -16,19 +16,29 @@
 #include "msgjob.hpp"
 
 
+class NetworkInterface;
+
+
 class RemoteClient : net::Peer {
     public:
-        RemoteClient(void* data);
+        RemoteClient(NetworkInterface& interface, void* data);
         virtual ~RemoteClient();
 
-    private:
+        void attachPlayer(PlayerID player);
+        PlayerID getAttachedPlayer() const;
 
+    private:
+        NetworkInterface& _interface;
+
+        PlayerID _player;
 };
 
 
 class NetworkInterface : public MessagableJob, 
-                        private net::Interface {
+                         private net::Interface {
     public:
+        friend class RemoteClient;
+
         NetworkInterface(PostOffice& po);
         virtual ~NetworkInterface();
 
@@ -41,6 +51,12 @@ class NetworkInterface : public MessagableJob,
         virtual void handleDisconnect(net::Peer* peer);
 
         virtual void handleUnitNear(int unit1, int unit2);
+
+        typedef std::tr1::unordered_map<net::PeerID, RemoteClient*> Clients;
+        typedef std::tr1::unordered_map<PlayerID, net::PeerID> PlayerToPeer;
+
+        PlayerToPeer _players;
+        Clients _clients;
 };
 
 

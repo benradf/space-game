@@ -24,6 +24,9 @@ class MessagableJob : public Job, public msg::MessageHandler {
         virtual RetType run();
         virtual RetType main() = 0;
 
+    protected:
+        void sendMessage(const msg::Message& msg);
+
     private:
         Inbox _inbox;
         Outbox _outbox;

@@ -31,3 +31,8 @@ Job::RetType MessagableJob::run()
     return main();
 }
 
+void MessagableJob::sendMessage(const msg::Message& msg)
+{
+    _outbox.put(msg);
+}
+
