@@ -1,7 +1,7 @@
 /// \file messages.hpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 5th March 2009
+/// \date 7th March 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///

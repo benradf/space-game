@@ -8,7 +8,7 @@
 
 
 #ifndef POSTOFFICE_HPP
-#define POSTOFFICE_CPP
+#define POSTOFFICE_HPP
 
 
 #include "fifo.hpp"

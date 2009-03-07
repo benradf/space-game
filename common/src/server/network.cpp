@@ -8,6 +8,10 @@
 
 
 #include "network.hpp"
+#include "messages.hpp"
+
+
+using namespace msg;
 
 
 ////////// RemoteClient //////////
@@ -24,24 +28,36 @@ RemoteClient::~RemoteClient()
 }
 
 
-////////// ServerInterface //////////
+////////// NetworkInterface //////////
 
-ServerInterface::ServerInterface()
+NetworkInterface::NetworkInterface(PostOffice& po) :
+    MessagableJob(po, MSG_UNIT), net::Interface(LOCALPORT)
 {
-
+    Log::log->info("NetworkInterface: startup");
 }
 
-ServerInterface::~ServerInterface()
+NetworkInterface::~NetworkInterface()
 {
-
+    Log::log->info("NetworkInterface: shutdown");
 }
 
-net::Peer* ServerInterface::handleConnect(void* data)
+Job::RetType NetworkInterface::main()
+{
+
+    return YIELD;
+}
+
+net::Peer* NetworkInterface::handleConnect(void* data)
 {
     new RemoteClient(data);
 }
 
-void ServerInterface::handleDisconnect(net::Peer* peer)
+void NetworkInterface::handleDisconnect(net::Peer* peer)
+{
+
+}
+
+void NetworkInterface::handleUnitNear(int unit1, int unit2)
 {
 
 }

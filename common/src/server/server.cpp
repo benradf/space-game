@@ -24,22 +24,16 @@ void serverMain()
     // Change working directory.
     if (chdir(getSettings().directory().c_str()) != 0)
         throw FileException("unable to change to specified working directory");
-#if 0
-    std::vector<ScriptModule*> preloaded;
-    
-    // Initialise network module.
-    std::auto_ptr<Job> network(new Network(settings));
-    preloaded.push_back(static_cast<ScriptModule*>(network.get()));
-    pool.add(network);
-    
-    // Load script modules.
-    ScriptLoader scriptLoader(pool, preloaded);
-#endif
-    // Create idle job.
-    pool.add(std::auto_ptr<Job>(new Idle(100000)));
 
-    // Create message passing system.
-    pool.add(std::auto_ptr<Job>(new PostOffice));
+    // Create standard jobs.
+    std::auto_ptr<Idle> jobIdle(new Idle(100000));
+    std::auto_ptr<PostOffice> jobPostOffice(new PostOffice);
+    std::auto_ptr<NetworkInterface> jobNetwork(new NetworkInterface(*jobPostOffice));
+
+    // Add to pool.
+    pool.add(Job::Ptr(jobIdle));
+    pool.add(Job::Ptr(jobPostOffice));
+    pool.add(Job::Ptr(jobNetwork));
 
 #if 0
     VMSet vmSet;

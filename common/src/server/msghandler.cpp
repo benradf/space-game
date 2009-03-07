@@ -1,7 +1,7 @@
 /// \file msghandler.cpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 5th March 2009
+/// \date 7th March 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -11,6 +11,11 @@
 
 
 ////////// msg::MessageHandler //////////
+
+msg::MessageHandler::~MessageHandler()
+{
+
+}
 
 void msg::MessageHandler::handleUnitFar(int unit1, int unit2)
 {
