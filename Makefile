@@ -12,7 +12,7 @@ else
 ifneq "$(origin COMPONENTS)" "undefined"
 else
 PACKAGES=enet argtable lua
-COMPONENTS=server core net script
+COMPONENTS=server client core net script
 endif
 endif
 
@@ -139,6 +139,11 @@ $(call PKG_DEP,server,script)
 $(call PKG_DEP,server,lua)
 $(call PKG_DEP,server,enet)
 $(call PKG_DEP,server,argtable)
+$(call PKG_DEP,client,core)
+$(call PKG_DEP,client,net)
+$(call PKG_DEP,client,script)
+$(call PKG_DEP,client,lua)
+$(call PKG_DEP,client,enet)
 
 # Specific package rules.
 $(foreach PKG,$(PACKAGES), \

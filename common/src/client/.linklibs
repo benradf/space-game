@@ -1,0 +1,2 @@
+linux: core script net lua enet dl
+mingw: core script net lua enet
