@@ -21,12 +21,12 @@ using namespace msg;
 RemoteClient::RemoteClient(MessageSender sendMsg, void* data) :
     net::Peer(data), _sendMsg(sendMsg), _player(0)
 {
-
+    Log::log->info("NetworkInterface: remote client has connected");
 }
 
 RemoteClient::~RemoteClient()
 {
-
+    Log::log->info("NetworkInterface: remote client has dropped");
 }
 
 void RemoteClient::attachPlayer(PlayerID player)
@@ -78,7 +78,7 @@ void RemoteClient::handleBroadcastMsg(const char* text)
 ////////// NetworkInterface //////////
 
 NetworkInterface::NetworkInterface(PostOffice& po) :
-    MessagableJob(po, MSG_UNIT), net::Interface(LOCALPORT)
+    MessagableJob(po, MSG_UNIT), net::Interface(GAMEPORT)
 {
     Log::log->info("NetworkInterface: startup");
 }

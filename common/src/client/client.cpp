@@ -8,6 +8,7 @@
 
 
 #include <unistd.h>
+#include <signal.h>
 #include <assert.h>
 #include <iostream>
 #include <vector>
@@ -19,9 +20,28 @@
 using namespace std;
 
 
+bool clientRunning = true;
+
+
+void signalHandler(int signum)
+{
+    clientRunning = false;
+}
+
+
 void clientMain()
 {
-    system("pause");
+    signal(SIGINT, signalHandler);
+
+    NetworkInterface network;
+
+    network.setServer("localhost");
+    network.maintainServerConnection(true);
+
+    while (clientRunning) {
+        network.main();
+        usleep(100000);
+    }
 }
 
 int main(int argc, char* argv[])

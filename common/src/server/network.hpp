@@ -52,8 +52,6 @@ class NetworkInterface : public MessagableJob,
         virtual RetType main();
 
     private:
-        static const int LOCALPORT = 12345;
-
         virtual net::Peer* handleConnect(void* data);
         virtual void handleDisconnect(net::Peer* peer);
 
