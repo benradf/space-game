@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
+#include <signal.h>
 #include <assert.h>
 #include <iostream>
 #include <vector>
@@ -14,35 +16,43 @@
 
 using namespace std;
 
-int abc;
+static const int CYCLE_PERIOD = 100000;
+
+void signalShutdown(int signum)
+{
+    Log::log->info("SIGINT caught: use CTRL+D to shutdown server cleanly");
+}
+
+void catchSignals(bool yes)
+{
+    if (yes) {
+        signal(SIGINT, signalShutdown);
+    } else {
+        signal(SIGINT, SIG_DFL);
+    }
+}
 
 
 void serverMain()
 {
-    JobPool pool;
-    
+    // Catch signals.
+    catchSignals(true);
+
     // Change working directory.
     if (chdir(getSettings().directory().c_str()) != 0)
         throw FileException("unable to change to specified working directory");
 
     // Create standard jobs.
-    std::auto_ptr<Idle> jobIdle(new Idle(100000));
+    std::auto_ptr<Idle> jobIdle(new Idle(CYCLE_PERIOD));
     std::auto_ptr<PostOffice> jobPostOffice(new PostOffice);
     std::auto_ptr<NetworkInterface> jobNetwork(new NetworkInterface(*jobPostOffice));
 
     // Add to pool.
+    JobPool pool;
     pool.add(Job::Ptr(jobIdle));
     pool.add(Job::Ptr(jobPostOffice));
     pool.add(Job::Ptr(jobNetwork));
 
-#if 0
-    VMSet vmSet;
-    Job::Ptr vm1(new VirtualMachine(vmSet, 1000));
-    //Job::Ptr vm2(new VirtualMachine(vmSet, 2000));
-    pool.add(vm1);
-    //pool.add(vm2);
-#endif
-    
     // Create worker threads.
     std::vector<boost::shared_ptr<Worker> > workers;
     for (int i = 0; i < getSettings().threadMax(); i++) {
@@ -50,8 +60,12 @@ void serverMain()
         Log::log->info("Worker thread created");
     }
     
-    int end;
-    cin >> end;
+    // Main thread waits.
+    while (!feof(stdin))
+        fgetc(stdin);
+
+    // Stop catching signals.
+    catchSignals(false);
 }
 
 int main(int argc, char* argv[])
