@@ -81,17 +81,14 @@ class Interface {
         void doNetworkTasks();
 
     private:
-        typedef char StringBuf[256];
-        typedef std::tr1::unordered_set<void*> PeerSet;
-        typedef boost::iostreams::stream<
-            boost::iostreams::array_source> PacketReader;
-
         void eventConnect(ENetEvent& event);
         void eventReceive(ENetEvent& event);
         void eventDisconnect(ENetEvent& event);
 
         virtual Peer* handleConnect(void* data) = 0;
         virtual void handleDisconnect(Peer* peer) = 0;
+
+        typedef std::tr1::unordered_set<void*> PeerSet;
 
         ENetHost* _host;      ///< ENetHost object for this network interface.
         PeerSet _connecting;  ///< Set of ENetPeerS that are connecting.

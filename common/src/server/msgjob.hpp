@@ -16,8 +16,23 @@
 #include "concurrency.hpp"
 
 
+class MessageSender {
+    public:
+        friend class MessagableJob;
+
+        void operator()(const msg::Message& msg);
+
+    private:
+        MessageSender(class MessagableJob& job);
+
+        class MessagableJob& _job;
+};
+
+
 class MessagableJob : public Job, public msg::MessageHandler {
     public:
+        friend class MessageSender;
+
         MessagableJob(PostOffice& po, int subscription);
         virtual ~MessagableJob();
 
@@ -26,6 +41,7 @@ class MessagableJob : public Job, public msg::MessageHandler {
 
     protected:
         void sendMessage(const msg::Message& msg);
+        MessageSender newMessageSender();
 
     private:
         Inbox _inbox;

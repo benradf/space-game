@@ -40,25 +40,6 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
 
     switch (typecode) {
     case 0x01: {
-        if ( offset + 0x12 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise PlayerLogin: malformed packet");
-            return;
-        }
-        len = *reinterpret_cast<uint16_t*>(offset);
-        offset += 0x02;
-        if (offset + len + 0x10 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise PlayerLogin: malformed packet");
-            return;
-        }
-        char* username = reinterpret_cast<char*>(offset - 1);
-        memmove(username, offset, len);
-        username[len] = '\0';
-        offset += len;
-        uint8_t* password = reinterpret_cast<uint8_t*>(offset);
-        offset += sizeof(password);
-        handlePlayerLogin(username, reinterpret_cast<uint8_t(&)[16]>(*password));
-        } break;
-    case 0x02: {
         if ( offset + 0x08 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise KeyExchange: malformed packet");
             return;
@@ -67,37 +48,121 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += sizeof(uint64_t);
         handleKeyExchange(htonq(key));
         } break;
+    case 0x02: {
+        if ( offset + 0x12 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise Login: malformed packet");
+            return;
+        }
+        len = *reinterpret_cast<uint16_t*>(offset);
+        offset += 0x02;
+        if (offset + len + 0x10 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise Login: malformed packet");
+            return;
+        }
+        char* username = reinterpret_cast<char*>(offset - 1);
+        memmove(username, offset, len);
+        username[len] = '\0';
+        offset += len;
+        uint8_t* password = reinterpret_cast<uint8_t*>(offset);
+        offset += sizeof(password);
+        handleLogin(username, reinterpret_cast<uint8_t(&)[16]>(*password));
+        } break;
     case 0x03: {
         if ( offset + 0x00 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise Quit: malformed packet");
+            Log::log->warn("Network: deserialise Disconnect: malformed packet");
             return;
         }
-        handleQuit();
+        handleDisconnect();
         } break;
     case 0x04: {
-        if ( offset + 0x41 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise Ping: malformed packet");
+        if ( offset + 0x04 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise WhoIsPlayer: malformed packet");
             return;
         }
-        uint64_t* x = reinterpret_cast<uint64_t*>(offset);
-        offset += sizeof(x);
-        uint8_t a = *reinterpret_cast<uint8_t*>(offset);
-        offset += sizeof(uint8_t);
-        handlePing(reinterpret_cast<uint64_t(&)[8]>(*x), a);
+        uint32_t playerid = *reinterpret_cast<uint32_t*>(offset);
+        offset += sizeof(uint32_t);
+        handleWhoIsPlayer(htonl(playerid));
+        } break;
+    case 0x05: {
+        if ( offset + 0x06 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise PlayerInfo: malformed packet");
+            return;
+        }
+        uint32_t playerid = *reinterpret_cast<uint32_t*>(offset);
+        offset += sizeof(uint32_t);
+        len = *reinterpret_cast<uint16_t*>(offset);
+        offset += 0x02;
+        if (offset + len + 0x00 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise PlayerInfo: malformed packet");
+            return;
+        }
+        char* username = reinterpret_cast<char*>(offset - 1);
+        memmove(username, offset, len);
+        username[len] = '\0';
+        offset += len;
+        handlePlayerInfo(htonl(playerid), username);
+        } break;
+    case 0x06: {
+        if ( offset + 0x06 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise PrivateMsg: malformed packet");
+            return;
+        }
+        uint32_t playerid = *reinterpret_cast<uint32_t*>(offset);
+        offset += sizeof(uint32_t);
+        len = *reinterpret_cast<uint16_t*>(offset);
+        offset += 0x02;
+        if (offset + len + 0x00 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise PrivateMsg: malformed packet");
+            return;
+        }
+        char* text = reinterpret_cast<char*>(offset - 1);
+        memmove(text, offset, len);
+        text[len] = '\0';
+        offset += len;
+        handlePrivateMsg(htonl(playerid), text);
+        } break;
+    case 0x07: {
+        if ( offset + 0x02 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise BroadcastMsg: malformed packet");
+            return;
+        }
+        len = *reinterpret_cast<uint16_t*>(offset);
+        offset += 0x02;
+        if (offset + len + 0x00 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise BroadcastMsg: malformed packet");
+            return;
+        }
+        char* text = reinterpret_cast<char*>(offset - 1);
+        memmove(text, offset, len);
+        text[len] = '\0';
+        offset += len;
+        handleBroadcastMsg(text);
         } break;
     }
 }
 
-void net::ProtocolUser::sendPlayerLogin(const char* username, uint8_t (&password)[16])
+void net::ProtocolUser::sendKeyExchange(uint64_t key)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
     *reinterpret_cast<uint8_t*>(offset) = 0x01;
     uint16_t len = 0;
+    *reinterpret_cast<uint64_t*>(offset) = htonq(key);
+    offset += sizeof(uint64_t);
+    enet_packet_resize(packet, offset - packet->data);
+    sendPacket(packet);
+}
+
+void net::ProtocolUser::sendLogin(const char* username, uint8_t (&password)[16])
+{
+    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
+    enet_uint8* offset = packet->data;
+    *reinterpret_cast<uint8_t*>(offset) = 0x02;
+    uint16_t len = 0;
     len = std::min(strlen(username), MAXSTRLEN);
     if ((offset + len + 0x10 > packet->data + packet->dataLength) && 
             (enet_packet_resize(packet, (packet->dataLength + len + 0x10) * 2) != 0)) {
-        Log::log->warn("Network: serialise PlayerLogin: enet_packet_resize failed");
+        Log::log->warn("Network: serialise Login: enet_packet_resize failed");
         return;
     }
     *reinterpret_cast<uint16_t*>(offset) = len;
@@ -110,19 +175,7 @@ void net::ProtocolUser::sendPlayerLogin(const char* username, uint8_t (&password
     sendPacket(packet);
 }
 
-void net::ProtocolUser::sendKeyExchange(uint64_t key)
-{
-    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
-    enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x02;
-    uint16_t len = 0;
-    *reinterpret_cast<uint64_t*>(offset) = htonq(key);
-    offset += sizeof(uint64_t);
-    enet_packet_resize(packet, offset - packet->data);
-    sendPacket(packet);
-}
-
-void net::ProtocolUser::sendQuit()
+void net::ProtocolUser::sendDisconnect()
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
@@ -132,17 +185,75 @@ void net::ProtocolUser::sendQuit()
     sendPacket(packet);
 }
 
-void net::ProtocolUser::sendPing(uint64_t (&x)[8], uint8_t a)
+void net::ProtocolUser::sendWhoIsPlayer(uint32_t playerid)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
     *reinterpret_cast<uint8_t*>(offset) = 0x04;
     uint16_t len = 0;
-    for (int i = 0; i < 8; i++)
-        reinterpret_cast<uint64_t*>(offset)[i] = htonq(x[i]);
-    offset += sizeof(x);
-    *reinterpret_cast<uint8_t*>(offset) = a;
-    offset += sizeof(uint8_t);
+    *reinterpret_cast<uint32_t*>(offset) = htonl(playerid);
+    offset += sizeof(uint32_t);
+    enet_packet_resize(packet, offset - packet->data);
+    sendPacket(packet);
+}
+
+void net::ProtocolUser::sendPlayerInfo(uint32_t playerid, const char* username)
+{
+    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
+    enet_uint8* offset = packet->data;
+    *reinterpret_cast<uint8_t*>(offset) = 0x05;
+    uint16_t len = 0;
+    *reinterpret_cast<uint32_t*>(offset) = htonl(playerid);
+    offset += sizeof(uint32_t);
+    len = std::min(strlen(username), MAXSTRLEN);
+    if ((offset + len + 0x00 > packet->data + packet->dataLength) && 
+            (enet_packet_resize(packet, (packet->dataLength + len + 0x00) * 2) != 0)) {
+        Log::log->warn("Network: serialise PlayerInfo: enet_packet_resize failed");
+        return;
+    }
+    *reinterpret_cast<uint16_t*>(offset) = len;
+    memcpy(offset += 0x02, username, len);
+    offset += len;
+    enet_packet_resize(packet, offset - packet->data);
+    sendPacket(packet);
+}
+
+void net::ProtocolUser::sendPrivateMsg(uint32_t playerid, const char* text)
+{
+    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
+    enet_uint8* offset = packet->data;
+    *reinterpret_cast<uint8_t*>(offset) = 0x06;
+    uint16_t len = 0;
+    *reinterpret_cast<uint32_t*>(offset) = htonl(playerid);
+    offset += sizeof(uint32_t);
+    len = std::min(strlen(text), MAXSTRLEN);
+    if ((offset + len + 0x00 > packet->data + packet->dataLength) && 
+            (enet_packet_resize(packet, (packet->dataLength + len + 0x00) * 2) != 0)) {
+        Log::log->warn("Network: serialise PrivateMsg: enet_packet_resize failed");
+        return;
+    }
+    *reinterpret_cast<uint16_t*>(offset) = len;
+    memcpy(offset += 0x02, text, len);
+    offset += len;
+    enet_packet_resize(packet, offset - packet->data);
+    sendPacket(packet);
+}
+
+void net::ProtocolUser::sendBroadcastMsg(const char* text)
+{
+    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
+    enet_uint8* offset = packet->data;
+    *reinterpret_cast<uint8_t*>(offset) = 0x07;
+    uint16_t len = 0;
+    len = std::min(strlen(text), MAXSTRLEN);
+    if ((offset + len + 0x00 > packet->data + packet->dataLength) && 
+            (enet_packet_resize(packet, (packet->dataLength + len + 0x00) * 2) != 0)) {
+        Log::log->warn("Network: serialise BroadcastMsg: enet_packet_resize failed");
+        return;
+    }
+    *reinterpret_cast<uint16_t*>(offset) = len;
+    memcpy(offset += 0x02, text, len);
+    offset += len;
     enet_packet_resize(packet, offset - packet->data);
     sendPacket(packet);
 }

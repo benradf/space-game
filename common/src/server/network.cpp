@@ -9,6 +9,8 @@
 
 #include "network.hpp"
 #include "messages.hpp"
+#include <core.hpp>
+#include <memory>
 
 
 using namespace msg;
@@ -16,13 +18,58 @@ using namespace msg;
 
 ////////// RemoteClient //////////
 
-RemoteClient::RemoteClient(NetworkInterface& interface, void* data) :
-    net::Peer(data), _interface(interface), _player(0)
+RemoteClient::RemoteClient(MessageSender sendMsg, void* data) :
+    net::Peer(data), _sendMsg(sendMsg), _player(0)
 {
 
 }
 
 RemoteClient::~RemoteClient()
+{
+
+}
+
+void RemoteClient::attachPlayer(PlayerID player)
+{
+    _player = player;
+}
+
+PlayerID RemoteClient::getAttachedPlayer() const
+{
+    return _player;
+}
+
+void RemoteClient::handleKeyExchange(uint64_t key)
+{
+
+}
+
+void RemoteClient::handleLogin(const char* username, uint8_t (&password)[16])
+{
+
+}
+
+void RemoteClient::handleDisconnect()
+{
+
+}
+
+void RemoteClient::handleWhoIsPlayer(uint32_t playerid)
+{
+
+}
+
+void RemoteClient::handlePlayerInfo(uint32_t playerid, const char* username)
+{
+
+}
+
+void RemoteClient::handlePrivateMsg(uint32_t playerid, const char* text)
+{
+
+}
+
+void RemoteClient::handleBroadcastMsg(const char* text)
 {
 
 }
@@ -39,26 +86,30 @@ NetworkInterface::NetworkInterface(PostOffice& po) :
 NetworkInterface::~NetworkInterface()
 {
     Log::log->info("NetworkInterface: shutdown");
+
+    foreach (ClientPair& client, _clients) 
+        std::auto_ptr<net::Peer>(client.second);
 }
 
 Job::RetType NetworkInterface::main()
 {
+    doNetworkTasks();
 
     return YIELD;
 }
 
 net::Peer* NetworkInterface::handleConnect(void* data)
 {
-    new RemoteClient(*this, data);
+    std::auto_ptr<RemoteClient> peer(new RemoteClient(newMessageSender(), data));
+    _clients.insert(std::make_pair(peer->getID(), peer.get()));
+    return peer.release();
 }
 
 void NetworkInterface::handleDisconnect(net::Peer* peer)
 {
-
-}
-
-void NetworkInterface::handleUnitNear(int unit1, int unit2)
-{
-
+    RemoteClient* client = static_cast<RemoteClient*>(peer);
+    _players.erase(client->getAttachedPlayer());
+    _clients.erase(client->getID());
+    delete peer;
 }
 

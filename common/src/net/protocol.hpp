@@ -30,17 +30,26 @@ class ProtocolUser {
         virtual void sendPacket(ENetPacket* packet) = 0;
         void handlePacket(ENetPacket* packet);
 
-        void sendPlayerLogin(const char* username, uint8_t (&password)[16]);
-        virtual void handlePlayerLogin(const char* username, uint8_t (&password)[16]) = 0;
-
         void sendKeyExchange(uint64_t key);
         virtual void handleKeyExchange(uint64_t key) = 0;
 
-        void sendQuit();
-        virtual void handleQuit() = 0;
+        void sendLogin(const char* username, uint8_t (&password)[16]);
+        virtual void handleLogin(const char* username, uint8_t (&password)[16]) = 0;
 
-        void sendPing(uint64_t (&x)[8], uint8_t a);
-        virtual void handlePing(uint64_t (&x)[8], uint8_t a) = 0;
+        void sendDisconnect();
+        virtual void handleDisconnect() = 0;
+
+        void sendWhoIsPlayer(uint32_t playerid);
+        virtual void handleWhoIsPlayer(uint32_t playerid) = 0;
+
+        void sendPlayerInfo(uint32_t playerid, const char* username);
+        virtual void handlePlayerInfo(uint32_t playerid, const char* username) = 0;
+
+        void sendPrivateMsg(uint32_t playerid, const char* text);
+        virtual void handlePrivateMsg(uint32_t playerid, const char* text) = 0;
+
+        void sendBroadcastMsg(const char* text);
+        virtual void handleBroadcastMsg(const char* text) = 0;
 
 };
 

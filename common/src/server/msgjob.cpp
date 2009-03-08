@@ -36,3 +36,22 @@ void MessagableJob::sendMessage(const msg::Message& msg)
     _outbox.put(msg);
 }
 
+MessageSender MessagableJob::newMessageSender()
+{
+    return MessageSender(*this);
+}
+
+
+////////// MessageSender //////////
+
+MessageSender::MessageSender(MessagableJob& job) :
+    _job(job)
+{
+
+}
+
+void MessageSender::operator()(const msg::Message& msg)
+{
+    _job.sendMessage(msg);
+}
+
