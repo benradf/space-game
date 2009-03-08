@@ -18,6 +18,7 @@ if [ -z $linkname ]; then
     exit 1
 fi
 
+linkname=`echo $linkname`
 phony=".PHONY: all clean dist"
 islibs=`echo $linkname | sed '/^lib.*\.a$/!d'`
 islibd=`echo $linkname | sed '/^lib.*\.so$/!d'`
@@ -50,7 +51,8 @@ else
     echo "BIN=$linkname"
     installdir=bin
 fi
-echo "NAME=`echo $linkname | sed 's/^lib\(.*\).\(a\|so\)$/\1/'`"
+SEDNAME='s/^lib\(.*\)\.\(a\|so\)$/\1/;s/^\(.*\)\.\(exe\|dll\)/\1/'
+echo "NAME=`echo $linkname | sed $SEDNAME`"
 echo 'ROOT?='"$root"
 echo 'BUILDROOT?=$(ROOT)'
 echo 'PLATFORM?=linux'

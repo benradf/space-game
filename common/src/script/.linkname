@@ -1,1 +1,2 @@
-libscript.a
+linux: libscript.a
+mingw: libscript.a

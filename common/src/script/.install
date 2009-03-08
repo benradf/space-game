@@ -1,1 +1,2 @@
-script.hpp luaextlib.hpp luaobject.hpp luautil.hpp
+linux: script.hpp luaextlib.hpp luaobject.hpp luautil.hpp
+mingw: script.hpp luaextlib.hpp luaobject.hpp luautil.hpp

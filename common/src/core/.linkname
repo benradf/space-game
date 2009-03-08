@@ -1,1 +1,2 @@
-libcore.a
+linux: libcore.a
+mingw: libcore.a

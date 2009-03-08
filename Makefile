@@ -56,8 +56,8 @@ $(1)-$(2)-build:
 		--prefix=$(PWD)/$(2) --host=$(call GET_HOST,$(2)) &&) \
 	$(MAKE) $(call GET_BUILD_TOOLS,$(2))
 $(1)-$(2)-install:
-	@echo -e "\033[01;36m$$@\033[00m"; \
-	cd $(2)/src/$(1)* && $(MAKE) install
+	@echo -e "\033[01;36m$$@\033[00m"; cd $(2)/src/$(1)* && \
+	$(MAKE) $(call GET_BUILD_TOOLS,$(2)) install
 $(1)-$(2)-distrib:
 $(1)-$(2)-clean:
 	@echo -e "\033[01;34m$$@\033[00m"; \
@@ -79,12 +79,12 @@ define COMPONENT_RULES
 $(1)-$(2)-extract: 
 $(1)-$(2)-build:
 	@echo -e "\033[01;31m$$@\033[00m"; mkdir -p $(2)/tmp/$(1) && \
-	cd common/src/$(1) && ../../../scripts/gen-$(MAKE).sh \
+	cd common/src/$(1) && ../../../scripts/gen-make.sh \
 		-i "$(PWD)/$(2)/include" -j "$(PWD)/$(2)/lib" \
-		-l "`cat .linklibs 2>/dev/null`" \
-		-h "`cat .install 2>/dev/null`" \
-		-r $(PWD) -n "`cat .linkname`" \
-		>Makefile && \
+		-l "`sed -n s/$2\://p .linklibs 2>/dev/null`" \
+		-n "`sed -n s/$2\://p .linkname 2>/dev/null`" \
+		-h "`sed -n s/$2\://p .install 2>/dev/null`" \
+		-r $(PWD) >Makefile && \
 	$(MAKE) PLATFORM="$(2)" $(call GET_BUILD_TOOLS,$(2))
 $(1)-$(2)-install:
 	@echo -e "\033[01;36m$$@\033[00m"; \
@@ -131,6 +131,8 @@ PKG_DEP=$(foreach PLT,$(PLATFORMS),$(eval \
 	$(1)-$(PLT)-all: $(2)-$(PLT)-all))))))
 
 # Declare package dependencies.
+$(call PKG_DEP,net,core)
+$(call PKG_DEP,script,core)
 $(call PKG_DEP,server,core)
 $(call PKG_DEP,server,net)
 $(call PKG_DEP,server,script)

@@ -1,1 +1,2 @@
-libnet.a
+linux: libnet.a
+mingw: libnet.a

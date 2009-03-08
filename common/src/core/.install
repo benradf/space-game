@@ -1,1 +1,2 @@
-core.hpp exception.hpp foreach.hpp log.hpp
+linux: core.hpp exception.hpp foreach.hpp log.hpp
+mingw: core.hpp exception.hpp foreach.hpp log.hpp
