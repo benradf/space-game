@@ -34,7 +34,7 @@ void net::cleanup()
 /// Construct peer base object.
 /// \param data This should be the data passed to the connect handler.
 net::Peer::Peer(void* data) :
-    _packet(0), _peer(static_cast<ENetPeer*>(data))
+    _peer(static_cast<ENetPeer*>(data))
 {
     enet_address_get_host_ip(&_peer->address, _ip, sizeof(_ip));
 }
@@ -79,108 +79,11 @@ void net::Peer::disconnect(bool force)
     }
 }
 
-/// Send a ping message.
-/// \param time Time to include with ping.
-void net::Peer::sendPing(uint64_t time)
+/// Called by ProtocolUser to send packet to peer.
+/// \param packet Packet to send to peer.
+void net::Peer::sendPacket(ENetPacket* packet)
 {
-    packetBegin(MSG_PING);
-    packetWrite(time);
-    packetEnd();
-}
-
-/// Send our encryption key to remote peer.
-/// \param key Encryption key to send.
-void net::Peer::sendKeyExchange(uint64_t key)
-{
-    packetBegin(MSG_KEYEXCHANGE);
-    packetWrite(key);
-    packetEnd();
-}
-
-/// Initiate a player login with remote server.
-/// \param username Username of player logging in.
-/// \param password Hash of player password.
-void net::Peer::sendPlayerLogin(const char* username, char (&password)[16])
-{
-    packetBegin(MSG_PLAYERLOGIN);
-    packetWrite(username);
-    packetWrite(password);
-    packetEnd();
-}
-
-/// Indicates the beginning of a new packet.
-/// After calling this, the Peer::packetWrite functions may be called to write 
-/// the actual contents of the message.
-/// \param type Type of message to begin.
-void net::Peer::packetBegin(MsgType type)
-{
-    assert(_packet == 0);
-    _packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
-    _packetWriter.open(reinterpret_cast<char*>(_packet->data), _packet->dataLength);
-
-    assert(_packetWriter.is_open());
-
-    _packetWriter << static_cast<uint8_t>(type);
-}
-
-/// Finalise and then transmit packet.
-void net::Peer::packetEnd()
-{
-    size_t size = _packetWriter.tellp();
-    assert(size <= _packet->dataLength);
-    enet_packet_resize(_packet, size);
-    enet_peer_send(_peer, 0, _packet);
-    _packetWriter.close();
-    _packet = 0;
-}
-
-/// Write a generic value to packet.
-/// \param value Value to write.
-template<typename T>
-void net::Peer::packetWrite(T value)
-{
-    assert(_packetWriter.is_open());
-
-    _packetWriter << value;
-}
-
-/// Write an array to packet.
-/// \param array Array to write.
-template<typename T, int N>
-void net::Peer::packetWrite(T (&array)[N])
-{
-    assert(_packetWriter.is_open());
-
-    for (int i = 0; i < N; i++) 
-        _packetWriter << array[i];
-}
-
-/// Write a null terminated string.
-/// \param str String to write to packet.
-void net::Peer::packetWrite(const char* str)
-{
-    assert(_packetWriter.is_open());
-
-    uint8_t len = strlen(str);
-    _packetWriter << len << str;
-}
-
-/// Default handler.
-void net::Peer::handlePing(uint64_t time)
-{
-
-}
-
-/// Default handler.
-void net::Peer::handleKeyExchange(uint64_t key)
-{
-
-}
-
-/// Default handler.
-void net::Peer::handlePlayerLogin(const char* username, MD5Hash& password)
-{
-
+    enet_peer_send(_peer, 0, packet);
 }
 
 
@@ -204,7 +107,7 @@ net::Interface::Interface(uint16_t port, uint32_t addr)
 {
     ENetAddress address;
     address.host = addr;
-    address.port = 12345;
+    address.port = port;
 
     if ((_host = enet_host_create(&address, 1024, 0, 0)) == 0)
         throw NetworkException("enet_host_create failed");
@@ -250,7 +153,7 @@ bool net::Interface::connectionInProgress(void* handle) const
 }
 
 /// Process incoming/outgoing messages and handle connection requests.
-void net::Interface::doTasks()
+void net::Interface::doNetworkTasks()
 {
     ENetEvent event;
 
@@ -281,29 +184,7 @@ void net::Interface::eventReceive(ENetEvent& event)
 {
     assert(event.peer->data != 0);
     Peer& peer = *reinterpret_cast<Peer*>(event.peer->data);
-
-    ENetPacket* packet = event.packet;
-    PacketReader reader(reinterpret_cast<char*>(
-        packet->data), packet->dataLength);
-
-    uint8_t type;
-    reader >> type;
-
-    switch (type) {
-        case MSG_PING:
-            handlePing(peer, reader);
-            break;
-        case MSG_KEYEXCHANGE:
-            handleKeyExchange(peer, reader);
-            break;
-        case MSG_PLAYERLOGIN:
-            handlePlayerLogin(peer, reader);
-            break;
-        default:
-            // TODO Reply with "unknown msg".
-            break;
-    }
-
+    peer.handlePacket(event.packet);
     enet_packet_destroy(event.packet);
 }
 
@@ -315,57 +196,5 @@ void net::Interface::eventDisconnect(ENetEvent& event)
 
     if (event.peer->data != 0) 
         handleDisconnect(reinterpret_cast<Peer*>(event.peer->data));
-}
-
-/// Deserialise Ping message.
-/// \param peer Remote peer message was received from.
-/// \param reader Packet stream to read from.
-void net::Interface::handlePing(Peer& peer, PacketReader& reader)
-{
-    uint64_t time;
-    reader >> time;
-
-    peer.handlePing(time);
-}
-
-/// Deserialise KeyExchange message.
-/// \param peer Remote peer message was received from.
-/// \param reader Packet stream to read from.
-void net::Interface::handleKeyExchange(Peer& peer, PacketReader& reader)
-{
-    uint64_t key;
-    reader >> key;
-
-    peer.handleKeyExchange(key);
-}
-
-/// Deserialise PlayerLogin message.
-/// \param peer Remote peer message was received from.
-/// \param reader Packet stream to read from.
-void net::Interface::handlePlayerLogin(Peer& peer, PacketReader& reader)
-{
-    StringBuf username;
-    readString(reader, username);
-
-    MD5Hash password;
-    reader.read(password, sizeof(password));
-
-    peer.handlePlayerLogin(username, password);
-}
-
-/// Read a null terminated string.
-/// \param reader Packet stream to read from.
-/// \param buffer Buffer to read string into.
-/// \return Length of string.
-uint8_t net::Interface::readString(PacketReader& reader, StringBuf& buffer) const
-{
-    uint8_t len = 0;
-    reader >> len;
-
-    reader.read(buffer, len);
-    len = reader.gcount();
-    buffer[len] = 0;
-
-    return len;
 }
 

@@ -18,6 +18,7 @@
 #include <tr1/unordered_map>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/array.hpp>
+#include "protocol.hpp"
 
 
 namespace net {
@@ -42,7 +43,7 @@ void cleanup();
 /// Users of this network module should derive their own peer objects from 
 /// this one. That way they can override the message handler functions this
 /// class provides and receive notification of the messages they care about.
-class Peer {
+class Peer : public ProtocolUser {
     public:
         Peer(void* data);
         virtual ~Peer();
@@ -53,30 +54,11 @@ class Peer {
 
         void disconnect(bool force = false);
 
-        void sendPing(uint64_t time);
-        void sendKeyExchange(uint64_t key);
-        void sendPlayerLogin(const char* username, MD5Hash& password);
-
-        virtual void handlePing(uint64_t time);
-        virtual void handleKeyExchange(uint64_t key);
-        virtual void handlePlayerLogin(const char* username, MD5Hash& password);
-
     private:
-        void packetBegin(MsgType type);
-        void packetEnd();
-        
-        template<typename T>
-        void packetWrite(T value);
-        template<typename T, int N>
-        void packetWrite(T (&array)[N]);
-        void packetWrite(const char* str);
+        virtual void sendPacket(ENetPacket* packet);
 
-        typedef boost::iostreams::stream<boost::iostreams::array_sink> PacketWriter;
-
-        PacketWriter _packetWriter;  ///< Packet stream for writing new packet.
-        ENetPacket* _packet;         ///< ENet packet object to be sent.
-        ENetPeer* _peer;             ///< ENet peer object.
-        char _ip[16];                ///< Buffer for IP in dotted quad form.
+        ENetPeer* _peer;  ///< ENet peer object.
+        char _ip[16];     ///< Buffer for IP in dotted quad form.
 };
 
 
@@ -96,8 +78,8 @@ class Interface {
 
         bool connectionInProgress(void* handle) const;
 
-        void doTasks();
-        
+        void doNetworkTasks();
+
     private:
         typedef char StringBuf[256];
         typedef std::tr1::unordered_set<void*> PeerSet;
@@ -108,14 +90,8 @@ class Interface {
         void eventReceive(ENetEvent& event);
         void eventDisconnect(ENetEvent& event);
 
-        void handlePing(Peer& peer, PacketReader& reader);
-        void handleKeyExchange(Peer& peer, PacketReader& reader);
-        void handlePlayerLogin(Peer& peer, PacketReader& reader);
-
         virtual Peer* handleConnect(void* data) = 0;
         virtual void handleDisconnect(Peer* peer) = 0;
-
-        uint8_t readString(PacketReader& reader, StringBuf& buffer) const;
 
         ENetHost* _host;      ///< ENetHost object for this network interface.
         PeerSet _connecting;  ///< Set of ENetPeerS that are connecting.
