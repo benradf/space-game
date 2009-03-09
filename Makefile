@@ -11,7 +11,7 @@ ifneq "$(origin PACKAGES)" "undefined"
 else 
 ifneq "$(origin COMPONENTS)" "undefined"
 else
-PACKAGES=enet argtable lua
+PACKAGES=enet argtable lua jpeg libpng
 COMPONENTS=server client core net script
 endif
 endif
@@ -41,7 +41,7 @@ endef
 
 # GET_BUILD_TOOLS(platform)
 GET_BUILD_TOOLS=$(call BUILD_TOOLS,$(subst mingw,i386-mingw32msvc-,$(subst linux,,$(1))))
-BUILD_TOOLS=CC="$(1)gcc" CXX="$(1)g++" AR="$(1)ar" RANLIB="$(1)ranlib"
+BUILD_TOOLS=CC="$(1)gcc" CXX="$(1)g++" AR="$(1)ar" RANLIB="$(1)ranlib" STRIP="$(1)strip" AS="$(1)as" DLLTOOL="$(1)dlltool"
 
 # PACKAGE_RULES(package,platform)
 define PACKAGE_RULES
