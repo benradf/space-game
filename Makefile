@@ -11,7 +11,7 @@ ifneq "$(origin PACKAGES)" "undefined"
 else 
 ifneq "$(origin COMPONENTS)" "undefined"
 else
-PACKAGES=enet argtable lua jpeg libpng
+PACKAGES=enet argtable lua jpeg libpng libmng
 COMPONENTS=server client core net script
 endif
 endif
