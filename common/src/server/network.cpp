@@ -46,7 +46,8 @@ void RemoteClient::handleKeyExchange(uint64_t key)
 
 void RemoteClient::handleLogin(const char* username, uint8_t (&password)[16])
 {
-
+    sendKeyExchange(0x19862009);
+    Log::log->info("got login message");
 }
 
 void RemoteClient::handleDisconnect()

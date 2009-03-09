@@ -1,7 +1,7 @@
 /// \file protocol.hpp
 /// \brief Network protocol.
 /// \author 
-/// \date 8th March 2009
+/// \date 9th March 2009
 ///
 /// Copyright (c) 2009 . All rights reserved.
 ///

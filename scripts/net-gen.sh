@@ -85,7 +85,7 @@ function fun-args() {
 }
 
 # $1 - ident, $2 - typecode, $3 - argspec, $4 - header, 
-# $5 - arrayfunc, $6 - stringfunc, $7 - otherfunc, $8 - footer
+# $5 - arrayfunc, $6 - stringfunc, $7 - otherfunc, $8 - footer, $9 - endianconv
 function process-args() {
     PLACEHOLDERS="0"
     TOTALBYTES="0"
@@ -111,11 +111,7 @@ function process-args() {
                 NAME="$NAME[i]"
             fi
 
-            case "$INTBITS" in
-                "16") NAME="htons($NAME)";;
-                "32") NAME="htonl($NAME)";;
-                "64") NAME="htonq($NAME)";;
-            esac
+            NAME="`$9 "$INTBITS"`($NAME)"
 
             if [ "$ARRAY" ]; then
                 SIZE=`echo $ARRAY | sed 's/\[\(.*\)\]/\1/'`
@@ -159,6 +155,7 @@ function serialise-header() {
     printf "%$1senet_uint8* offset = packet->data;\n" ""
     printf "%$1s*reinterpret_cast<uint8_t*>(offset) = 0x%02x;\n" "" "$2"
     printf "%$1suint16_t len = 0;\n" ""
+    printf "%$1soffset += 0x01;\n" ""
 }
 
 # $1 - indent, $2 - name, $3 - cpptype, $4 - size, $5 - origname
@@ -176,7 +173,7 @@ function serialise-string() {
     printf "%$1s    Log::log->warn(\"Network: serialise %s: enet_packet_resize failed\");\n" "" "$LOGNAME"
     printf "%$1s    return;\n" ""
     printf "%$1s}\n" ""
-    printf "%$1s*reinterpret_cast<uint16_t*>(offset) = len;\n" ""
+    printf "%$1s*reinterpret_cast<uint16_t*>(offset) = htons(len);\n" ""
     printf "%$1smemcpy(offset += 0x02, %s, len);\n" "" "$2"
     printf "%$1soffset += len;\n" ""
 }
@@ -193,6 +190,15 @@ function serialise-footer() {
     printf "%$1ssendPacket(packet);\n" ""
 }
 
+# $1 - bits
+function serialise-endian() {
+    case "$1" in
+        "16") echo "htons";;
+        "32") echo "htonl";;
+        "64") echo "htonq";;
+    esac
+}
+
 # $1 - indent, $2 - typecode, $3 - argspec
 function serialise() {
     process-args "$1" "$2" "$3" \
@@ -200,14 +206,15 @@ function serialise() {
         "serialise-array" \
         "serialise-string" \
         "serialise-other" \
-        "serialise-footer"
+        "serialise-footer" \
+        "serialise-endian"
 }
 
 # $1 - indent, $2 - typecode, $3 - remaining
 function deserialise-header() {
     CALLHANDLE="handle$NAME("
     printf "%$1scase 0x%02x: {\n" "" "$2"
-    printf "%$1s    if ( offset + %s > packet->data + packet->dataLength) {\n" "" "$3"
+    printf "%$1s    if (offset + %s > packet->data + packet->dataLength) {\n" "" "$3"
     printf "%$1s        Log::log->warn(\"Network: deserialise %s: malformed packet\");\n" "" "$LOGNAME"
     printf "%$1s        return;\n" ""
     printf "%$1s    }\n" ""
@@ -222,7 +229,7 @@ function deserialise-array() {
 
 # $1 - indent, $2 - name, $3 - remaining
 function deserialise-string() {
-    printf "%$1s    len = *reinterpret_cast<uint16_t*>(offset);\n" ""
+    printf "%$1s    len = ntohs(*reinterpret_cast<uint16_t*>(offset));\n" ""
     printf "%$1s    offset += 0x02;\n" ""
     printf "%$1s    if (offset + len + %s > packet->data + packet->dataLength) {\n" "" "$3"
     printf "%$1s        Log::log->warn(\"Network: deserialise %s: malformed packet\");\n" "" "$LOGNAME"
@@ -249,6 +256,15 @@ function deserialise-footer() {
     printf "%$1s    } break;\n" ""
 }
 
+# $1 - bits
+function deserialise-endian() {
+    case "$1" in
+        "16") echo "ntohs";;
+        "32") echo "ntohl";;
+        "64") echo "ntohq";;
+    esac
+}
+
 # $1 - indent, $2 - typecode, $3 - argspec
 function deserialise() {
     process-args "$1" "$2" "$3" \
@@ -256,7 +272,8 @@ function deserialise() {
         "deserialise-array" \
         "deserialise-string" \
         "deserialise-other" \
-        "deserialise-footer" 
+        "deserialise-footer" \
+        "deserialise-endian"
 }
 
 # Open protocol header.
@@ -292,6 +309,7 @@ echo "#include <memory.h>"
 echo
 echo
 echo "#define htonq(x) x  // needs implementing"
+echo "#define ntohq(x) x  // needs implementing"
 echo
 echo "#define CHECK_WRITE_OFFSET(pkt, off, type) { \\"
 echo "    if ((off + sizeof(type) > pkt->data + pkt->dataLength) && \\"
