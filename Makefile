@@ -11,7 +11,7 @@ ifneq "$(origin PACKAGES)" "undefined"
 else 
 ifneq "$(origin COMPONENTS)" "undefined"
 else
-PACKAGES=enet argtable lua jpeg libpng libmng
+PACKAGES=enet argtable lua jpeg libpng libmng zlib
 COMPONENTS=server client core net script
 endif
 endif
@@ -23,7 +23,7 @@ BLACKLIST=server-mingw
 COMBINED=$(PACKAGES) $(COMPONENTS)
 
 # GET_HOST(platform)
-GET_HOST=$(subst mingw,i386-mingw32,$(subst linux,$(shell uname -m)-linux,$(1)))
+GET_HOST=$(subst mingw,i386-mingw32msvc,$(subst linux,$(shell uname -m)-linux,$(1)))
 
 # UNPACK(package,path)
 define UNPACK
