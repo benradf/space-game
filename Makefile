@@ -11,7 +11,7 @@ ifneq "$(origin PACKAGES)" "undefined"
 else 
 ifneq "$(origin COMPONENTS)" "undefined"
 else
-PACKAGES=enet argtable lua jpeg libpng libmng zlib tiff
+PACKAGES=enet argtable lua jpeg libpng libmng zlib tiff lcms
 COMPONENTS=server client core net script
 endif
 endif
