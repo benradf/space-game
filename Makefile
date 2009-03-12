@@ -51,10 +51,12 @@ $(1)-$(2)-extract:
 	$(call UNPACK,$(wildcard common/pkg/$(1)*),$(2)/src) \
 	$(call APPLY_PATCHES,$(1),$(2))
 $(1)-$(2)-build:
-	@echo -e "\033[01;31m$$@\033[00m"; cd $(2)/src/$(1)* && \
-	$(if $(shell ls $(2)/src/$(1)*/Makefile 2>/dev/null),,./configure \
-		--prefix=$(PWD)/$(2) --host=$(call GET_HOST,$(2)) &&) \
-	$(MAKE) $(call GET_BUILD_TOOLS,$(2))
+	@echo -e "\033[01;31m$$@\033[00m"; \
+	cd $(2)/src/$(1)* && export $(call GET_BUILD_TOOLS,$(2)) && \
+	$(if $(shell ls $(2)/src/$(1)*/Makefile 2>/dev/null),, \
+		./configure --prefix=$(PWD)/$(2) \
+		--host=$(call GET_HOST,$(2)) &&) \
+	$(MAKE)
 $(1)-$(2)-install:
 	@echo -e "\033[01;36m$$@\033[00m"; cd $(2)/src/$(1)* && \
 	$(MAKE) $(call GET_BUILD_TOOLS,$(2)) install
