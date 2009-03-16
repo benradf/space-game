@@ -49,14 +49,15 @@ $(1)-$(2)-extract:
 	@echo -e "\033[01;32m$$@\033[00m"; \
 	rm -rvf $(2)/src/$(1)*; mkdir -p $(2)/src && \
 	$(call UNPACK,$(wildcard common/pkg/$(1)*),$(2)/src) \
-	$(call APPLY_PATCHES,$(1),$(2))
+	$(call APPLY_PATCHES,$(1),$(2)) && \
+	chmod +x $(2)/src/$(1)*/configure
 $(1)-$(2)-build:
 	@echo -e "\033[01;31m$$@\033[00m"; \
 	cd $(2)/src/$(1)* && export $(call GET_BUILD_TOOLS,$(2)) && \
 	$(if $(shell ls $(2)/src/$(1)*/Makefile 2>/dev/null),, \
 		./configure --prefix=$(PWD)/$(2) \
 		--host=$(call GET_HOST,$(2)) &&) \
-	$(MAKE)
+	$(MAKE) $(call GET_BUILD_TOOLS,$(2))
 $(1)-$(2)-install:
 	@echo -e "\033[01;36m$$@\033[00m"; cd $(2)/src/$(1)* && \
 	$(MAKE) $(call GET_BUILD_TOOLS,$(2)) install
