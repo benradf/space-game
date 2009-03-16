@@ -22,6 +22,9 @@ $(call PKG_DEP,DevIL,libmng)
 $(call PKG_DEP,DevIL,tiff)
 $(call PKG_DEP,DevIL,zlib)
 
+# zziplib
+$(call PKG_DEP,zziplib,zlib)
+
 # net
 $(call PKG_DEP,net,core)
 

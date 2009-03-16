@@ -12,7 +12,8 @@ PACKAGES= \
 	libmng \
 	lua \
 	tiff \
-	zlib
+	zlib \
+	zziplib
 
 COMPONENTS= \
 	client \
