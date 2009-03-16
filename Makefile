@@ -1,3 +1,4 @@
+#
 # MMOEngine Global Makefile
 #
 # Usage: make PLATFORM="mingw" PACKAGES="lua" all
@@ -11,13 +12,12 @@ ifneq "$(origin PACKAGES)" "undefined"
 else 
 ifneq "$(origin COMPONENTS)" "undefined"
 else
-PACKAGES=enet argtable lua jpeg libpng libmng zlib tiff lcms DevIL
-COMPONENTS=server client core net script
+include scripts/packages.mk
 endif
 endif
 
 # Do not build these combinations.
-BLACKLIST=server-mingw
+include scripts/blacklist.mk
 
 # Packages and components in one list.
 COMBINED=$(PACKAGES) $(COMPONENTS)
@@ -133,20 +133,8 @@ PKG_DEP=$(foreach PLT,$(PLATFORMS),$(eval \
 	$(if $(filter $(addsuffix -$(PLT),$(COMBINED)),$(2)-$(PLT)), \
 	$(1)-$(PLT)-all: $(2)-$(PLT)-all))))))
 
-# Declare package dependencies.
-$(call PKG_DEP,net,core)
-$(call PKG_DEP,script,core)
-$(call PKG_DEP,server,core)
-$(call PKG_DEP,server,net)
-$(call PKG_DEP,server,script)
-$(call PKG_DEP,server,lua)
-$(call PKG_DEP,server,enet)
-$(call PKG_DEP,server,argtable)
-$(call PKG_DEP,client,core)
-$(call PKG_DEP,client,net)
-$(call PKG_DEP,client,script)
-$(call PKG_DEP,client,lua)
-$(call PKG_DEP,client,enet)
+# Include dependency rules.
+include scripts/deprules.mk
 
 # Specific package rules.
 $(foreach PKG,$(PACKAGES), \
