@@ -43,6 +43,10 @@ endef
 GET_BUILD_TOOLS=$(call BUILD_TOOLS,$(subst mingw,i386-mingw32msvc-,$(subst linux,,$(1))))
 BUILD_TOOLS=CC="$(1)gcc" CXX="$(1)g++" AR="$(1)ar" RANLIB="$(1)ranlib" STRIP="$(1)strip" AS="$(1)as" DLLTOOL="$(1)dlltool"
 
+# CHECK_CONFIG_EXEC(package,platform)
+CHECK_CONFIG_EXEC=$(call FIX_CONFIG_EXEC,$(2)/src/$(1)*/configure)
+FIX_CONFIG_EXEC=if [ -f $(1) -a ! -x $(1) ]; then chmod +x $(1); fi
+
 # PACKAGE_RULES(package,platform)
 define PACKAGE_RULES
 $(1)-$(2)-extract: 
@@ -50,7 +54,7 @@ $(1)-$(2)-extract:
 	rm -rvf $(2)/src/$(1)*; mkdir -p $(2)/src && \
 	$(call UNPACK,$(wildcard common/pkg/$(1)*),$(2)/src) \
 	$(call APPLY_PATCHES,$(1),$(2)) && \
-	chmod +x $(2)/src/$(1)*/configure
+	$(call CHECK_CONFIG_EXEC,$(1),$(2))
 $(1)-$(2)-build:
 	@echo -e "\033[01;31m$$@\033[00m"; \
 	cd $(2)/src/$(1)* && export $(call GET_BUILD_TOOLS,$(2)) && \
