@@ -11,6 +11,7 @@ PACKAGES= \
 	libpng \
 	libmng \
 	lua \
+	ois \
 	tiff \
 	zlib \
 	zziplib
