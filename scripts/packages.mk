@@ -4,15 +4,19 @@
 
 PACKAGES= \
 	argtable \
+	CEGUI \
 	DevIL \
 	enet \
+	freetype \
 	jpeg \
 	lcms \
 	libpng \
 	libmng \
 	lua \
 	ois \
+	pcre \
 	tiff \
+	xerces \
 	zlib \
 	zziplib
 

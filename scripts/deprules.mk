@@ -25,6 +25,12 @@ $(call PKG_DEP,DevIL,zlib)
 # zziplib
 $(call PKG_DEP,zziplib,zlib)
 
+# CEGUI
+$(call PKG_DEP,CEGUI,freetype)
+$(call PKG_DEP,CEGUI,lua)
+$(call PKG_DEP,CEGUI,pcre)
+$(call PKG_DEP,CEGUI,xerces)
+
 # net
 $(call PKG_DEP,net,core)
 
