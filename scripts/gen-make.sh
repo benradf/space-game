@@ -80,8 +80,13 @@ echo
 
 # Generate install target.
 echo '# Install link target and headers.'
-echo 'install: $(BUILDPATH)/'"$linkname $headers"
-echo '	cp -v $(BUILDPATH)/'"$linkname"' $(PREFIX)/'"$installdir"
+if [ $islibs ] || [ $islibd ]; then
+    echo 'install: $(BUILDPATH)/$(LIB)'" $headers"
+    echo '	cp -v $(BUILDPATH)/$(LIB) $(PREFIX)/'"$installdir"
+else
+    echo 'install: $(BUILDPATH)/$(BIN)'" $headers"
+    echo '	cp -v $(BUILDPATH)/$(BIN) $(PREFIX)/'"$installdir"
+fi
 if [ "$headers" ]; then 
     echo '	cp -v '"$headers"' $(PREFIX)/include'
 fi
