@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Process args.
-while getopts "p:n:i:j:l:h:r:" arg; do
+while getopts "p:n:i:j:l:h:r:f:" arg; do
     case $arg in
         p) path="$OPTARG" ;;
         n) linkname="$OPTARG" ;;
@@ -10,6 +10,7 @@ while getopts "p:n:i:j:l:h:r:" arg; do
         l) libs=`echo "$OPTARG" | sed 's/\([^ \t]\+\)[ \t]*/-l\1 /g'` ;;
         h) headers="$OPTARG" ;;
         r) root="$OPTARG" ;;
+        f) flags="$OPTARG" ;;
     esac
 done
 
@@ -59,8 +60,8 @@ echo 'PLATFORM?=linux'
 echo 'PREFIX=$(ROOT)/$(PLATFORM)'
 echo 'BUILDPATH=$(BUILDROOT)/$(PLATFORM)/tmp/$(NAME)'
 echo "OBJS=$sources" | sed 's/ \(\w*\)\.cpp/ \\\n\t\$(BUILDPATH)\/\1\.o/g'
-echo 'CFLAGS:=-g $(CFLAGS) '"$incpath"
-echo 'CXXFLAGS:=-g $(CXXFLAGS) '"$incpath"
+echo 'CFLAGS:=$(CFLAGS) '"$flags $incpath"
+echo 'CXXFLAGS:=$(CXXFLAGS) '"$flags $incpath"
 echo 'LDFLAGS:=$(LDFLAGS) '"$libpath"
 echo 'RANLIB?=ranlib'
 echo
@@ -75,7 +76,7 @@ echo
 
 # Generate clean target.
 echo 'clean:'
-echo '	rm $(BUILDPATH)/*'
+echo '	rm -f $(BUILDPATH)/*'
 echo
 
 # Generate install target.

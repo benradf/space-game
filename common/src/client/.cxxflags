@@ -1,0 +1,2 @@
+linux: -g -I$(PREFIX)/include/OGRE
+mingw: -g -I$(PREFIX)/include/OGRE

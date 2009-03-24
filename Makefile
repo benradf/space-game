@@ -90,6 +90,7 @@ $(1)-$(2)-build:
 		-i "$(PWD)/$(2)/include" -j "$(PWD)/$(2)/lib" \
 		-l "`sed -n s/$2\://p .linklibs 2>/dev/null`" \
 		-n "`sed -n s/$2\://p .linkname 2>/dev/null`" \
+		-f "`sed -n s/$2\://p .cxxflags 2>/dev/null`" \
 		-h "`sed -n s/$2\://p .install 2>/dev/null`" \
 		-r $(PWD) >Makefile && \
 	$(MAKE) PLATFORM="$(2)" $(call GET_BUILD_TOOLS,$(2))
