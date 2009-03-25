@@ -31,6 +31,12 @@ $(call PKG_DEP,CEGUI,lua)
 $(call PKG_DEP,CEGUI,pcre)
 $(call PKG_DEP,CEGUI,xerces)
 
+# ogre
+$(call PKG_DEP,ogre,CEGUI)
+$(call PKG_DEP,ogre,DevIL)
+$(call PKG_DEP,ogre,ois)
+$(call PKG_DEP,ogre,zziplib)
+
 # net
 $(call PKG_DEP,net,core)
 
@@ -44,11 +50,14 @@ $(call PKG_DEP,server,enet)
 $(call PKG_DEP,server,lua)
 $(call PKG_DEP,server,net)
 $(call PKG_DEP,server,script)
+$(call PKG_DEP,server,tvmet)
 
 # client
 $(call PKG_DEP,client,core)
-$(call PKG_DEP,client,net)
-$(call PKG_DEP,client,script)
-$(call PKG_DEP,client,lua)
 $(call PKG_DEP,client,enet)
+$(call PKG_DEP,client,lua)
+$(call PKG_DEP,client,net)
+$(call PKG_DEP,client,ogre)
+$(call PKG_DEP,client,script)
+$(call PKG_DEP,client,tvmet)
 
