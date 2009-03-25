@@ -15,6 +15,7 @@
 #include <boost/shared_ptr.hpp>
 #include <core.hpp>
 #include "network.hpp"
+#include "graphics.hpp"
 
 
 using namespace std;
@@ -33,6 +34,18 @@ void clientMain()
 {
     signal(SIGINT, signalHandler);
 
+    GFXManager gfx;
+    std::auto_ptr<Scene> scene = gfx.createScene();
+    std::auto_ptr<Camera> camera = scene->createCamera("cam1");
+    gfx.getViewport().attachCamera(*camera);
+    std::auto_ptr<Entity> spider = scene->createEntity("spider", "spider.mesh");
+    std::auto_ptr<Entity> warbird = scene->createEntity("warbird", "warbird.mesh");
+    spider->setPosition(Ogre::Vector3(0.0f, 10.0f, 0.0f));
+    warbird->setPosition(Ogre::Vector3(0.0f, -10.0f, 0.0f));
+    camera->setPosition(Ogre::Vector3(-0.1f, -0.1f, 200.0f));
+    camera->lookAt(Ogre::Vector3(0.0f, 0.0f, 0.0f));
+    scene->setSkyPlane("Sky/OrbitEarth", Ogre::Vector3::UNIT_Z, -1000.0f);
+
     NetworkInterface network;
 
     network.setServer("localhost");
@@ -40,7 +53,10 @@ void clientMain()
 
     while (clientRunning) {
         network.main();
-        usleep(100000);
+        gfx.render();
+        gfx.getViewport().update();
+
+        usleep(10000);
     }
 }
 
@@ -56,6 +72,9 @@ int main(int argc, char* argv[])
 
     Log::log->info("Client starts");
     Log::log->info("Built " __DATE__ " " __TIME__);
+
+    int rval = chdir("linux/share/client");
+    assert(rval == 0);
     
     try {
         clientMain();

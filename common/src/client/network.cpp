@@ -15,6 +15,8 @@
 using namespace std;
 
 
+////////// RemoteServer //////////
+
 RemoteServer::RemoteServer(void* data) :
     net::Peer(data)
 {
