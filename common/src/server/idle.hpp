@@ -12,20 +12,9 @@
 #define IDLE_HPP
 
 
-#include <sys/time.h>
+#include <timer.hpp>
 #include "concurrency.hpp"
 #include "localstore.hpp"
-
-
-class Timer {
-    public:
-        Timer();
-        void reset();
-        unsigned int elapsed();
-        
-    private:
-        timeval _start;
-};
 
 
 class Idle : public Job {
