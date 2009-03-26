@@ -16,6 +16,7 @@ PACKAGES= \
 	ois \
 	pcre \
 	tiff \
+	tvmet \
 	xerces \
 	zlib \
 	zziplib
