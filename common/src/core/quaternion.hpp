@@ -66,11 +66,8 @@ inline Quaternion::Quaternion(const Vector3& v) :
 inline Vector3 Quaternion::operator*(const Vector3& v) const
 {
     Quaternion q(*this);
-    printf("q        = (%.2f, %.2f, %.2f, %.2f)\n", q.w, q.x, q.y, q.z);
     q *= Quaternion(v);
-    printf("q*v      = (%.2f, %.2f, %.2f, %.2f)\n", q.w, q.x, q.y, q.z);
     q *= conjugate();
-    printf("q*v*q^-1 = (%.2f, %.2f, %.2f, %.2f)\n", q.w, q.x, q.y, q.z);
 
     return Vector3(q.x, q.y, q.z);
 }
