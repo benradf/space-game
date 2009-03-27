@@ -148,6 +148,11 @@ void gfx::Viewport::attachCamera(Camera& camera)
     updateAspectRatio();
 }
 
+Ogre::RenderWindow* gfx::Viewport::getRenderWindow()
+{
+    return _window;
+}
+
 void gfx::Viewport::updateAspectRatio()
 {
     Ogre::Real width = _viewport->getActualWidth();

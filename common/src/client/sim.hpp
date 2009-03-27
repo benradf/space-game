@@ -60,6 +60,9 @@ class Object {
 
         float _mass;
         float _massInverse;
+
+        bool _forceApplied;
+        bool _spinApplied;
 };
 
 class Ray {

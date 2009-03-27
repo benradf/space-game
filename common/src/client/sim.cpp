@@ -10,13 +10,7 @@
 #include "sim.hpp"
 #include <unistd.h>
 #include <timer.hpp>
-#include <iostream>
-using namespace std;
-
-
-
-
-
+#include <core.hpp>
 
 
 ////////// sim::Object //////////
@@ -24,6 +18,7 @@ using namespace std;
 sim::Object::Object(float mass) :
     _pos(Vector3::ZERO), _vel(Vector3::ZERO), _acc(Vector3::ZERO),
     _rot(Quaternion::IDENTITY), _spin(Quaternion::IDENTITY), 
+    _forceApplied(false), _spinApplied(false),
     _mass(mass), _massInverse(1.0f / mass)
 {
 
@@ -43,6 +38,7 @@ void sim::Object::integrate(float dt)
 void sim::Object::ApplyAbsoluteForce(const Vector3& force)
 {
     _acc += _massInverse * force;
+    _forceApplied = true;
 }
 
 void sim::Object::ApplyRelativeForce(const Vector3& force)
@@ -53,6 +49,7 @@ void sim::Object::ApplyRelativeForce(const Vector3& force)
 void sim::Object::ApplySpin(const Quaternion& spin)
 {
     _spin *= spin;
+    _spinApplied = true;
 }
 
 const Vector3& sim::Object::getPosition() const
@@ -93,6 +90,7 @@ void sim::Object::setVelocity(const Vector3& vel)
 void sim::Object::setAcceleration(const Vector3& acc)
 {
     _acc = acc;
+    _forceApplied = true;
 }
 
 void sim::Object::setRotation(const Quaternion& rot)
@@ -103,21 +101,26 @@ void sim::Object::setRotation(const Quaternion& rot)
 void sim::Object::setSpin(const Quaternion& spin)
 {
     _spin = spin;
+    _spinApplied = true;
 }
 
 void sim::Object::ClearForce()
 {
     _acc = Vector3::ZERO;
+    _forceApplied = false;
 }
 
 void sim::Object::ClearSpin()
 {
     _spin = Quaternion::IDENTITY;
+    _spinApplied = false;
 }
 
 void sim::Object::integrateLinearMotion(float dt)
 {
-    _vel += _acc * dt;
+    if (_forceApplied) 
+        _vel += _acc * dt;
+
     _pos += _vel * dt;
 
     ClearForce();
@@ -125,6 +128,9 @@ void sim::Object::integrateLinearMotion(float dt)
 
 void sim::Object::integrateRotationalMotion(float dt)
 {
+    if (!_spinApplied) 
+        return;
+
     Vector3 turnAxis(_spin.x, _spin.y, _spin.z);
     float turnAngle = 2.0f * acos(_spin.w) * dt;
     _rot *= Quaternion(turnAngle, turnAxis.normalise());

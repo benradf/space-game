@@ -8,6 +8,10 @@
 /// Modifications (most recent first):
 
 
+#ifndef TIMER_HPP
+#define TIMER_HPP
+
+
 #include <stdint.h>
 
 #ifdef WIN32
@@ -34,4 +38,6 @@ class Timer {
 #endif
 };
 
+
+#endif  // TIMER_HPP
 

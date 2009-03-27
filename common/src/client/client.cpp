@@ -17,6 +17,7 @@
 #include <timer.hpp>
 #include "network.hpp"
 #include "graphics.hpp"
+#include "input.hpp"
 #include "sim.hpp"
 
 
@@ -32,14 +33,6 @@ void signalHandler(int signum)
     clientRunning = false;
 }
 
-#define PI 3.141592654
-
-static const float degPerRad = 180.0f / PI;
-static const float radPerDeg = PI / 180.f;
-
-#define DEG2RAD(x) (x * radPerDeg)
-#define RAD2DEG(x) (x * degPerRad)
-
 void clientMain()
 {
     signal(SIGINT, signalHandler);
@@ -48,13 +41,18 @@ void clientMain()
     std::auto_ptr<Scene> scene = gfx.createScene();
     std::auto_ptr<Camera> camera = scene->createCamera("cam1");
     gfx.getViewport().attachCamera(*camera);
-    std::auto_ptr<Entity> spider = scene->createEntity("spider", "spider.mesh");
+    std::auto_ptr<Entity> spider = scene->createEntity("spider", "warbird.mesh");
     std::auto_ptr<Entity> warbird = scene->createEntity("warbird", "warbird.mesh");
     spider->setPosition(Ogre::Vector3(0.0f, 10.0f, 0.0f));
     warbird->setPosition(Ogre::Vector3(0.0f, -10.0f, 0.0f));
     camera->setPosition(Ogre::Vector3(-0.1f, -0.1f, 200.0f));
     camera->lookAt(Ogre::Vector3(0.0f, 0.0f, 0.0f));
     scene->setSkyPlane("Sky/OrbitEarth", Ogre::Vector3::UNIT_Z, -1000.0f);
+
+    Ship ship(*scene, "username", "spider.mesh");
+    Input input(gfx.getViewport().getRenderWindow());
+    std::auto_ptr<LocalController> ctrl = input.createKeyboardListener<LocalController>();
+    ctrl->setObject(&ship);
 
     NetworkInterface network;
 
@@ -65,6 +63,7 @@ void clientMain()
     sim::Object testObj(10.0f);
 
     while (clientRunning) {
+#if 0
         testObj.ApplySpin(Quaternion(DEG2RAD(-30.0f), Vector3(0.0f, 0.0f, 1.0f)));
         testObj.ApplySpin(Quaternion(DEG2RAD(45.0f), Vector3(1.0f, 0.0f, 0.0f)));
         //testObj.ApplyRelativeForce(Vector3(0.0f, 10.0f, 0.0f));
@@ -78,10 +77,14 @@ void clientMain()
         spider->setOrientation(Ogre::Quaternion(rot.w, rot.x, rot.y, rot.z));
         const Vector3& pos = testObj.getPosition();
         spider->setPosition(Ogre::Vector3(pos.x, pos.y, pos.z));
+#endif
 
-        //camera->setPosition(Ogre::Vector3(pos[0], pos[1], pos[2] + 200.0f));
+        const Vector3& shipPos = ship.getApparentPosition();
+        camera->setPosition(Ogre::Vector3(shipPos.x, shipPos.y, shipPos.z + 200.0f));
 
+        input.capture();
         network.main();
+        ship.update();
         gfx.render();
         gfx.getViewport().update();
 

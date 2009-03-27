@@ -88,6 +88,8 @@ class Viewport {
 
         void attachCamera(Camera& camera);
 
+        Ogre::RenderWindow* getRenderWindow();
+
     private:
         Viewport(const Viewport&);
         Viewport& operator=(const Viewport&);
