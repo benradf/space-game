@@ -76,7 +76,7 @@ void clientMain()
         const Quaternion& rot = testObj.getRotation();
         spider->setOrientation(Ogre::Quaternion(rot.w, rot.x, rot.y, rot.z));
         const Vector3& pos = testObj.getPosition();
-        spider->setPosition(Ogre::Vector3(pos[0], pos[1], pos[2]));
+        spider->setPosition(Ogre::Vector3(pos.x, pos.y, pos.z));
 
         //camera->setPosition(Ogre::Vector3(pos[0], pos[1], pos[2] + 200.0f));
 

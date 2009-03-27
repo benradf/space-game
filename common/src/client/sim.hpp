@@ -11,19 +11,12 @@
 #define SIM_HPP
 
 
-#include <tvmet/Vector.h>
-#include <tvmet/Matrix.h>
 #include <math.h>
 #include <stdio.h>
-#include <quaternion.hpp>
+#include <vecmath.hpp>
 
 
 namespace sim {
-
-void testSimulation();
-
-typedef tvmet::Vector<float, 3> Vector3;
-
 
 
 class Object {

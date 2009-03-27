@@ -1,2 +1,2 @@
-linux: core.hpp exception.hpp foreach.hpp log.hpp quaternion.hpp timer.hpp
-mingw: core.hpp exception.hpp foreach.hpp log.hpp quaternion.hpp timer.hpp
+linux: core.hpp exception.hpp foreach.hpp log.hpp timer.hpp vecmath.hpp
+mingw: core.hpp exception.hpp foreach.hpp log.hpp timer.hpp vecmath.hpp

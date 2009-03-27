@@ -22,8 +22,8 @@ using namespace std;
 ////////// sim::Object //////////
 
 sim::Object::Object(float mass) :
-    _pos(0.0f, 0.0f, 0.0f), _vel(0.0f, 0.0f, 0.0f), _acc(0.0f, 0.0f, 0.0f),
-    _rot(1.0f, 0.0f, 0.0f, 0.0f), _spin(1.0f, 0.0f, 0.0f, 0.0f), 
+    _pos(Vector3::ZERO), _vel(Vector3::ZERO), _acc(Vector3::ZERO),
+    _rot(Quaternion::IDENTITY), _spin(Quaternion::IDENTITY), 
     _mass(mass), _massInverse(1.0f / mass)
 {
 
@@ -107,12 +107,12 @@ void sim::Object::setSpin(const Quaternion& spin)
 
 void sim::Object::ClearForce()
 {
-    _acc = (0.0f, 0.0f, 0.0f);
+    _acc = Vector3::ZERO;
 }
 
 void sim::Object::ClearSpin()
 {
-    _spin = Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
+    _spin = Quaternion::IDENTITY;
 }
 
 void sim::Object::integrateLinearMotion(float dt)
@@ -126,8 +126,8 @@ void sim::Object::integrateLinearMotion(float dt)
 void sim::Object::integrateRotationalMotion(float dt)
 {
     Vector3 turnAxis(_spin.x, _spin.y, _spin.z);
-    float turnAngle = 2.0f * std::acos(_spin.w) * dt;
-    _rot *= Quaternion(turnAngle, Vector3(normalize(turnAxis)));
+    float turnAngle = 2.0f * acos(_spin.w) * dt;
+    _rot *= Quaternion(turnAngle, turnAxis.normalise());
 
     ClearSpin();
 }
