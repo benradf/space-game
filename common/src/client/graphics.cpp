@@ -46,6 +46,16 @@ const Ogre::Vector3& Entity::getPosition() const
     return _node->getPosition();
 }
 
+void Entity::setOrientation(const Ogre::Quaternion& rot)
+{
+    _node->setOrientation(rot);
+}
+
+const Ogre::Quaternion& Entity::getOrientation() const
+{
+    return _node->getOrientation();
+}
+
 
 ////////// Camera //////////
 

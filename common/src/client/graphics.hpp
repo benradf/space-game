@@ -24,6 +24,9 @@ class Entity {
         void setPosition(const Ogre::Vector3& pos);
         const Ogre::Vector3& getPosition() const;
 
+        void setOrientation(const Ogre::Quaternion& rot);
+        const Ogre::Quaternion& getOrientation() const;
+
     private:
         Ogre::SceneManager* _sceneManager;
         Ogre::SceneNode* _node;

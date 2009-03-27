@@ -18,25 +18,37 @@
 typedef tvmet::Vector<float, 3> Vector3;
 
 
-class Quaternion {
-    public:
-        Quaternion(float w_, float x_, float y_, float z_);
-        Quaternion(float a, const Vector3& v);
-        Quaternion(const Vector3& v);
+struct Quaternion {
+    Quaternion(float w_, float x_, float y_, float z_);
+    Quaternion(float a, const Vector3& v);
+    Quaternion(const Vector3& v);
 
-        Vector3 operator*(const Vector3& v) const;
-        Quaternion operator*(const Quaternion& q) const;
-        Quaternion& operator*=(const Quaternion& q);
-        Quaternion conjugate() const;
+    Vector3 operator*(const Vector3& v) const;
+    Quaternion operator*(const Quaternion& q) const;
+    Quaternion& operator*=(const Quaternion& q);
+    Quaternion conjugate() const;
 
-        float w;
-        float x;
-        float y;
-        float z;
+    Quaternion operator*(float s) const;
+    Quaternion& operator*=(float s);
+    Quaternion operator/(float s) const;
+    Quaternion& operator/=(float s);
 
-    private:
+    float magnitudeSquared() const;
+    float magnitude() const;
+    Quaternion& normalise();
 
+    float w;
+    float x;
+    float y;
+    float z;
 };
+
+
+inline Quaternion slerp(const Quaternion& a, const Quaternion& b, float t)
+{
+    // Not yet implemented.
+    return a;
+}
 
 
 ////////// Quaternion //////////
@@ -94,6 +106,49 @@ inline Quaternion Quaternion::conjugate() const
     return Quaternion(w, -x, -y, -z);
 }
 
+inline Quaternion Quaternion::operator*(float s) const
+{
+    return Quaternion(*this) *= s;
+}
+
+inline Quaternion& Quaternion::operator*=(float s)
+{
+    w *= s, x *= s, y *= s, z *= s;
+
+    return *this;
+}
+
+inline Quaternion Quaternion::operator/(float s) const
+{
+    return Quaternion(*this) /= s;
+}
+
+inline Quaternion& Quaternion::operator/=(float s)
+{
+    return operator*=(1.0f / s);
+}
+
+inline float Quaternion::magnitudeSquared() const
+{
+    return (w * w + x * x + y * y + z * z);
+}
+
+inline float Quaternion::magnitude() const
+{
+    return std::sqrt(magnitudeSquared());
+}
+
+inline Quaternion& Quaternion::normalise()
+{
+    float magSqrd = magnitudeSquared();
+    if (std::fabs(magSqrd - 1.0f) < 0.01f) 
+        return;
+
+    float magInv = 1.0f / std::sqrt(magSqrd);
+    w *= magInv, x *= magInv, y *= magInv, z *= magInv;
+
+    return *this;
+}
 
 #endif  // QUATERNION_HPP
 

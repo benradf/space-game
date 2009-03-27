@@ -8,7 +8,127 @@
 
 
 #include "sim.hpp"
+#include <unistd.h>
+#include <timer.hpp>
+#include <iostream>
+using namespace std;
 
 
 
+
+
+
+
+////////// sim::Object //////////
+
+sim::Object::Object(float mass) :
+    _pos(0.0f, 0.0f, 0.0f), _vel(0.0f, 0.0f, 0.0f), _acc(0.0f, 0.0f, 0.0f),
+    _rot(1.0f, 0.0f, 0.0f, 0.0f), _spin(1.0f, 0.0f, 0.0f, 0.0f), 
+    _mass(mass), _massInverse(1.0f / mass)
+{
+
+}
+
+sim::Object::~Object()
+{
+
+}
+
+void sim::Object::integrate(float dt)
+{
+    integrateLinearMotion(dt);
+    integrateRotationalMotion(dt);
+}
+
+void sim::Object::ApplyAbsoluteForce(const Vector3& force)
+{
+    _acc += _massInverse * force;
+}
+
+void sim::Object::ApplyRelativeForce(const Vector3& force)
+{
+    ApplyAbsoluteForce(_rot * force);
+}
+
+void sim::Object::ApplySpin(const Quaternion& spin)
+{
+    _spin *= spin;
+}
+
+const Vector3& sim::Object::getPosition() const
+{
+    return _pos;
+}
+
+const Vector3& sim::Object::getVelocity() const
+{
+    return _vel;
+}
+
+const Vector3& sim::Object::getAcceleration() const
+{
+    return _acc;
+}
+
+const Quaternion& sim::Object::getRotation() const
+{
+    return _rot;
+}
+
+const Quaternion& sim::Object::getSpin() const
+{
+    return _spin;
+}
+
+void sim::Object::setPosition(const Vector3& pos)
+{
+    _pos = pos;
+}
+
+void sim::Object::setVelocity(const Vector3& vel)
+{
+    _vel = vel;
+}
+
+void sim::Object::setAcceleration(const Vector3& acc)
+{
+    _acc = acc;
+}
+
+void sim::Object::setRotation(const Quaternion& rot)
+{
+    _rot = rot;
+}
+
+void sim::Object::setSpin(const Quaternion& spin)
+{
+    _spin = spin;
+}
+
+void sim::Object::ClearForce()
+{
+    _acc = (0.0f, 0.0f, 0.0f);
+}
+
+void sim::Object::ClearSpin()
+{
+    _spin = Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
+}
+
+void sim::Object::integrateLinearMotion(float dt)
+{
+    _vel += _acc * dt;
+    _pos += _vel * dt;
+
+    ClearForce();
+}
+
+void sim::Object::integrateRotationalMotion(float dt)
+{
+    Vector3 turnAxis(_spin.x, _spin.y, _spin.z);
+    float turnAngle = 2.0f * std::acos(_spin.w) * dt;
+    _rot *= Quaternion(turnAngle, Vector3(normalize(turnAxis)));
+
+    ClearSpin();
+}
 

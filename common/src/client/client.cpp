@@ -14,8 +14,10 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <core.hpp>
+#include <timer.hpp>
 #include "network.hpp"
 #include "graphics.hpp"
+#include "sim.hpp"
 
 
 using namespace std;
@@ -29,6 +31,13 @@ void signalHandler(int signum)
     clientRunning = false;
 }
 
+#define PI 3.141592654
+
+static const float degPerRad = 180.0f / PI;
+static const float radPerDeg = PI / 180.f;
+
+#define DEG2RAD(x) (x * radPerDeg)
+#define RAD2DEG(x) (x * degPerRad)
 
 void clientMain()
 {
@@ -51,7 +60,26 @@ void clientMain()
     network.setServer("localhost");
     network.maintainServerConnection(true);
 
+    Timer simTimer;
+    sim::Object testObj(10.0f);
+
     while (clientRunning) {
+        testObj.ApplySpin(Quaternion(DEG2RAD(-30.0f), Vector3(0.0f, 0.0f, 1.0f)));
+        testObj.ApplySpin(Quaternion(DEG2RAD(45.0f), Vector3(1.0f, 0.0f, 0.0f)));
+        //testObj.ApplyRelativeForce(Vector3(0.0f, 10.0f, 0.0f));
+        testObj.ApplyAbsoluteForce(Vector3(0.0f, 0.0f, 20.0f));
+        float elapsed = simTimer.elapsed();
+        elapsed /= 1000000.0f;
+        testObj.integrate(elapsed);
+        simTimer.reset();
+
+        const Quaternion& rot = testObj.getRotation();
+        spider->setOrientation(Ogre::Quaternion(rot.w, rot.x, rot.y, rot.z));
+        const Vector3& pos = testObj.getPosition();
+        spider->setPosition(Ogre::Vector3(pos[0], pos[1], pos[2]));
+
+        //camera->setPosition(Ogre::Vector3(pos[0], pos[1], pos[2] + 200.0f));
+
         network.main();
         gfx.render();
         gfx.getViewport().update();
