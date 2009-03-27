@@ -13,7 +13,7 @@
 
 ////////// Entity //////////
 
-Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* sceneManager) :
+gfx::Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* sceneManager) :
     _sceneManager(sceneManager), _node(0), _entity(0), _name(name)
 {
     Ogre::SceneNode* rootNode = _sceneManager->getRootSceneNode();
@@ -29,29 +29,29 @@ Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* sceneMana
     _node->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
 }
 
-Entity::~Entity()
+gfx::Entity::~Entity()
 {
     _node->detachObject(_entity);
     _sceneManager->destroyEntity(_entity);
     _sceneManager->getRootSceneNode()->removeAndDestroyChild(_name);
 }
 
-void Entity::setPosition(const Ogre::Vector3& pos)
+void gfx::Entity::setPosition(const Ogre::Vector3& pos)
 {
     _node->setPosition(pos);
 }
 
-const Ogre::Vector3& Entity::getPosition() const
+const Ogre::Vector3& gfx::Entity::getPosition() const
 {
     return _node->getPosition();
 }
 
-void Entity::setOrientation(const Ogre::Quaternion& rot)
+void gfx::Entity::setOrientation(const Ogre::Quaternion& rot)
 {
     _node->setOrientation(rot);
 }
 
-const Ogre::Quaternion& Entity::getOrientation() const
+const Ogre::Quaternion& gfx::Entity::getOrientation() const
 {
     return _node->getOrientation();
 }
@@ -59,7 +59,7 @@ const Ogre::Quaternion& Entity::getOrientation() const
 
 ////////// Camera //////////
 
-Camera::Camera(const char* name, Ogre::SceneManager* sceneManager) :
+gfx::Camera::Camera(const char* name, Ogre::SceneManager* sceneManager) :
     _camera(0), _sceneManager(sceneManager)
 {
     _camera = _sceneManager->createCamera(name);
@@ -67,22 +67,22 @@ Camera::Camera(const char* name, Ogre::SceneManager* sceneManager) :
     _camera->setFarClipDistance(50000.0f);
 }
 
-Camera::~Camera()
+gfx::Camera::~Camera()
 {
     _sceneManager->destroyCamera(_camera);
 }
 
-void Camera::setPosition(const Ogre::Vector3& pos)
+void gfx::Camera::setPosition(const Ogre::Vector3& pos)
 {
     _camera->setPosition(pos);
 }
 
-const Ogre::Vector3& Camera::getPosition() const
+const Ogre::Vector3& gfx::Camera::getPosition() const
 {
     return _camera->getPosition();
 }
 
-void Camera::lookAt(const Ogre::Vector3& pos)
+void gfx::Camera::lookAt(const Ogre::Vector3& pos)
 {
     _camera->lookAt(pos);
 }
@@ -90,29 +90,29 @@ void Camera::lookAt(const Ogre::Vector3& pos)
 
 ////////// Scene //////////
 
-Scene::Scene(boost::shared_ptr<Ogre::Root> root) :
+gfx::Scene::Scene(boost::shared_ptr<Ogre::Root> root) :
     _root(root), _sceneManager(0)
 {
     _sceneManager = _root->createSceneManager(Ogre::ST_EXTERIOR_CLOSE, "ExteriorSceneManager");
     //_sceneManager->setDisplaySceneNodes(true);
 }
 
-Scene::~Scene()
+gfx::Scene::~Scene()
 {
     _root->destroySceneManager(_sceneManager);
 }
 
-std::auto_ptr<Camera> Scene::createCamera(const char* name)
+std::auto_ptr<gfx::Camera> gfx::Scene::createCamera(const char* name)
 {
     return std::auto_ptr<Camera>(new Camera(name, _sceneManager));
 }
 
-std::auto_ptr<Entity> Scene::createEntity(const char* name, const char* mesh)
+std::auto_ptr<gfx::Entity> gfx::Scene::createEntity(const char* name, const char* mesh)
 {
     return std::auto_ptr<Entity>(new Entity(name, mesh, _sceneManager));
 }
 
-void Scene::setSkyPlane(const char* material, const Ogre::Vector3& normal, float dist)
+void gfx::Scene::setSkyPlane(const char* material, const Ogre::Vector3& normal, float dist)
 {
     _sceneManager->setSkyPlane(true, Ogre::Plane(normal, Ogre::Real(dist)), material,
         Ogre::Real(500.0f), Ogre::Real(100.0f));
@@ -121,24 +121,24 @@ void Scene::setSkyPlane(const char* material, const Ogre::Vector3& normal, float
 
 ////////// Viewport //////////
 
-Viewport::Viewport(const char* title, boost::shared_ptr<Ogre::Root> root) :
+gfx::Viewport::Viewport(const char* title, boost::shared_ptr<Ogre::Root> root) :
     _root(root), _window(0), _viewport(0), _camera(0)
 {
     _window = _root->initialise(true, title);
 }
 
-Viewport::~Viewport()
+gfx::Viewport::~Viewport()
 {
     _window->removeAllViewports();
     _root->detachRenderTarget(_window);
 }
 
-void Viewport::update()
+void gfx::Viewport::update()
 {
     _window->update();
 }
 
-void Viewport::attachCamera(Camera& camera)
+void gfx::Viewport::attachCamera(Camera& camera)
 {
     _window->removeAllViewports();
     _camera = camera._camera;
@@ -148,7 +148,7 @@ void Viewport::attachCamera(Camera& camera)
     updateAspectRatio();
 }
 
-void Viewport::updateAspectRatio()
+void gfx::Viewport::updateAspectRatio()
 {
     Ogre::Real width = _viewport->getActualWidth();
     Ogre::Real height = _viewport->getActualHeight();
@@ -158,7 +158,7 @@ void Viewport::updateAspectRatio()
 
 ////////// GFXManager //////////
 
-GFXManager::GFXManager()
+gfx::GFXManager::GFXManager()
 {
     _root.reset(new Ogre::Root());
     //_root->showConfigDialog();
@@ -170,27 +170,27 @@ GFXManager::GFXManager()
     
 }
 
-GFXManager::~GFXManager()
+gfx::GFXManager::~GFXManager()
 {
 
 }
 
-void GFXManager::render()
+void gfx::GFXManager::render()
 {
     _root->renderOneFrame();
 }
 
-Viewport& GFXManager::getViewport()
+gfx::Viewport& gfx::GFXManager::getViewport()
 {
     return *_viewport;
 }
 
-std::auto_ptr<Scene> GFXManager::createScene()
+std::auto_ptr<gfx::Scene> gfx::GFXManager::createScene()
 {
     return std::auto_ptr<Scene>(new Scene(_root));
 }
 
-void GFXManager::initResources()
+void gfx::GFXManager::initResources()
 {
     Ogre::ConfigFile cf;
     cf.load("resources.cfg");

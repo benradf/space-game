@@ -16,6 +16,9 @@
 #include <boost/shared_ptr.hpp>
 
 
+namespace gfx {
+
+
 class Entity {
     public:
         Entity(const char* name, const char* mesh, Ogre::SceneManager* sceneManager);
@@ -117,6 +120,9 @@ class GFXManager {
         std::auto_ptr<Viewport> _viewport;
 
 };
+
+
+}  // namespace gfx
 
 
 #endif  // GRAPHICS_HPP

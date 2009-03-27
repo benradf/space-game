@@ -21,6 +21,7 @@
 
 
 using namespace std;
+using namespace gfx;
 
 
 bool clientRunning = true;
