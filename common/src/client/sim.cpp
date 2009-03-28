@@ -132,6 +132,9 @@ void sim::Object::integrateRotationalMotion(float dt)
         return;
 
     Vector3 turnAxis(_spin.x, _spin.y, _spin.z);
+    if (magnitudeSq(turnAxis) < 0.001f) 
+        return;
+
     float turnAngle = 2.0f * acos(_spin.w) * dt;
     _rot *= Quaternion(turnAngle, turnAxis.normalise());
 

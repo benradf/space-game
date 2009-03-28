@@ -105,7 +105,11 @@ int main(int argc, char* argv[])
     Log::log->info("Client starts");
     Log::log->info("Built " __DATE__ " " __TIME__);
 
+#ifdef WIN32
+    int rval = 0;//chdir("mingw/share/client");
+#else
     int rval = chdir("linux/share/client");
+#endif
     assert(rval == 0);
     
     try {

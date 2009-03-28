@@ -38,10 +38,10 @@ void Ship::update()
     if (_thrustOn && _boostOn) 
         _simObject.ApplyRelativeForce(Vector3::UNIT_Y * _stats[STAT_BOOST]);
 
-    if (_rightOn)
+    if (_rightOn && !_leftOn)
         _simObject.ApplySpin(Quaternion(-_stats[STAT_ROTSPEED], Vector3::UNIT_Z));
 
-    if (_leftOn)
+    if (_leftOn && !_rightOn)
         _simObject.ApplySpin(Quaternion(_stats[STAT_ROTSPEED], Vector3::UNIT_Z));
 
     float elapsed = _timer.elapsed();
