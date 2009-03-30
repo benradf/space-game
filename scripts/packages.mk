@@ -26,5 +26,6 @@ COMPONENTS= \
 	core \
 	net \
 	script \
-	server
+	server \
+	sim
 

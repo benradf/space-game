@@ -18,7 +18,7 @@
 #include "network.hpp"
 #include "graphics.hpp"
 #include "input.hpp"
-#include "sim.hpp"
+#include <sim.hpp>
 
 
 using namespace std;

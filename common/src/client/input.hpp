@@ -15,7 +15,7 @@
 #include <vecmath.hpp>
 #include <tr1/unordered_map>
 #include "graphics.hpp"
-#include "sim.hpp"
+#include <sim.hpp>
 #include <timer.hpp>
 
 
