@@ -15,104 +15,36 @@
 #include <vecmath.hpp>
 #include <tr1/unordered_map>
 #include "graphics.hpp"
-#include <sim.hpp>
-#include <timer.hpp>
+#include <object.hpp>
 
 
-enum STAT {
-    STAT_THRUST,
-    STAT_BOOST,
-    STAT_ROTSPEED,
-    STAT_MAXSPEED,
-    STAT_COUNT
-};
-
-enum TURN {
-    TURN_CW,
-    TURN_ACW,
-    TURN_NONE
-};
-
-
-typedef uint32_t ObjectID;
-
-
-struct MovableObject {
-    virtual void setPosition(const Vector3& pos) = 0;
-    virtual void setVelocity(const Vector3& vel) = 0;
-    virtual void setAcceleration(const Vector3& acc) = 0;
-};
-
-struct GuidedMovableObject : public MovableObject {
-    virtual void enableThrust(bool enable = true) = 0;
-    virtual void enableBoost(bool enable = true) = 0;
-    virtual void enableRight(bool enable = true) = 0;
-    virtual void enableLeft(bool enable = true) = 0;
-};
-
-
-struct ObjectManager {
+class RemoteController {
     public:
-        MovableObject* getMOB(ObjectID id);
-        GuidedMovableObject* getGMOB(ObjectID id);
+        RemoteController();
 
+        void setPosition(const Vector3& pos);
+        void setVelocity(const Vector3& vel);
+        void setRotation(const Quaternion& rot);
+        void setState(uint32_t flags);
 
+        void setObject(sim::MovableObject* object);
 
     private:
-        std::tr1::unordered_map<ObjectID, MovableObject*> _mobs;
-        std::tr1::unordered_map<ObjectID, GuidedMovableObject*> _gmobs;
-
-};
-
-
-class Ship : public GuidedMovableObject {
-    public:
-        Ship(gfx::Scene& scene, const char* name, const char* mesh);
-
-        void update();
-
-        virtual void setPosition(const Vector3& pos);
-        virtual void setVelocity(const Vector3& vel);
-        virtual void setAcceleration(const Vector3& acc);
-
-        virtual void enableThrust(bool enable = true);
-        virtual void enableBoost(bool enable = true);
-        virtual void enableRight(bool enable = true);
-        virtual void enableLeft(bool enable = true);
-
-        const Vector3& getApparentPosition() const {
-            return _apparentPos;
-        }
-
-    private:
-        Ship(const Ship&);
-        Ship& operator=(const Ship&);
-
-        std::auto_ptr<gfx::Entity> _gfxEntity;
-
-        sim::Object _simObject;
-        Vector3 _apparentPos;
-        Quaternion _apparentRot;
-
-        bool _thrustOn;
-        bool _boostOn;
-        bool _rightOn;
-        bool _leftOn;
-
-        Timer _timer;
-
-        float _stats[STAT_COUNT];
+        sim::MovableObject* _object;
 };
 
 class LocalController : public OIS::KeyListener {
     public:
+        LocalController();
+
         virtual bool keyPressed(const OIS::KeyEvent& arg);
         virtual bool keyReleased(const OIS::KeyEvent& arg);
 
-        void setObject(GuidedMovableObject* object);
+        void setObject(sim::MovableObject* object);
 
     private:
-        GuidedMovableObject* _object;
+        sim::MovableObject* _object;
+        sim::ControlState _state;
 };
 
 

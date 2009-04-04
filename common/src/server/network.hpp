@@ -33,8 +33,16 @@ class RemoteClient : public net::Peer {
         virtual void handleDisconnect();
         virtual void handleWhoIsPlayer(uint32_t playerid);
         virtual void handlePlayerInfo(uint32_t playerid, const char* username);
+        virtual void handlePlayerInput(uint32_t flags);
         virtual void handlePrivateMsg(uint32_t playerid, const char* text);
         virtual void handleBroadcastMsg(const char* text);
+        virtual void handleObjectEnter(uint32_t objectid);
+        virtual void handleObjectLeave(uint32_t objectid);
+        virtual void handleObjectPos(uint32_t objectid, float x, float y, float z);
+        virtual void handleObjectVel(uint32_t objectid, float x, float y, float z);
+        virtual void handleObjectRot(uint32_t objectid, float w, float x, float y, float z);
+        virtual void handleObjectState(uint32_t objectid, uint8_t ctrl);
+        virtual void handleObjectControl(uint32_t objectid, uint8_t ctrl);
 
         MessageSender _sendMsg;
         PlayerID _player;
@@ -54,6 +62,16 @@ class NetworkInterface : public MessagableJob,
     private:
         virtual net::Peer* handleConnect(void* data);
         virtual void handleDisconnect(net::Peer* peer);
+
+        virtual void handleObjectState(ObjectID object, int flags);
+        virtual void handleObjectPos(ObjectID object, Vector3 pos);
+        virtual void handleObjectVel(ObjectID object, Vector3 vel);
+        virtual void handleObjectRot(ObjectID object, Quaternion rot);
+
+        virtual void handlePeerLoginGranted(PeerID peer, PlayerID player);
+        virtual void handlePeerLoginDenied(PeerID peer);
+
+        void forEachClient(void (NetworkInterface::*f)(PeerID,RemoteClient*));
 
         typedef std::tr1::unordered_map<net::PeerID, RemoteClient*> Clients;
         typedef std::tr1::unordered_map<PlayerID, net::PeerID> PlayerToPeer;

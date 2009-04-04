@@ -10,139 +10,103 @@
 #include "input.hpp"
 #include <core.hpp>
 #include <sstream>
+#include <object.hpp>
 
 
-////////// Ship //////////
+using namespace sim;
 
-Ship::Ship(gfx::Scene& scene, const char* name, const char* mesh) :
-    _apparentPos(Vector3::ZERO), _apparentRot(Quaternion::IDENTITY), 
-    _simObject(10.0f), _thrustOn(false), _boostOn(false),
-    _rightOn(false), _leftOn(false)
+
+////////// RemoteController //////////
+
+void RemoteController::setPosition(const Vector3& pos)
 {
-    _gfxEntity = scene.createEntity(name, mesh);
+    assert(_object != 0);
 
-    _stats[STAT_THRUST] = 150.0f;
-    _stats[STAT_BOOST] = 500.0f;
-    _stats[STAT_ROTSPEED] = DEG2RAD(120.0f);
-    _stats[STAT_MAXSPEED] = 15.0f;
+    _object->setPosition(pos);
 }
 
-void Ship::update()
+void RemoteController::setVelocity(const Vector3& vel)
 {
-    if (_timer.elapsed() < 0.01f) 
-        return;
+    assert(_object != 0);
 
-    if (_thrustOn)
-        _simObject.ApplyRelativeForce(Vector3::UNIT_Y * _stats[STAT_THRUST]);
-
-    if (_thrustOn && _boostOn) 
-        _simObject.ApplyRelativeForce(Vector3::UNIT_Y * _stats[STAT_BOOST]);
-
-    if (_rightOn && !_leftOn)
-        _simObject.ApplySpin(Quaternion(-_stats[STAT_ROTSPEED], Vector3::UNIT_Z));
-
-    if (_leftOn && !_rightOn)
-        _simObject.ApplySpin(Quaternion(_stats[STAT_ROTSPEED], Vector3::UNIT_Z));
-
-    float elapsed = _timer.elapsed();
-    _simObject.integrate(elapsed / 1000000.0f);
-    _timer.reset();
-
-    _apparentPos = _simObject.getPosition();
-    _apparentRot = _simObject.getRotation();
-
-    _gfxEntity->setPosition(Ogre::Vector3(
-        _apparentPos.x, _apparentPos.y, _apparentPos.z));
-
-    _gfxEntity->setOrientation(Ogre::Quaternion(
-        _apparentRot.w, _apparentRot.x, _apparentRot.y, _apparentRot.z));
+    _object->setVelocity(vel);
 }
 
-void Ship::setPosition(const Vector3& pos)
+void RemoteController::setRotation(const Quaternion& rot)
 {
-    _simObject.setPosition(pos);
+    assert(_object != 0);
+
+    _object->setRotation(rot);
 }
 
-void Ship::setVelocity(const Vector3& vel)
+void RemoteController::setState(uint32_t flags)
 {
-    _simObject.setVelocity(vel);
+    assert(_object != 0);
+
+    _object->setControlState(flags);
 }
 
-void Ship::setAcceleration(const Vector3& acc)
+void RemoteController::setObject(sim::MovableObject* object)
 {
-    _simObject.setAcceleration(acc);
-}
-
-void Ship::enableThrust(bool enable)
-{
-    _thrustOn = enable;
-}
-
-void Ship::enableBoost(bool enable)
-{
-    _boostOn = enable;
-}
-
-void Ship::enableRight(bool enable)
-{
-    _rightOn = enable;
-}
-
-void Ship::enableLeft(bool enable)
-{
-    _leftOn = enable;
+    _object = object;
 }
 
 
 ////////// LocalController //////////
 
+LocalController::LocalController() :
+    _object(0), _state(0)
+{
+
+}
+
 bool LocalController::keyPressed(const OIS::KeyEvent& arg)
 {
-    if (_object == 0) 
-        return false;
-
     switch (arg.key) {
         case OIS::KC_UP:
-            _object->enableThrust(true);
+            _state = controlSet(CTRL_THRUST, true, _state);
             break;
         case OIS::KC_LSHIFT:
-            _object->enableBoost(true);
+            _state = controlSet(CTRL_BOOST, true, _state);
             break;
         case OIS::KC_LEFT:
-            _object->enableLeft(true);
+            _state = controlSet(CTRL_LEFT, true, _state);
             break;
         case OIS::KC_RIGHT:
-            _object->enableRight(true);
+            _state = controlSet(CTRL_RIGHT, true, _state);
             break;
     }
+
+    if (_object != 0) 
+        _object->setControlState(_state);
 
     return true;
 }
 
 bool LocalController::keyReleased(const OIS::KeyEvent& arg)
 {
-    if (_object == 0) 
-        return false;
-
     switch (arg.key) {
         case OIS::KC_UP:
-            _object->enableThrust(false);
+            _state = controlSet(CTRL_THRUST, false, _state);
             break;
         case OIS::KC_LSHIFT:
-            _object->enableBoost(false);
+            _state = controlSet(CTRL_BOOST, false, _state);
             break;
         case OIS::KC_LEFT:
-            _object->enableLeft(false);
+            _state = controlSet(CTRL_LEFT, false, _state);
             break;
         case OIS::KC_RIGHT:
-            _object->enableRight(false);
+            _state = controlSet(CTRL_RIGHT, false, _state);
             break;
     }
+
+    if (_object != 0) 
+        _object->setControlState(_state);
 
     return true;
 }
 
-void LocalController::setObject(GuidedMovableObject* object)
+void LocalController::setObject(sim::MovableObject* object)
 {
     _object = object;
 }

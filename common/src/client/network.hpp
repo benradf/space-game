@@ -12,22 +12,24 @@
 
 
 #include <net.hpp>
+#include "cache.hpp"
+#include "input.hpp"
 
 
-class RemoteServer : public net::Peer {
+class RemoteServer : public net::Peer, public ObjectCache {
     public:
         RemoteServer(void* data);
         virtual ~RemoteServer();
 
     private:
-        void handleKeyExchange(uint64_t key);
-        void handleLogin(const char* username, uint8_t (&password)[16]);
-        void handleDisconnect();
-        void handleWhoIsPlayer(uint32_t playerid);
-        void handlePlayerInfo(uint32_t playerid, const char* username);
-        void handlePrivateMsg(uint32_t playerid, const char* text);
-        void handleBroadcastMsg(const char* text);
-
+        virtual void handleKeyExchange(uint64_t key);
+        virtual void handleLogin(const char* username, uint8_t (&password)[16]);
+        virtual void handleDisconnect();
+        virtual void handleWhoIsPlayer(uint32_t playerid);
+        virtual void handlePlayerInfo(uint32_t playerid, const char* username);
+        virtual void handlePlayerInput(uint32_t flags);
+        virtual void handlePrivateMsg(uint32_t playerid, const char* text);
+        virtual void handleBroadcastMsg(const char* text);
 };
 
 

@@ -31,6 +31,9 @@ class Entity {
         const Ogre::Quaternion& getOrientation() const;
 
     private:
+        Entity(const Entity&);
+        Entity& operator=(const Entity&);
+
         Ogre::SceneManager* _sceneManager;
         Ogre::SceneNode* _node;
         Ogre::Entity* _entity;

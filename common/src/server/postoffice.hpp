@@ -41,7 +41,7 @@ class PostOffice : public Job {
             int subscription;
         };
 
-        static const int NUMBOX = 2;
+        static const int NUMBOX = 3;
 
         Src _srcs[NUMBOX];
         Dst _dsts[NUMBOX];

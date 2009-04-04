@@ -12,7 +12,13 @@
 #include "scriptmodule.hpp"
 #include "postoffice.hpp"
 #include "network.hpp"
+#include "player.hpp"
 #include "idle.hpp"
+#include "zone.hpp"
+
+// temp testing of headers
+#include "volumes.hpp"
+#include "zone.hpp"
 
 using namespace std;
 
@@ -46,12 +52,16 @@ void serverMain()
     std::auto_ptr<Idle> jobIdle(new Idle(CYCLE_PERIOD));
     std::auto_ptr<PostOffice> jobPostOffice(new PostOffice);
     std::auto_ptr<NetworkInterface> jobNetwork(new NetworkInterface(*jobPostOffice));
+    std::auto_ptr<LoginManager> jobLogin(new LoginManager(*jobPostOffice));
+    std::auto_ptr<Zone> testZone(new Zone(*jobPostOffice));
 
     // Add to pool.
     JobPool pool;
     pool.add(Job::Ptr(jobIdle));
     pool.add(Job::Ptr(jobPostOffice));
     pool.add(Job::Ptr(jobNetwork));
+    pool.add(Job::Ptr(jobLogin));
+    pool.add(Job::Ptr(testZone));
 
     // Create worker threads.
     std::vector<boost::shared_ptr<Worker> > workers;

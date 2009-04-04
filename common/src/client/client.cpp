@@ -19,6 +19,8 @@
 #include "graphics.hpp"
 #include "input.hpp"
 #include <sim.hpp>
+#include <stdio.h>
+#include <object.hpp>
 
 
 using namespace std;
@@ -33,6 +35,20 @@ void signalHandler(int signum)
     clientRunning = false;
 }
 
+Scene* theScene = 0;
+
+std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
+{
+    assert(theScene != 0);
+
+    char nameBuffer[256];
+    snprintf(nameBuffer, sizeof(nameBuffer), "object_%d", objectID);
+    std::auto_ptr<Entity> entity = theScene->createEntity(nameBuffer, "spider.mesh");
+    std::auto_ptr<sim::MovableObject> object(new sim::Ship);
+
+    return std::auto_ptr<VisibleObject>(new VisibleObject(entity, object));
+}
+
 void clientMain()
 {
     signal(SIGINT, signalHandler);
@@ -41,18 +57,19 @@ void clientMain()
     std::auto_ptr<Scene> scene = gfx.createScene();
     std::auto_ptr<Camera> camera = scene->createCamera("cam1");
     gfx.getViewport().attachCamera(*camera);
-    std::auto_ptr<Entity> spider = scene->createEntity("spider", "warbird.mesh");
-    std::auto_ptr<Entity> warbird = scene->createEntity("warbird", "warbird.mesh");
-    spider->setPosition(Ogre::Vector3(0.0f, 10.0f, 0.0f));
-    warbird->setPosition(Ogre::Vector3(0.0f, -10.0f, 0.0f));
+    //std::auto_ptr<Entity> spider = scene->createEntity("spider", "warbird.mesh");
+    //std::auto_ptr<Entity> warbird = scene->createEntity("warbird", "warbird.mesh");
+    //spider->setPosition(Ogre::Vector3(0.0f, 10.0f, 0.0f));
+    //warbird->setPosition(Ogre::Vector3(0.0f, -10.0f, 0.0f));
     camera->setPosition(Ogre::Vector3(-0.1f, -0.1f, 200.0f));
     camera->lookAt(Ogre::Vector3(0.0f, 0.0f, 0.0f));
     scene->setSkyPlane("Sky/OrbitEarth", Ogre::Vector3::UNIT_Z, -1000.0f);
 
-    Ship ship(*scene, "username", "spider.mesh");
+    //Ship ship(*scene, "username", "spider.mesh");
     Input input(gfx.getViewport().getRenderWindow());
     std::auto_ptr<LocalController> ctrl = input.createKeyboardListener<LocalController>();
-    ctrl->setObject(&ship);
+    //ctrl->setObject(&ship);
+    theScene = scene.get();
 
     NetworkInterface network;
 
@@ -79,12 +96,12 @@ void clientMain()
         spider->setPosition(Ogre::Vector3(pos.x, pos.y, pos.z));
 #endif
 
-        const Vector3& shipPos = ship.getApparentPosition();
-        camera->setPosition(Ogre::Vector3(shipPos.x, shipPos.y, shipPos.z + 200.0f));
+        //const Vector3& shipPos = ship.getApparentPosition();
+        //camera->setPosition(Ogre::Vector3(shipPos.x, shipPos.y, shipPos.z + 200.0f));
 
         input.capture();
         network.main();
-        ship.update();
+        //ship.update();
         gfx.render();
         gfx.getViewport().update();
 

@@ -1,7 +1,7 @@
 /// \file msghandler.hpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 7th March 2009
+/// \date 3th April 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -20,12 +20,18 @@ namespace msg {
 class MessageHandler {
     public:
         virtual ~MessageHandler();
-        virtual void handleUnitFar(int unit1, int unit2);
-        virtual void handleUnitNear(int unit1, int unit2);
-        virtual void handleUnitMove(int unit, int& pos);
-        virtual void handleUnitWarp(int unit, int& pos);
-        virtual void handleUnitEnter(int unit);
-        virtual void handleUnitLeave(int unit);
+        virtual void handleZoneEnter(PlayerID player, ZoneID zone);
+        virtual void handleZoneLeave(PlayerID player, ZoneID zone);
+        virtual void handleObjectState(ObjectID object, int flags);
+        virtual void handleObjectPos(ObjectID object, Vector3 pos);
+        virtual void handleObjectVel(ObjectID object, Vector3 vel);
+        virtual void handleObjectRot(ObjectID object, Quaternion rot);
+        virtual void handlePlayerInput(PlayerID player, ControlState state);
+        virtual void handlePlayerRequestZoneSwitch(PlayerID player, ZoneID zone);
+        virtual void handlePeerRequestLogin(PeerID peer, const std::string& username, const MD5Hash& password);
+        virtual void handlePeerRequestLogout(PeerID peer, PlayerID player);
+        virtual void handlePeerLoginGranted(PeerID peer, PlayerID player);
+        virtual void handlePeerLoginDenied(PeerID peer);
 };
 
 

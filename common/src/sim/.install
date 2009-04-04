@@ -1,2 +1,2 @@
-linux: sim.hpp
-mingw: sim.hpp
+linux: sim.hpp object.hpp
+mingw: sim.hpp object.hpp

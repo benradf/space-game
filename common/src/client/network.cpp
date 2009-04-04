@@ -53,6 +53,11 @@ void RemoteServer::handlePlayerInfo(uint32_t playerid, const char* username)
 
 }
 
+void RemoteServer::handlePlayerInput(uint32_t flags)
+{
+
+}
+
 void RemoteServer::handlePrivateMsg(uint32_t playerid, const char* text)
 {
 
@@ -90,6 +95,9 @@ void NetworkInterface::main()
             }
         }
     }
+
+    if (_server.get() != 0) 
+        _server->updateCachedObjects();
 
     doNetworkTasks();
 }

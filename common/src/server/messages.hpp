@@ -1,7 +1,7 @@
 /// \file messages.hpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 7th March 2009
+/// \date 3th April 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -22,7 +22,10 @@ class MessageHandler;
 
 
 enum MsgType {
-    MSG_UNIT = 0x0001,
+    MSG_OBJECT = 0x0001,
+    MSG_PEER   = 0x0002,
+    MSG_PLAYER = 0x0004,
+    MSG_ZONE   = 0x0008,
 };
 
 
@@ -38,85 +41,171 @@ class Message {
 };
 
 
-class UnitFar : public Message {
+class ZoneEnter : public Message {
     public:
-        UnitFar(int unit1, int unit2);
-        virtual ~UnitFar();
+        ZoneEnter(PlayerID player, ZoneID zone);
+        virtual ~ZoneEnter();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
-        int _unit1;
-        int _unit2;
+        PlayerID _player;
+        ZoneID _zone;
 };
 
 
-class UnitNear : public Message {
+class ZoneLeave : public Message {
     public:
-        UnitNear(int unit1, int unit2);
-        virtual ~UnitNear();
+        ZoneLeave(PlayerID player, ZoneID zone);
+        virtual ~ZoneLeave();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
-        int _unit1;
-        int _unit2;
+        PlayerID _player;
+        ZoneID _zone;
 };
 
 
-class UnitMove : public Message {
+class ObjectState : public Message {
     public:
-        UnitMove(int unit, int& pos);
-        virtual ~UnitMove();
+        ObjectState(ObjectID object, int flags);
+        virtual ~ObjectState();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
-        int _unit;
-        int _pos;
+        ObjectID _object;
+        int _flags;
 };
 
 
-class UnitWarp : public Message {
+class ObjectPos : public Message {
     public:
-        UnitWarp(int unit, int& pos);
-        virtual ~UnitWarp();
+        ObjectPos(ObjectID object, Vector3 pos);
+        virtual ~ObjectPos();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
-        int _unit;
-        int _pos;
+        ObjectID _object;
+        Vector3 _pos;
 };
 
 
-class UnitEnter : public Message {
+class ObjectVel : public Message {
     public:
-        UnitEnter(int unit);
-        virtual ~UnitEnter();
+        ObjectVel(ObjectID object, Vector3 vel);
+        virtual ~ObjectVel();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
-        int _unit;
+        ObjectID _object;
+        Vector3 _vel;
 };
 
 
-class UnitLeave : public Message {
+class ObjectRot : public Message {
     public:
-        UnitLeave(int unit);
-        virtual ~UnitLeave();
+        ObjectRot(ObjectID object, Quaternion rot);
+        virtual ~ObjectRot();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
-        int _unit;
+        ObjectID _object;
+        Quaternion _rot;
+};
+
+
+class PlayerInput : public Message {
+    public:
+        PlayerInput(PlayerID player, ControlState state);
+        virtual ~PlayerInput();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PlayerID _player;
+        ControlState _state;
+};
+
+
+class PlayerRequestZoneSwitch : public Message {
+    public:
+        PlayerRequestZoneSwitch(PlayerID player, ZoneID zone);
+        virtual ~PlayerRequestZoneSwitch();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PlayerID _player;
+        ZoneID _zone;
+};
+
+
+class PeerRequestLogin : public Message {
+    public:
+        PeerRequestLogin(PeerID peer, const std::string& username, const MD5Hash& password);
+        virtual ~PeerRequestLogin();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PeerID _peer;
+        const std::string _username;
+        const MD5Hash _password;
+};
+
+
+class PeerRequestLogout : public Message {
+    public:
+        PeerRequestLogout(PeerID peer, PlayerID player);
+        virtual ~PeerRequestLogout();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PeerID _peer;
+        PlayerID _player;
+};
+
+
+class PeerLoginGranted : public Message {
+    public:
+        PeerLoginGranted(PeerID peer, PlayerID player);
+        virtual ~PeerLoginGranted();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PeerID _peer;
+        PlayerID _player;
+};
+
+
+class PeerLoginDenied : public Message {
+    public:
+        PeerLoginDenied(PeerID peer);
+        virtual ~PeerLoginDenied();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PeerID _peer;
 };
 
 

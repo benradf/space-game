@@ -43,7 +43,7 @@ void cleanup();
 /// Users of this network module should derive their own peer objects from 
 /// this one. That way they can override the message handler functions this
 /// class provides and receive notification of the messages they care about.
-class Peer : public ProtocolUser {
+class Peer : public virtual ProtocolUser {
     public:
         Peer(void* data);
         virtual ~Peer();

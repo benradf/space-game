@@ -86,7 +86,7 @@ QuadTree<T>::~QuadTree()
 template<typename T>
 void QuadTree<T>::insert(T* object)
 {
-    Node* node = findByPos(&_root, object.getPosition());
+    Node* node = findByPos(&_root, object->getPosition());
 
     addObject(node, object);
 }
@@ -174,10 +174,10 @@ inline void QuadTree<T>::delObject(Node* node, T* object)
 template<typename T>
 inline typename QuadTree<T>::Node* QuadTree<T>::findByObj(Node* node, T* object)
 {
-    node = findNode(node, object->getPosition());
+    node = findByPos(node, object->getPosition());
 
-    for (int i = 0; i < node->count; i++) {
-        if (node->objects[i] == object) 
+    foreach (T* obj, node->objects) {
+        if (obj == object) 
             return node;
     }
 
@@ -188,7 +188,7 @@ template<typename T>
 inline typename QuadTree<T>::Node* QuadTree<T>::findByPos(Node* node, const Vector3& pos)
 {
     while (!node->leaf) {
-        const Vector3& mid = node->bounds->getMid();
+        const Vector3& mid = node->bounds.getMid();
         int x = (pos.x < mid.x ? 0 : 1);
         int y = (pos.y < mid.y ? 0 : 1);
         node = node->children[x|(y<<1)];
@@ -202,16 +202,22 @@ inline void QuadTree<T>::maybeSplitNode(Node* node)
 {
     assert(node->leaf);
 
+    if (node->objects.size() < OBJS_PER_NODE) 
+        return;
+
+    if (node->level == MAX_LEVELS) 
+        return;
+
     for (int i = 0; i < 4; i++) 
         node->children[i] = new Node(node, i);
+
+    node->leaf = false;
+    _nodeCount += 4;
 
     foreach (T* object, node->objects) 
         addObject(findByPos(node, object->getPosition()), object);
 
     std::vector<T*>().swap(node->objects);
-
-    node->leaf = false;
-    _nodeCount += 4;
 }
 
 
@@ -219,7 +225,7 @@ inline void QuadTree<T>::maybeSplitNode(Node* node)
 
 template<typename T>
 inline QuadTree<T>::Node::Node(const vol::AABB& bounds_) :
-    bounds(bounds_)
+    bounds(bounds_), leaf(true), level(1)
 {
     
 }
@@ -231,8 +237,8 @@ inline QuadTree<T>::Node::Node(Node* parent, int index) :
 {
     objects.reserve(OBJS_PER_NODE);
 
-    Vector3 min = parent->_bounds.getMin();
-    Vector3 max = parent->_bounds.getMax();
+    Vector3 min = parent->bounds.getMin();
+    Vector3 max = parent->bounds.getMax();
     Vector3 mid = 0.5f * (min + max);
 
     min.x = ((index & 1) == 0 ? min.x : mid.x);
