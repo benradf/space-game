@@ -23,7 +23,7 @@ sim::MovableObject::~MovableObject()
 ////////// Ship //////////
 
 sim::Ship::Ship() :
-    _simObject(100.0f), _control(0)
+    _simObject(10.0f), _control(0)
 {
     _stats[STAT_THRUST] = 150.0f;
     _stats[STAT_BOOST] = 500.0f;
@@ -58,24 +58,29 @@ void sim::Ship::update()
     _timer.reset();
 }
 
-const Vector3& sim::Ship::getPosition()
+const Vector3& sim::Ship::getPosition() const
 {
     return _simObject.getPosition();
 }
 
-const Vector3& sim::Ship::getVelocity()
+const Vector3& sim::Ship::getVelocity() const
 {
     return _simObject.getVelocity();
 }
 
-const Vector3& sim::Ship::getAcceleration()
+const Vector3& sim::Ship::getAcceleration() const
 {
     return _simObject.getAcceleration();
 }
 
-const Quaternion& sim::Ship::getRotation()
+const Quaternion& sim::Ship::getRotation() const
 {
     return _simObject.getRotation();
+}
+
+sim::ControlState sim::Ship::getControlState() const
+{
+    return _control;
 }
 
 void sim::Ship::setPosition(const Vector3& pos)

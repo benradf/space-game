@@ -1,7 +1,7 @@
 /// \file messages.hpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 3th April 2009
+/// \date 4th April 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -122,6 +122,20 @@ class ObjectRot : public Message {
     private:
         ObjectID _object;
         Quaternion _rot;
+};
+
+
+class ObjectAssoc : public Message {
+    public:
+        ObjectAssoc(ObjectID object, PlayerID player);
+        virtual ~ObjectAssoc();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        ObjectID _object;
+        PlayerID _player;
 };
 
 

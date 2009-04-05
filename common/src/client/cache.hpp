@@ -15,6 +15,7 @@
 #include <object.hpp>
 #include <tr1/unordered_map>
 #include "visobject.hpp"
+#include "input.hpp"
 
 
 class ObjectCache : public virtual net::ProtocolUser {
@@ -32,12 +33,16 @@ class ObjectCache : public virtual net::ProtocolUser {
         virtual void handleObjectRot(uint32_t objectid, float w, float x, float y, float z);
         virtual void handleObjectState(uint32_t objectid, uint8_t ctrl);
         virtual void handleObjectControl(uint32_t objectid, uint8_t ctrl);
+        virtual void handleAttachCamera(uint32_t objectid);
 
         typedef std::tr1::unordered_map<sim::ObjectID, VisibleObject*> ObjectMap;
 
         VisibleObject& getObject(sim::ObjectID objectID);
 
         ObjectMap _objects;
+
+        VisibleObject* _camAttach;
+        sim::ControlState _lastState;
 };
 
 

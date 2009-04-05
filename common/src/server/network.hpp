@@ -43,6 +43,7 @@ class RemoteClient : public net::Peer {
         virtual void handleObjectRot(uint32_t objectid, float w, float x, float y, float z);
         virtual void handleObjectState(uint32_t objectid, uint8_t ctrl);
         virtual void handleObjectControl(uint32_t objectid, uint8_t ctrl);
+        virtual void handleAttachCamera(uint32_t objectid);
 
         MessageSender _sendMsg;
         PlayerID _player;
@@ -67,6 +68,7 @@ class NetworkInterface : public MessagableJob,
         virtual void handleObjectPos(ObjectID object, Vector3 pos);
         virtual void handleObjectVel(ObjectID object, Vector3 vel);
         virtual void handleObjectRot(ObjectID object, Quaternion rot);
+        virtual void handleObjectAssoc(ObjectID object, PlayerID player);
 
         virtual void handlePeerLoginGranted(PeerID peer, PlayerID player);
         virtual void handlePeerLoginDenied(PeerID peer);

@@ -16,7 +16,8 @@ using namespace sim;
 
 ////////// ObjectCache //////////
 
-ObjectCache::ObjectCache()
+ObjectCache::ObjectCache() :
+    _camAttach(0), _lastState(0)
 {
 
 }
@@ -31,6 +32,20 @@ void ObjectCache::updateCachedObjects()
 {
     foreach (ObjectMap::value_type& objPair, _objects) 
         objPair.second->update();
+
+    extern Vector3 cameraPos;
+    if (_camAttach != 0) {
+        cameraPos = _camAttach->getPosition();
+        extern LocalController* localController;
+        if (localController != 0) {
+            ControlState localState = localController->getControlState();
+            if (localState != _lastState) {
+                _camAttach->setControlState(localState);
+                sendPlayerInput(localState);
+                _lastState = localState;
+            }
+        }
+    }
 }
 
 void ObjectCache::handleObjectEnter(uint32_t objectid)
@@ -60,12 +75,19 @@ void ObjectCache::handleObjectRot(uint32_t objectid, float w, float x, float y, 
 
 void ObjectCache::handleObjectState(uint32_t objectid, uint8_t ctrl)
 {
-    Log::log->debug("protocol message 'ObjectState' is unhandled");
+    VisibleObject& object = getObject(objectid);
+    if (&object != _camAttach)
+        object.setControlState(ctrl);
 }
 
 void ObjectCache::handleObjectControl(uint32_t objectid, uint8_t ctrl)
 {
-    getObject(objectid).setControlState(ctrl);
+    Log::log->debug("protocol message 'ObjectControl' is unhandled");
+}
+
+void ObjectCache::handleAttachCamera(uint32_t objectid)
+{
+    _camAttach = &getObject(objectid);
 }
 
 VisibleObject& ObjectCache::getObject(ObjectID objectID)

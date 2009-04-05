@@ -37,13 +37,12 @@ class LocalController : public OIS::KeyListener {
     public:
         LocalController();
 
+        sim::ControlState getControlState() const;
+
         virtual bool keyPressed(const OIS::KeyEvent& arg);
         virtual bool keyReleased(const OIS::KeyEvent& arg);
 
-        void setObject(sim::MovableObject* object);
-
     private:
-        sim::MovableObject* _object;
         sim::ControlState _state;
 };
 

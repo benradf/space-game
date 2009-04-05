@@ -44,10 +44,11 @@ enum Control {
 struct MovableObject {
     virtual ~MovableObject();
     virtual void update() = 0;
-    virtual const Vector3& getPosition() = 0;
-    virtual const Vector3& getVelocity() = 0;
-    virtual const Vector3& getAcceleration() = 0;
-    virtual const Quaternion& getRotation() = 0;
+    virtual const Vector3& getPosition() const = 0;
+    virtual const Vector3& getVelocity() const = 0;
+    virtual const Vector3& getAcceleration() const = 0;
+    virtual const Quaternion& getRotation() const = 0;
+    virtual ControlState getControlState() const = 0;
     virtual void setPosition(const Vector3& pos) = 0;
     virtual void setVelocity(const Vector3& vel) = 0;
     virtual void setRotation(const Quaternion& rot) = 0;
@@ -62,10 +63,11 @@ class Ship : public MovableObject {
 
         virtual void update();
 
-        virtual const Vector3& getPosition();
-        virtual const Vector3& getVelocity();
-        virtual const Vector3& getAcceleration();
-        virtual const Quaternion& getRotation();
+        virtual const Vector3& getPosition() const;
+        virtual const Vector3& getVelocity() const;
+        virtual const Vector3& getAcceleration() const;
+        virtual const Quaternion& getRotation() const;
+        virtual ControlState getControlState() const;
 
         virtual void setPosition(const Vector3& pos);
         virtual void setVelocity(const Vector3& vel);

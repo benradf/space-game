@@ -1,7 +1,7 @@
 /// \file messages.cpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 3th April 2009
+/// \date 4th April 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -188,6 +188,35 @@ void msg::ObjectRot::dispatch(MessageHandler& handler)
 }
 
 bool msg::ObjectRot::matches(int subscription)
+{
+    return ((subscription & MSG_OBJECT) != 0);
+}
+
+
+////////// msg::ObjectAssoc //////////
+
+msg::ObjectAssoc::ObjectAssoc(ObjectID object, PlayerID player) :
+    _object(object), _player(player)
+{
+
+}
+
+msg::ObjectAssoc::~ObjectAssoc()
+{
+
+}
+
+std::auto_ptr<msg::Message> msg::ObjectAssoc::clone() const
+{
+    return std::auto_ptr<Message>(new ObjectAssoc(*this));
+}
+
+void msg::ObjectAssoc::dispatch(MessageHandler& handler)
+{
+    handler.handleObjectAssoc(_object, _player);
+}
+
+bool msg::ObjectAssoc::matches(int subscription)
 {
     return ((subscription & MSG_OBJECT) != 0);
 }

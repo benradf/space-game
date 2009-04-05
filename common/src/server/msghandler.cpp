@@ -1,7 +1,7 @@
 /// \file msghandler.cpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 3th April 2009
+/// \date 4th April 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -43,6 +43,11 @@ void msg::MessageHandler::handleObjectVel(ObjectID object, Vector3 vel)
 }
 
 void msg::MessageHandler::handleObjectRot(ObjectID object, Quaternion rot)
+{
+
+}
+
+void msg::MessageHandler::handleObjectAssoc(ObjectID object, PlayerID player)
 {
 
 }

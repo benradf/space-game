@@ -119,6 +119,11 @@ void RemoteClient::handleObjectControl(uint32_t objectid, uint8_t ctrl)
 
 }
 
+void RemoteClient::handleAttachCamera(uint32_t objectid)
+{
+
+}
+
 
 ////////// NetworkInterface //////////
 
@@ -160,6 +165,7 @@ void NetworkInterface::handleDisconnect(net::Peer* peer)
 
     _players.erase(client->getAttachedPlayer());
     _clients.erase(client->getID());
+
     delete peer;
 }
 
@@ -187,12 +193,25 @@ void NetworkInterface::handleObjectRot(ObjectID object, Quaternion rot)
         client.second->sendObjectRot(object, rot.w, rot.x, rot.y, rot.z);
 }
 
+void NetworkInterface::handleObjectAssoc(ObjectID object, PlayerID player)
+{
+    PlayerToPeer::iterator iterPlayer = _players.find(player);
+    if (iterPlayer == _players.end()) 
+        return;
+
+    Clients::iterator iterClient = _clients.find(iterPlayer->second);
+    assert(iterClient != _clients.end());
+
+    iterClient->second->sendAttachCamera(object);
+}
+
 void NetworkInterface::handlePeerLoginGranted(PeerID peer, PlayerID player)
 {
     Clients::iterator iter = _clients.find(peer);
     if (iter == _clients.end()) 
         return;
 
+    _players.insert(std::make_pair(player, peer));
     iter->second->attachPlayer(player);
 }
 

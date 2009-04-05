@@ -22,6 +22,9 @@ class VisibleObject {
 
         void update();
 
+        const Vector3& getPosition() const;
+        const Quaternion& getRotation() const;
+
         void setPosition(const Vector3& pos);
         void setVelocity(const Vector3& vel);
         void setRotation(const Quaternion& rot);
@@ -33,7 +36,7 @@ class VisibleObject {
 
         void beginInterpolation();
 
-        static const int INTERP_TIME = 1000000;
+        static const int INTERP_TIME = 500000;
 
         std::auto_ptr<sim::MovableObject> _objectSim;
         std::auto_ptr<gfx::Entity> _objectGfx;

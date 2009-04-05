@@ -51,6 +51,7 @@ class Peer : public virtual ProtocolUser {
         PeerID getID() const;
         uint16_t getRemotePort() const;
         const char* getIPAddress() const;
+        int getRoundTripTime() const;
 
         void disconnect(bool force = false);
 

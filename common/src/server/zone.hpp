@@ -59,6 +59,8 @@ class Zone : public MessagableJob {
 
         ObjectID _nextObjectID;
         ZoneID _thisZone;
+
+        Timer _timer;
 };
 
 

@@ -25,6 +25,8 @@ VisibleObject::VisibleObject(
 
 }
 
+#include <iostream>
+using namespace std;
 void VisibleObject::update()
 {
     _objectSim->update();
@@ -48,6 +50,16 @@ void VisibleObject::update()
 
     _objectGfx->setPosition(Ogre::Vector3(_position.x, _position.y, _position.z));
     _objectGfx->setOrientation(Ogre::Quaternion(_rotation.w, _rotation.x, _rotation.y, _rotation.z));
+}
+
+const Vector3& VisibleObject::getPosition() const
+{
+    return _position;
+}
+
+const Quaternion& VisibleObject::getRotation() const
+{
+    return _rotation;
 }
 
 void VisibleObject::setPosition(const Vector3& pos)
@@ -77,5 +89,6 @@ void VisibleObject::beginInterpolation()
 {
     _shouldInterpolate = false;
     _timeToCorrect = INTERP_TIME;
+    _timer.reset();
 }
 

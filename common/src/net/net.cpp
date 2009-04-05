@@ -63,6 +63,12 @@ const char* net::Peer::getIPAddress() const
     return _ip;
 }
 
+/// \return Mean round trip time in milliseconds.
+int net::Peer::getRoundTripTime() const
+{
+    return _peer->roundTripTime;
+}
+
 /// Terminates the connection.
 /// In normal operation this function begins the disconnect process. When the
 /// disconnect is complete the Interface controlling the peer is notified by 

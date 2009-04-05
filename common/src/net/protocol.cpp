@@ -1,7 +1,7 @@
 /// \file protocol.cpp
 /// \brief Network protocol.
 /// \author 
-/// \date 3th April 2009
+/// \date 4th April 2009
 ///
 /// Copyright (c) 2009 . All rights reserved.
 ///
@@ -234,6 +234,15 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         uint8_t ctrl = *reinterpret_cast<uint8_t*>(offset);
         offset += sizeof(uint8_t);
         handleObjectControl(ntohl(objectid), (ctrl));
+        } break;
+    case 0x10: {
+        if (offset + 0x04 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise AttachCamera: malformed packet");
+            return;
+        }
+        uint32_t objectid = *reinterpret_cast<uint32_t*>(offset);
+        offset += sizeof(uint32_t);
+        handleAttachCamera(ntohl(objectid));
         } break;
     }
 }
@@ -486,6 +495,19 @@ void net::ProtocolUser::sendObjectControl(uint32_t objectid, uint8_t ctrl)
     offset += sizeof(uint32_t);
     *reinterpret_cast<uint8_t*>(offset) = (ctrl);
     offset += sizeof(uint8_t);
+    enet_packet_resize(packet, offset - packet->data);
+    sendPacket(packet);
+}
+
+void net::ProtocolUser::sendAttachCamera(uint32_t objectid)
+{
+    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
+    enet_uint8* offset = packet->data;
+    *reinterpret_cast<uint8_t*>(offset) = 0x10;
+    uint16_t len = 0;
+    offset += 0x01;
+    *reinterpret_cast<uint32_t*>(offset) = htonl(objectid);
+    offset += sizeof(uint32_t);
     enet_packet_resize(packet, offset - packet->data);
     sendPacket(packet);
 }

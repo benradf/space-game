@@ -55,9 +55,14 @@ void RemoteController::setObject(sim::MovableObject* object)
 ////////// LocalController //////////
 
 LocalController::LocalController() :
-    _object(0), _state(0)
+    _state(0)
 {
 
+}
+
+sim::ControlState LocalController::getControlState() const
+{
+    return _state;
 }
 
 bool LocalController::keyPressed(const OIS::KeyEvent& arg)
@@ -76,9 +81,6 @@ bool LocalController::keyPressed(const OIS::KeyEvent& arg)
             _state = controlSet(CTRL_RIGHT, true, _state);
             break;
     }
-
-    if (_object != 0) 
-        _object->setControlState(_state);
 
     return true;
 }
@@ -100,15 +102,7 @@ bool LocalController::keyReleased(const OIS::KeyEvent& arg)
             break;
     }
 
-    if (_object != 0) 
-        _object->setControlState(_state);
-
     return true;
-}
-
-void LocalController::setObject(sim::MovableObject* object)
-{
-    _object = object;
 }
 
 

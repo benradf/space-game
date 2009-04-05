@@ -49,6 +49,9 @@ std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
     return std::auto_ptr<VisibleObject>(new VisibleObject(entity, object));
 }
 
+Vector3 cameraPos = Vector3::ZERO;
+LocalController* localController = 0;
+
 void clientMain()
 {
     signal(SIGINT, signalHandler);
@@ -58,9 +61,9 @@ void clientMain()
     std::auto_ptr<Camera> camera = scene->createCamera("cam1");
     gfx.getViewport().attachCamera(*camera);
     //std::auto_ptr<Entity> spider = scene->createEntity("spider", "warbird.mesh");
-    //std::auto_ptr<Entity> warbird = scene->createEntity("warbird", "warbird.mesh");
+    std::auto_ptr<Entity> warbird = scene->createEntity("warbird", "warbird.mesh");
     //spider->setPosition(Ogre::Vector3(0.0f, 10.0f, 0.0f));
-    //warbird->setPosition(Ogre::Vector3(0.0f, -10.0f, 0.0f));
+    warbird->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
     camera->setPosition(Ogre::Vector3(-0.1f, -0.1f, 200.0f));
     camera->lookAt(Ogre::Vector3(0.0f, 0.0f, 0.0f));
     scene->setSkyPlane("Sky/OrbitEarth", Ogre::Vector3::UNIT_Z, -1000.0f);
@@ -68,6 +71,7 @@ void clientMain()
     //Ship ship(*scene, "username", "spider.mesh");
     Input input(gfx.getViewport().getRenderWindow());
     std::auto_ptr<LocalController> ctrl = input.createKeyboardListener<LocalController>();
+    localController = ctrl.get();
     //ctrl->setObject(&ship);
     theScene = scene.get();
 
@@ -98,6 +102,7 @@ void clientMain()
 
         //const Vector3& shipPos = ship.getApparentPosition();
         //camera->setPosition(Ogre::Vector3(shipPos.x, shipPos.y, shipPos.z + 200.0f));
+        camera->setPosition(Ogre::Vector3(cameraPos.x, cameraPos.y, cameraPos.z + 200.0f));
 
         input.capture();
         network.main();

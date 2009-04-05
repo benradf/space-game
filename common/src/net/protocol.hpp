@@ -1,7 +1,7 @@
 /// \file protocol.hpp
 /// \brief Network protocol.
 /// \author 
-/// \date 3th April 2009
+/// \date 4th April 2009
 ///
 /// Copyright (c) 2009 . All rights reserved.
 ///
@@ -74,6 +74,9 @@ class ProtocolUser {
 
         void sendObjectControl(uint32_t objectid, uint8_t ctrl);
         virtual void handleObjectControl(uint32_t objectid, uint8_t ctrl) = 0;
+
+        void sendAttachCamera(uint32_t objectid);
+        virtual void handleAttachCamera(uint32_t objectid) = 0;
 
 };
 
