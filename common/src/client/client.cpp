@@ -61,12 +61,15 @@ void clientMain()
     std::auto_ptr<Camera> camera = scene->createCamera("cam1");
     gfx.getViewport().attachCamera(*camera);
     //std::auto_ptr<Entity> spider = scene->createEntity("spider", "warbird.mesh");
-    std::auto_ptr<Entity> warbird = scene->createEntity("warbird", "warbird.mesh");
+    //std::auto_ptr<Entity> warbird = scene->createEntity("warbird", "warbird.mesh");
     //spider->setPosition(Ogre::Vector3(0.0f, 10.0f, 0.0f));
-    warbird->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
+    //warbird->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
     camera->setPosition(Ogre::Vector3(-0.1f, -0.1f, 200.0f));
     camera->lookAt(Ogre::Vector3(0.0f, 0.0f, 0.0f));
     scene->setSkyPlane("Sky/OrbitEarth", Ogre::Vector3::UNIT_Z, -1000.0f);
+
+    std::auto_ptr<Entity> map = scene->createEntity("map", "base01.mesh");
+    map->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
 
     //Ship ship(*scene, "username", "spider.mesh");
     Input input(gfx.getViewport().getRenderWindow());
