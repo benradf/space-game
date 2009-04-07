@@ -66,6 +66,12 @@ bool intersects2d(const AABB& a, const AABB& b);
 
 ////////// Point //////////
 
+inline Point::Point(const Vector3& pos) :
+    _position(pos)
+{
+
+}
+
 inline const Vector3& Point::getPosition() const
 {
     return _position;

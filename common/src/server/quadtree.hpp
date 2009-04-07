@@ -52,8 +52,11 @@ class QuadTree {
             int level;
         };
 
-        static const int MAX_LEVELS = 5;
-        static const int OBJS_PER_NODE = 5;
+        static const int MAX_LEVELS = 10;  // worst case 30MB
+        static const int OBJS_PER_NODE = 10;
+
+        QuadTree(const QuadTree&);
+        QuadTree& operator=(const QuadTree&);
 
         void addObject(Node* node, T* object);
         void delObject(Node* node, T* object);
@@ -63,7 +66,7 @@ class QuadTree {
 
         void maybeSplitNode(Node* node);
 
-        Node _root;
+        Node* _root;
         int _nodeCount;
 };
 
@@ -72,7 +75,7 @@ class QuadTree {
 
 template<typename T>
 QuadTree<T>::QuadTree(const vol::AABB& bounds) :
-    _root(bounds), _nodeCount(1)
+    _root(new Node(bounds)), _nodeCount(1)
 {
 
 }
@@ -80,13 +83,13 @@ QuadTree<T>::QuadTree(const vol::AABB& bounds) :
 template<typename T>
 QuadTree<T>::~QuadTree()
 {
-
+    delete _root;
 }
 
 template<typename T>
 void QuadTree<T>::insert(T* object)
 {
-    Node* node = findByPos(&_root, object->getPosition());
+    Node* node = findByPos(_root, object->getPosition());
 
     addObject(node, object);
 }
@@ -94,7 +97,7 @@ void QuadTree<T>::insert(T* object)
 template<typename T>
 void QuadTree<T>::remove(T* object)
 {
-    Node* node = findByObj(&_root, object);
+    Node* node = findByObj(_root, object);
 
     if (node == 0) 
         return;
@@ -119,9 +122,13 @@ struct InsertNode {
 template<typename T>
 void QuadTree<T>::balanceNodes()
 {
-    QuadTree<T> newQuadTree(_root.bounds);
-    process(InsertNode<T>(newQuadTree));
+    QuadTree<T> newQuadTree(_root->bounds);
+    InsertNode<T> insertFunc(newQuadTree);
+
+    process(insertFunc);
+
     std::swap(_root, newQuadTree._root);
+    std::swap(_nodeCount, newQuadTree._nodeCount);
 }
 
 template<typename T>
@@ -140,14 +147,14 @@ template<typename T>
 template<typename U>
 void QuadTree<T>::process(U& visitor)
 {
-    _root.visit(visitor);
+    _root->process(visitor);
 }
 
 template<typename T>
 template<typename U, typename V>
 void QuadTree<T>::process(U& visitor, const V& volume)
 {
-    _root.visit(visitor, volume);
+    _root->process(visitor, volume);
 }
 
 template<typename T>
@@ -247,6 +254,9 @@ inline QuadTree<T>::Node::Node(Node* parent, int index) :
     max.y = ((index & 2) == 0 ? mid.y : max.y);
 
     bounds = vol::AABB(min, max);
+
+    for (int i = 0; i < 4; i++) 
+        children[i] = 0;
 }
 
 template<typename T>
@@ -262,7 +272,7 @@ inline void QuadTree<T>::Node::process(U& visitor)
 {
     if (!leaf) {
         for (int i = 0; i < 4; i++) 
-            children[i]->visit(visitor);
+            children[i]->process(visitor);
 
         return;
     }
@@ -280,13 +290,13 @@ inline void QuadTree<T>::Node::process(U& visitor, const V& volume)
 
     if (!leaf) {
         for (int i = 0; i < 4; i++) 
-            children[i]->visit(visitor, volume);
+            children[i]->process(visitor, volume);
 
         return;
     }
 
     foreach (T* object, objects) {
-        vol::Point point(object.getPosition());
+        vol::Point point(object->getPosition());
         if (intersects2d(volume, point)) 
             visitor.visit(object);
     }
