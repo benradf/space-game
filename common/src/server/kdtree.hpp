@@ -17,10 +17,14 @@
 
 class Triangle {
     public:
+        Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2);
+
         vol::AABB determineBounds() const;
 
-    private:
-        Vector3 _verts[3];
+    //private:
+        Vector3 _v0;
+        Vector3 _v1;
+        Vector3 _v2;
 };
 
 struct KDTreeNode {

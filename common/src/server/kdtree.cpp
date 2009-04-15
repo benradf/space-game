@@ -40,6 +40,7 @@ class SplitPlane {
         bool operator<(const SplitPlane& plane) const;
         Side whichSide(const SplitPlane& plane) const;
 
+        static SplitInsertIter createFromTriangle(const Triangle& triangle, const vol::AABB& global, SplitInsertIter iter);
         static SplitInsertIter createFromBounds(const vol::AABB& local, const vol::AABB& global, SplitInsertIter iter);
         static SplitInsertIter duplicatePlanes(const SplitPlane& plane, SplitInsertIter iter);
 
@@ -53,7 +54,7 @@ class SplitPlane {
         SplitAxis _axis;
         float _position;
         bool _minBound;
-        Triangle* _tri;
+        const Triangle* _tri;
 
         float _volumeL;
         float _volumeR;
@@ -117,6 +118,33 @@ SplitPlane::Side SplitPlane::whichSide(const SplitPlane& plane) const
         return LEFT;
     
     return BOTH;
+}
+
+SplitInsertIter SplitPlane::createFromTriangle(const Triangle& triangle, const vol::AABB& global, SplitInsertIter iter)
+{
+    vol::AABB local(triangle.determineBounds());
+
+    const Vector3& min = local.getMin();
+    const Vector3& max = local.getMax();
+
+    SplitPlane* planes[6] = {
+        new SplitPlane(SPLIT_AXIS_X, min.x, global, true),
+        new SplitPlane(SPLIT_AXIS_X, max.x, global, false),
+        new SplitPlane(SPLIT_AXIS_Y, min.y, global, true),
+        new SplitPlane(SPLIT_AXIS_Y, max.y, global, false),
+        new SplitPlane(SPLIT_AXIS_Z, min.z, global, true),
+        new SplitPlane(SPLIT_AXIS_Z, max.z, global, false)
+    };
+
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++)
+            planes[i]->_others[j] = planes[j];
+        planes[i]->_tri = &triangle;
+    }
+
+    std::copy(planes, planes + 6, iter);
+
+    return iter;
 }
 
 SplitInsertIter SplitPlane::createFromBounds(const vol::AABB& local, const vol::AABB& global, SplitInsertIter iter)
@@ -484,8 +512,13 @@ void createNode(SplitList& list, int depth, float cost)
 
     cout << "create node (depth = " << depth << ", cost = " << cost << ")" << endl;
 
+    cerr << depth << " \033[01;32m(cost: " << cost << ")\033[00m\t";
+    for (int i = 1; i < depth; i++) 
+        cerr << "| ";
+
     if (list.empty()) {
         cout << "    no splits to choose from" << endl;
+        cerr << "\033[01;35msplit list empty\033[00m" << endl;
         return;
     }
 
@@ -495,15 +528,27 @@ void createNode(SplitList& list, int depth, float cost)
 
     SplitPlane& split = *std::accumulate(list.begin(), list.end(), *list.begin(), MinCost());
     cout << "    choose split(" << &split << ") on axis " << axes[split._axis] << " at " << split._position << endl;
+
     if (split._cost + 0.00001f >= cost) {
         cout << "cheapest to stop splitting here" << endl;
+        cerr << "\033[01;33mTriangles: ";
+        foreach (const SplitPlane* plane, list) {
+            if ((plane->_axis != SPLIT_AXIS_X) || (!plane->_minBound)) 
+                continue;
+            cerr << "[";
+            const Vector3& v0 = plane->_tri->_v0;
+            cerr << "(" << v0.x << ", " << v0.y << ", " << v0.z << "), ";
+            const Vector3& v1 = plane->_tri->_v1;
+            cerr << "(" << v1.x << ", " << v1.y << ", " << v1.z << "), ";
+            const Vector3& v2 = plane->_tri->_v2;
+            cerr << "(" << v2.x << ", " << v2.y << ", " << v2.z << ")";
+            cerr << "]   ";
+        }
+        cerr << "\033[00m" << endl;
         return;
     }
     split._used = true;
 
-    cerr << depth << " \033[01;32m(cost: " << cost << ")\033[00m\t";
-    for (int i = 1; i < depth; i++) 
-        cerr << "| ";
     cerr << "\033[01;31msplit at " << split._position << " on axis " << axes[split._axis];
     cerr << "\033[00m (cost: " << split._cost << ")" << endl;
 
@@ -592,37 +637,82 @@ using namespace std;
 
 void createKDTree()
 {
+    std::vector<Triangle> triangles;
+
+    triangles.push_back(Triangle(
+        Vector3(-3.0f,  0.0f,  0.0f),
+        Vector3( 2.0f,  3.0f,  0.0f),
+        Vector3(-1.0f, -2.0f,  0.0f)));
+
+    triangles.push_back(Triangle(
+        Vector3(-1.0f, -4.0f,  0.0f),
+        Vector3( 2.0f,  1.0f,  0.0f),
+        Vector3( 4.0f, -1.0f,  0.0f)));
+
     SplitList list;
 
     vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
 
+    foreach (const Triangle& triangle, triangles) 
+        SplitPlane::createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
+
+#if 0
     vol::AABB b1(Vector3(-2.0f, 1.0f, 0.0f), Vector3(4.0f, 2.0f, 0.0f));
     SplitPlane::createFromBounds(b1, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b2(Vector3(-3.0f, -3.0f, 0.0f), Vector3(-1.0f, -1.0f, 0.0f));
-    SplitPlane::createFromBounds(b2, bounds, std::inserter(list, list.begin()));
+    //SplitPlane::createFromBounds(b2, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b3(Vector3(-3.0f, 2.0f, 0.0f), Vector3(-1.0f, 4.0f, 0.0f));
     SplitPlane::createFromBounds(b3, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b4(Vector3(1.0f, -4.0f, 0.0f), Vector3(2.0f, 0.0f, 0.0f));
-    SplitPlane::createFromBounds(b4, bounds, std::inserter(list, list.begin()));
+    //SplitPlane::createFromBounds(b4, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b5(Vector3(3.0f, -3.0f, 0.0f), Vector3(4.0f, 0.0f, 0.0f));
-    SplitPlane::createFromBounds(b5, bounds, std::inserter(list, list.begin()));
+    //SplitPlane::createFromBounds(b5, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b6(Vector3(-3.0f, -2.0f, 0.0f), Vector3(2.0f, 3.0f, 0.0f));
-    SplitPlane::createFromBounds(b6, bounds, std::inserter(list, list.begin()));
+    //SplitPlane::createFromBounds(b6, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b7(Vector3(-1.0f, -4.0f, 0.0f), Vector3(4.0f, 1.0f, 0.0f));
-    SplitPlane::createFromBounds(b7, bounds, std::inserter(list, list.begin()));
+    //SplitPlane::createFromBounds(b7, bounds, std::inserter(list, list.begin()));
+#endif
 
     //std::stable_sort(list.begin(), list.end(), LessThanPtrs());
     list.sort(LessThanPtrs());
 
-    std::for_each(list.begin(), list.end(), UpdateCosts(7));
+    std::for_each(list.begin(), list.end(), UpdateCosts(2));
 
     createNode(list, 1, 100.0f);
+}
+
+Triangle::Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2) :
+    _v0(v0), _v1(v1), _v2(v2)
+{
+
+}
+
+vol::AABB Triangle::determineBounds() const
+{
+    Vector3 min = _v0;
+    Vector3 max = _v0;
+
+    min.x = std::min(min.x, _v1.x);
+    min.y = std::min(min.y, _v1.y);
+    min.z = std::min(min.z, _v1.z);
+    max.x = std::max(max.x, _v1.x);
+    max.y = std::max(max.y, _v1.y);
+    max.z = std::max(max.z, _v1.z);
+
+    min.x = std::min(min.x, _v2.x);
+    min.y = std::min(min.y, _v2.y);
+    min.z = std::min(min.z, _v2.z);
+    max.x = std::max(max.x, _v2.x);
+    max.y = std::max(max.y, _v2.y);
+    max.z = std::max(max.z, _v2.z);
+
+    return vol::AABB(min, max);
 }
 
 
