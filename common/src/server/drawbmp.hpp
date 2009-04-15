@@ -11,37 +11,13 @@
 #define DRAWBMP_HPP
 
 
+#include <assert.h>
 #include <stdint.h>
+#include <algorithm>
+#include "colour.hpp"
 
 
 namespace bmp {
-
-
-#pragma pack(push, 1)
-
-struct FileHeader {
-    uint16_t magic;
-    uint32_t size;
-    uint16_t reserved1;
-    uint16_t reserved2;
-    uint32_t offset;
-};
-
-struct InfoHeader {
-    uint32_t size;
-    int32_t width;
-    int32_t height;
-    uint16_t planes;
-    uint16_t depth;
-    uint32_t compression;
-    uint32_t imageSize;
-    uint32_t horizontalRes;
-    uint32_t verticalRes;
-    uint32_t paletteSize;
-    uint32_t importantColours;
-};
-
-#pragma pack(pop)
 
 
 class Bitmap {
@@ -61,16 +37,20 @@ class Bitmap {
         Colour getPixel(uint32_t x, uint32_t y) const;
         void setPixel(uint32_t x, uint32_t y, Colour c);
 
+        void fill(Colour colour);
         void swap(Bitmap& other);
 
     private:
         Bitmap(const Bitmap&);
         Bitmap& operator=(const Bitmap&);
 
-        uint8* _data;
+        Colour* _data;
         uint32_t _width;
         uint32_t _height;
 };
+
+
+void drawLine(Bitmap& bitmap, Bitmap::Colour c, int x0, int y0, int x1, int y1);
 
 
 };  // namespace bmp
@@ -78,18 +58,18 @@ class Bitmap {
 
 ////////// bmp::Bitmap //////////
 
-inline bmp::Colour bmp::Bitmap::getPixel(uint32_t x, uint32_t y) const
+inline bmp::Bitmap::Colour bmp::Bitmap::getPixel(uint32_t x, uint32_t y) const
 {
     assert((x < _width) && (y < _height));
 
-    return *reinterpret_cast<Colour*>(_data[4*(y*_width+x)]);
+    return _data[y*_width+x];
 }
 
 inline void bmp::Bitmap::setPixel(uint32_t x, uint32_t y, Colour c)
 {
     assert((x < _width) && (y < _height));
 
-    *reinterpret_cast<Colour*>(_data[4*(y*_width+x)]) = c;
+    _data[y*_width+x] = c;
 }
 
 inline void bmp::Bitmap::swap(Bitmap& other)
