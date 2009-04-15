@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <limits>
 #include <core.hpp>
+#include <list>
 
 
 #include <iostream>
@@ -26,7 +27,7 @@ enum SplitAxis {
     SPLIT_LEAF
 };
 
-typedef std::vector<class SplitPlane*> SplitList;
+typedef std::list<class SplitPlane*> SplitList;
 typedef SplitList::iterator SplitIter;
 typedef std::insert_iterator<SplitList> SplitInsertIter;
 
@@ -54,6 +55,8 @@ class SplitPlane {
 
         float _volumeL;
         float _volumeR;
+        float _costL;
+        float _costR;
         float _cost;
         int _countL;
         int _countR;
@@ -210,8 +213,16 @@ struct UpdateCosts {
             ;//cout << "    p->_axis = " << axes[p->_axis] << endl;
             p->_countL = countL[p->_axis];
             p->_countR = peakCountR;
-            p->_cost = p->_volumeL * float(p->_countL) + 
-                       p->_volumeR * float(p->_countR);
+            p->_costL = p->_volumeL * float(p->_countL);
+            p->_costR = p->_volumeR * float(p->_countR);
+            p->_cost = p->_costL + p->_costR;
+            if ((p->_volumeL < 0.00001f) || (p->_volumeR < 0.00001f)) {
+                p->_cost = 100.0f;
+            }
+            //cout << "update " << p << ": cost = " << p->_cost << endl;
+            assert(p->_countL >= 0.0f);
+            assert(p->_countR >= 0.0f);
+            assert(p->_cost >= 0.0f);
             ;//cout << "    p->_countL = " << p->_countL << endl;
             ;//cout << "    p->_countR = " << p->_countR << endl;
         }
@@ -336,8 +347,13 @@ struct UpdateCosts {
                     ;//cout << "    p->_axis = " << axes[p->_axis] << endl;
                     p->_countL = countL[p->_axis];
                     p->_countR = peakCountR;
-                    p->_cost = p->_volumeL * float(p->_countL) + 
-                               p->_volumeR * float(p->_countR);
+                    p->_costL = p->_volumeL * float(p->_countL);
+                    p->_costR = p->_volumeR * float(p->_countR);
+                    p->_cost = p->_costL + p->_costR;
+                    if ((p->_volumeL < 0.00001f) || (p->_volumeR < 0.00001f)) {
+                        p->_cost = 100.0f;
+                    }
+                    //cout << "update " << p << ": cost = " << p->_cost << endl;
                     assert(p->_countL >= 0.0f);
                     assert(p->_countR >= 0.0f);
                     assert(p->_cost >= 0.0f);
@@ -420,47 +436,49 @@ void printSplits(const char* prefix, SplitIter begin, SplitIter end)
     cout << endl;
 }
 
-void createNode(SplitList& list, SplitIter begin, SplitIter end, int depth)
+void createNode(SplitList& list, int depth, float cost)
 {
 //    if (depth == 4) 
 //        return;
 
-    cout << "create node (depth = " << depth << ")" << endl;
+    cout << "create node (depth = " << depth << ", cost = " << cost << ")" << endl;
 
-    if (begin == end) {
+    if (list.empty()) {
         cout << "    no splits to choose from" << endl;
         return;
     }
 
     char axes[3] = { 'X', 'Y', 'Z' };
 
-    printSplits("ALL", begin, end);
+    printSplits("ALL", list.begin(), list.end());
 
-    SplitIter first = begin - 1;
-
-    SplitPlane& split = *std::accumulate(begin, end, *begin, MinCost());
+    SplitPlane& split = *std::accumulate(list.begin(), list.end(), *list.begin(), MinCost());
     cout << "    choose split(" << &split << ") on axis " << axes[split._axis] << " at " << split._position << endl;
-    if (split._used) {
+    if (split._cost + 0.00001f >= cost) {
         cout << "cheapest to stop splitting here" << endl;
         return;
     }
     split._used = true;
 
+    cerr << depth << " \033[01;32m(cost: " << cost << ")\033[00m\t";
     for (int i = 1; i < depth; i++) 
         cerr << "| ";
-    cerr << "\033[01;31msplit at " << split._position << " on axis " << axes[split._axis] << "\033[00m" << endl;
+    cerr << "\033[01;31msplit at " << split._position << " on axis " << axes[split._axis];
+    cerr << "\033[00m (cost: " << split._cost << ")" << endl;
 
-    SplitIter beginBoth = std::stable_partition(begin, end, OnSide(split, SplitPlane::LEFT));
-    //cout << "beginBoth = " << *beginBoth << endl;
+    float costL = split._costL;
+    float costR = split._costR;
+    SplitIter beginBoth = std::stable_partition(list.begin(), list.end(), OnSide(split, SplitPlane::LEFT));
+    cout << "beginBoth = " << *beginBoth << endl;
     //printSplits("PARTITIONED1", first + 1, end);
-    SplitIter endBoth = std::stable_partition(beginBoth, end, OnSide(split, SplitPlane::BOTH));
-    //cout << "endBoth = " << *endBoth << endl;
-    //printSplits("PARTITIONED2", first + 1, end);
-    begin = first + 1;
+    SplitIter endBoth = std::stable_partition(beginBoth, list.end(), OnSide(split, SplitPlane::BOTH));
+    cout << "endBoth = " << *endBoth << endl;
+    //printSplits("PARTITIONED", list.begin(), list.end());
 
     UpdateCosts updaterL = UpdateCosts::makeL(split);
     UpdateCosts updaterR = UpdateCosts::makeR(split);
 
+#if 0
     SplitList::difference_type indexFirst = std::distance(list.begin(), first);
     SplitList::difference_type indexBegin = std::distance(list.begin(), begin);
     SplitList::difference_type indexBeginBoth = std::distance(list.begin(), beginBoth);
@@ -475,40 +493,59 @@ void createNode(SplitList& list, SplitIter begin, SplitIter end, int depth)
     beginBoth = list.begin() + indexBeginBoth;
     endBoth = list.begin() + indexEndBoth;
     end = list.begin() + indexEnd;
+#endif
 
     //printSplits("BOTH", beginBoth, endBoth);
     //cout << "about to duplicate" << endl;
 
-    std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, endBoth));
-    std::advance(end, overlap);
+    std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, beginBoth));
+    //std::advance(end, overlap);
 
-    std::stable_sort(begin, endBoth, LessThanPtrs());
-    std::stable_sort(endBoth, end, LessThanPtrs());
+    //printSplits("DUPLICATED", list.begin(), list.end());
+
+    //std::stable_sort(begin, endBoth, LessThanPtrs());
+    //std::stable_sort(endBoth, end, LessThanPtrs());
+
+    SplitList listL;
+    listL.splice(listL.begin(), list, list.begin(), beginBoth);
+    listL.sort(LessThanPtrs());
+    cout << "listL.size() = " << listL.size() << endl; // O(n), for debugging only
+
+    SplitList listR;
+    listR.splice(listR.begin(), list, beginBoth, list.end());
+    listR.sort(LessThanPtrs());
+    cout << "listR.size() = " << listR.size() << endl; // O(n), for debugging only
 
     //printSplits("ALL AFTER DUPLICATE", first + 1, end);
-    std::for_each(begin, endBoth, updaterL);
-    printSplits("UPDATE_L", begin, endBoth);
-    std::for_each(endBoth, end, updaterR);
-    printSplits("UPDATE_R", endBoth, end);
+    std::for_each(listL.begin(), listL.end(), updaterL);
+    printSplits("UPDATE_L", listL.begin(), listL.end());
+    std::for_each(listR.begin(), listR.end(), updaterR);
+    printSplits("UPDATE_R", listR.begin(), listR.end());
 
     //createNode(list, first + 1, beginBoth, depth + 1);
     //createNode(list, beginBoth, end, depth + 1);
     
+#if 0
     indexFirst = std::distance(list.begin(), first);
     indexBegin = std::distance(list.begin(), begin);
     indexBeginBoth = std::distance(list.begin(), beginBoth);
     indexEndBoth = std::distance(list.begin(), endBoth);
     indexEnd = std::distance(list.begin(), end);
+#endif
 
-    createNode(list, begin, endBoth, depth + 1);
+    // TODO: Fix indices getting messed up by vector insertions.
 
+    createNode(listL, depth + 1, costL);
+
+#if 0
     first = list.begin() + indexFirst;
     begin = list.begin() + indexBegin;
     beginBoth = list.begin() + indexBeginBoth;
     endBoth = list.begin() + indexEndBoth;
     end = list.begin() + indexEnd;
+#endif
 
-    createNode(list, endBoth, end, depth + 1);
+    createNode(listR, depth + 1, costR);
 }
 
 #include <iostream>
@@ -541,14 +578,12 @@ void createKDTree()
     vol::AABB b7(Vector3(-1.0f, -4.0f, 0.0f), Vector3(4.0f, 1.0f, 0.0f));
     SplitPlane::createFromBounds(b7, bounds, std::inserter(list, list.begin()));
 
-    std::stable_sort(list.begin(), list.end(), LessThanPtrs());
+    //std::stable_sort(list.begin(), list.end(), LessThanPtrs());
+    list.sort(LessThanPtrs());
 
     std::for_each(list.begin(), list.end(), UpdateCosts(2));
 
-    list.insert(list.begin(), new SplitPlane(SPLIT_AXIS_Y, 0.0f, vol::AABB::EMPTY, true));
-    list.insert(list.end(), new SplitPlane(SPLIT_AXIS_Y, 0.0f, vol::AABB::EMPTY, true));
-
-    createNode(list, list.begin() + 1, list.end() - 1, 1);
+    createNode(list, 1, 100.0f);
 }
 
 
