@@ -47,6 +47,9 @@ class AABB {
         const Vector3& getMin() const;
         const Vector3& getMax() const;
         Vector3 getMid() const;
+        float getVolume() const;
+
+        static const AABB EMPTY;
 
     private:
         Vector3 _min;
@@ -128,6 +131,11 @@ inline const Vector3& AABB::getMax() const
 inline Vector3 AABB::getMid() const
 {
     return (0.5f * (_min + _max));
+}
+
+inline float AABB::getVolume() const
+{
+    return ((_max.x - _min.x) * (_max.y - _min.y) * (_max.z - _min.z));
 }
 
 

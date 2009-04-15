@@ -9,6 +9,10 @@
 
 #include "volumes.hpp"
 
+
+const vol::AABB vol::AABB::EMPTY(Vector3::ZERO, Vector3::ZERO);
+
+
 bool vol::intersects2d(const Point& a, const Circle& b)
 {
     float radius = b.getRadius();
