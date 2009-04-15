@@ -45,6 +45,8 @@ class SplitPlane {
 
         void Update(const SplitPlane& split, int countL, int countR);
 
+        bool IsFlat() const;
+
     //private:
         const SplitPlane* _others[6];
 
@@ -168,6 +170,11 @@ SplitInsertIter SplitPlane::duplicatePlanes(const SplitPlane& plane, SplitInsert
     return iter;
 }
 
+bool SplitPlane::IsFlat() const
+{
+    return (_others[2*_axis]->_position == _others[2*_axis+1]->_position);
+}
+
 struct MinCost {
     SplitPlane* operator()(SplitPlane* min, SplitPlane* next) const {
         return ((next->_cost < min->_cost) || ((next->_cost == min->_cost) && next->_used) ? next : min);
@@ -182,6 +189,12 @@ struct OnSide {
     }
     const SplitPlane& split;
     SplitPlane::Side side;
+};
+
+struct IsFlat {
+    bool operator()(const SplitPlane* plane) const {
+        return plane->IsFlat();
+    }
 };
 
 struct UpdateCosts {
@@ -253,7 +266,7 @@ struct UpdateCosts {
     void operator()(SplitPlane* plane) {
         //float posL = plane->_others[2*plane->_axis]->_position;
         //float posR = plane->_others[2*plane->_axis+1]->_position;
-        //bool flat = (posL == posR);
+        //bool moveZeroDist = (posL == posR);
 
         ;//cout << "UpdateCosts::operator()(" << plane << ")" << endl;
 
@@ -265,21 +278,20 @@ struct UpdateCosts {
         ;//cout << "    prevAxis = " << axes[prevAxis] << endl;
         ;//cout << "    plane->_axis = " << axes[plane->_axis] << endl;
 #endif
-        bool flat = ((prevPos == plane->_position) && (prevAxis == plane->_axis));
+        bool moveZeroDist = ((prevPos == plane->_position) && (prevAxis == plane->_axis));
         prevPos = plane->_position;
         prevAxis = plane->_axis;
 #if 0
-        ;//cout << "    flat = " << flat << endl;
+        ;//cout << "    moveZeroDist = " << flat << endl;
         printCounts();
 #endif
 
 //#if 0
-        //if (!flat) {
+        //if (!moveZeroDist) {
             if (!plane->_minBound) {
                 if (clampMax && (plane->_position > clampPos) && (axis == plane->_axis)) {
                     plane->_position = clampPos;
                     cout << "clamping max " << plane << endl;
-                    // TODO: Adjust when clamping.
                     plane->_volumeL -= (volumeR - plane->_volumeR);
                     plane->_volumeR = volumeR;
                 }
@@ -322,7 +334,7 @@ struct UpdateCosts {
         }
 
 #if 0
-        if (flat) {
+        if (moveZeroDist) {
             if (plane->_minBound) {
                 //countL[plane->_axis]++;
                 //printCounts();
@@ -331,18 +343,21 @@ struct UpdateCosts {
 #endif
         
         if (!countPending.empty()) {
-            if (flat) {
+            if (moveZeroDist) {
             } else {
                 int peakCountR = countR[countPending.back()->_axis];
                 if (!countPending.back()->_minBound && (countPending.size() == 1)) {
                     peakCountR--;
                 }
-                foreach (SplitPlane* p, countPending) {
+                typedef std::vector<SplitPlane*>::iterator Iter;
+                Iter iterNonFlat = std::stable_partition(countPending.begin(), countPending.end(), IsFlat());
+                for (Iter i = countPending.begin(); i != iterNonFlat; ++i) {
+                    SplitPlane* p = *i;
                     if (!p->_minBound) {
                         countR[p->_axis]--;
                         printCounts();
                     }
-                    ;//cout << "processing pending count for plane " << p << endl;
+                    ;//cout << "processing pending count for FLAT plane " << p << endl;
                     ;//cout << "    p->_position = " << p->_position << endl;
                     ;//cout << "    p->_axis = " << axes[p->_axis] << endl;
                     p->_countL = countL[p->_axis];
@@ -360,13 +375,38 @@ struct UpdateCosts {
                     ;//cout << "    p->_countL = " << p->_countL << endl;
                     ;//cout << "    p->_countR = " << p->_countR << endl;
                 }
+                for (Iter i = iterNonFlat; i != countPending.end(); ++i) {
+                    SplitPlane* p = *i;
+                    if (!p->_minBound) {
+                        countR[p->_axis]--;
+                        printCounts();
+                    }
+                    ;//cout << "processing pending count for NON-FLAT plane " << p << endl;
+                    ;//cout << "    p->_position = " << p->_position << endl;
+                    ;//cout << "    p->_axis = " << axes[p->_axis] << endl;
+                    p->_countL = countL[p->_axis];
+                    p->_countR = countR[p->_axis];
+                    p->_costL = p->_volumeL * float(p->_countL);
+                    p->_costR = p->_volumeR * float(p->_countR);
+                    p->_cost = p->_costL + p->_costR;
+                    if ((p->_volumeL < 0.00001f) || (p->_volumeR < 0.00001f)) {
+                        p->_cost = 100.0f;
+                    }
+                    //cout << "update " << p << ": cost = " << p->_cost << endl;
+                    assert(p->_countL >= 0.0f);
+                    assert(p->_countR >= 0.0f);
+                    assert(p->_cost >= 0.0f);
+                    ;//cout << "    p->_countL = " << p->_countL << endl;
+                    ;//cout << "    p->_countR = " << p->_countR << endl;
+                }
             }
             if (countPending.back()->_minBound) {
+                cout << "countPending.back() = " << countPending.back() << endl;
                 countL[countPending.back()->_axis]++;
                 //countL[plane->_axis]++;
                 printCounts();
             }
-            if (!flat) {
+            if (!moveZeroDist) {
                 countPending.clear();
             }
         }
@@ -379,7 +419,7 @@ struct UpdateCosts {
         //               plane->_volumeR * float(plane->_countR);
 
 #if 0
-        //if (!flat) {
+        //if (!moveZeroDist) {
             if (plane->_minBound) {
                 if (clampMin && (plane->_position < clampPos) && (axis == plane->_axis)) {
                     plane->_position = clampPos;
@@ -532,8 +572,6 @@ void createNode(SplitList& list, int depth, float cost)
     indexEndBoth = std::distance(list.begin(), endBoth);
     indexEnd = std::distance(list.begin(), end);
 #endif
-
-    // TODO: Fix indices getting messed up by vector insertions.
 
     createNode(listL, depth + 1, costL);
 
