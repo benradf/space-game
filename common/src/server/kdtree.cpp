@@ -8,6 +8,14 @@
 
 
 #include "kdtree.hpp"
+#include <assert.h>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+
+
+#include <iostream>
+using namespace std;
 
 enum SplitAxis {
     SPLIT_AXIS_X = 0,
@@ -16,272 +24,239 @@ enum SplitAxis {
     SPLIT_LEAF
 };
 
+typedef std::vector<class SplitPlane*> SplitList;
+typedef SplitList::iterator SplitIter;
+typedef std::insert_iterator<SplitList> SplitInsertIter;
+
 class SplitPlane {
     public:
         enum Side { LEFT, BOTH, RIGHT };
 
+        SplitPlane(SplitAxis axis, float pos, const vol::AABB& bounds, bool minBound);
+
         bool operator<(const SplitPlane& plane) const;
         Side whichSide(const SplitPlane& plane) const;
 
-        static void createFromBounds(const vol::AABB& bounds, std::vector<SplitPlane> vec);
+        static SplitInsertIter createFromBounds(const vol::AABB& bounds, SplitInsertIter iter);
+        static SplitInsertIter duplicatePlanes(const SplitPlane& plane, SplitInsertIter iter);
 
-    private:
+        void Update(const SplitPlane& split, int countL, int countR);
+
+    //private:
         const SplitPlane* _others[6];
 
-        SplitAxis axis;
-        float position;
-        bool minBound;
-        Triangle* tri;
+        SplitAxis _axis;
+        float _position;
+        bool _minBound;
+        Triangle* _tri;
 
-        float percent;
-        int countL;
-        int countR;
-        int cost;
+        float _volumeL;
+        float _volumeR;
+        float _cost;
+        int _countL;
+        int _countR;
 };
+
+SplitPlane::SplitPlane(SplitAxis axis, float pos, const vol::AABB& bounds, bool minBound) :
+    _axis(axis), _position(pos), _minBound(minBound), _tri(0), 
+    _volumeL(0.0f), _volumeR(0.0f), _cost(0.0f)
+{
+    const Vector3& min = bounds.getMin();
+    const Vector3& max = bounds.getMax();
+
+    switch (axis) {
+        case SPLIT_AXIS_X:
+            _volumeL = (pos - min.x) / (max.x - min.x);
+            break;
+        case SPLIT_AXIS_Y:
+            _volumeL = (pos - min.x) / (max.x - min.x);
+            break;
+        case SPLIT_AXIS_Z:
+            _volumeL = (pos - min.x) / (max.x - min.x);
+            break;
+    }
+
+    _volumeR = 1.0f - _volumeL;
+}
 
 bool SplitPlane::operator<(const SplitPlane& plane) const
 {
     return (whichSide(plane) == RIGHT);
 }
 
-Side SplitPlane::whichSide(const SplitPlane& plane) const
+SplitPlane::Side SplitPlane::whichSide(const SplitPlane& plane) const
 {
-    assert((axis >= 0) && (axis <= 2));
+    assert((_axis >= 0) && (_axis <= 2));
 
-    const SplitPlane& planeL = plane._other[2*axis];
-    const SplitPlane& planeR = plane._other[2*axis+1];
+    const SplitPlane& planeL = *plane._others[2*_axis];
+    const SplitPlane& planeR = *plane._others[2*_axis+1];
 
-    if (planeL.position > position)
+    if (planeL._position >= _position)
         return RIGHT;
 
-    if (planeR.position < position)
+    if (planeR._position <= _position)
         return LEFT;
     
     return BOTH;
 }
 
-void SplitPlane::createFromBounds(const vol::AABB& bounds, std::vector<SplitPlane*> vec)
+SplitInsertIter SplitPlane::createFromBounds(const vol::AABB& bounds, SplitInsertIter iter)
 {
     const Vector3& min = bounds.getMin();
     const Vector3& max = bounds.getMax();
 
-    SplitPlane* left = new SplitPlane(SPLIT_AXIS_X, min.x);
-    SplitPlane* right = new SplitPlane(SPLIT_AXIS_X, max.x);
-    SplitPlane* front = new SplitPlane(SPLIT_AXIS_Y, min.y);
-    SplitPlane* back = new SplitPlane(SPLIT_AXIS_Y, max.y);
-    SplitPlane* bottom = new SplitPlane(SPLIT_AXIS_Z, min.z);
-    SplitPlane* top = new SplitPlane(SPLIT_AXIS_Z, max.z);
-
-    left->_others[0] = left;
-    left->_others[1] = right;
-    left->_others[2] = front;
-    left->_others[3] = back;
-    left->_others[4] = bottom;
-    left->_others[5] = top;
+    SplitPlane* planes[6] = {
+        new SplitPlane(SPLIT_AXIS_X, min.x, bounds, true),
+        new SplitPlane(SPLIT_AXIS_X, max.x, bounds, false),
+        new SplitPlane(SPLIT_AXIS_Y, min.y, bounds, true),
+        new SplitPlane(SPLIT_AXIS_Y, max.y, bounds, false),
+        new SplitPlane(SPLIT_AXIS_Z, min.z, bounds, true),
+        new SplitPlane(SPLIT_AXIS_Z, max.z, bounds, false)
+    };
 
     for (int i = 0; i < 6; i++) {
-        right->_others[i] = left->_other[i];
-        front->_others[i] = left->_other[i];
-        back->_others[i] = left->_other[i];
-        bottom->_others[i] = left->_other[i];
-        top->_others[i] = left->_other[i];
-    }
-}
-
-typedef std::vector<SplitPlane>::iterator SplitIter;
-
-std::auto_ptr<KDTree> constructKDTree(const std::vector<Triangle>& triangles)
-{
-    std::vector<SplitPlane> splitPlanes;
-
-    foreach (const Triangle& tri, triangles) {
-        vol::AABB bounds = tri.determineBounds();
-        const Vector3& min = bounds.getMin();
-        const Vector3& max = bounds.getMax();
-
-        splitPlanes.push(SplitPlane(SPLIT_AXIS_X, min.x));
-        splitPlanes.push(SplitPlane(SPLIT_AXIS_X, max.x));
-        splitPlanes.push(SplitPlane(SPLIT_AXIS_Y, min.y));
-        splitPlanes.push(SplitPlane(SPLIT_AXIS_Y, max.y));
-        splitPlanes.push(SplitPlane(SPLIT_AXIS_Z, min.z));
-        splitPlanes.push(SplitPlane(SPLIT_AXIS_Z, max.z));
-    }
-}
-
-void splitBounds(SplitIter split, const vol::AABB& bounds)
-{
-    const Vector3& leftMin = bounds.getMin();
-    const Vector3& rightMax = bounds.getMax();
-
-    Vector3 leftMax = bounds.getMax();
-    Vector3 rightMin = bounds.getMin();
-
-    switch (split->axis) {
-        case SPLIT_AXIS_X:
-            leftMax.x = split->position;
-            rightMin.x = split->position;
-            break;
-        case SPLIT_AXIS_Y:
-            leftMax.y = split->position;
-            rightMin.y = split->position;
-            break;
-        case SPLIT_AXIS_Z:
-            leftMax.z = split->position;
-            rightMin.y = split->position;
-            break;
-    }
-
-    split->boundsL = vol::AABB(leftMin, leftMax);
-    split->boundsR = vol::AABB(rightMin, rightMax);
-}
-
-void determineCost(SplitIter split, int& countLeft, int& countRight, const vol::AABB& bounds)
-{
-    if (!split->minBound) 
-        countRight++;
-
-    split->cost = split->percent * float(countLeft) + 
-        (1.0f - split->percent) * float(countRight);
-
-    if (split->minBound) 
-        countLeft++;
-}
-
-SplitIter findOptimalSplit(SplitIter begin, SplitIter end, const vol::AABB& bounds, int count)
-{
-    SplitIter min = begin;
-
-    Vector3<int> countLeft = Vector3<int>::ZERO;
-    Vector3<int> countRight = Vector3(count, count, count);
-
-    for (SplitIter i = begin; i != end; ++i) {
-        switch (i->axis) {
-            case SPLIT_AXIS_X:
-                determineCost(i, countLeft.x, countRight.x, bounds);
-                break;
-            case SPLIT_AXIS_Y:
-                determineCost(i, countLeft.y, countRight.y, bounds);
-                break;
-            case SPLIT_AXIS_Z:
-                determineCost(i, countLeft.z, countRight.z, bounds);
-                break;
+        for (int j = 0; j < 6; j++) {
+            cout << "planes[" << i << "]->_others[" << j << "] = planes[" << j << "] = " << planes[j] << endl;
+            planes[i]->_others[j] = planes[j];
         }
-
-        if (i->cost < min->cost) 
-            min = i;
     }
 
-    return min;
+    std::copy(planes, planes + 6, iter);
+
+    return iter;
 }
 
-struct SplitSort {
-    SplitSort(const SplitPlane& split_) : split(split_) {}
-    bool operator()(const SplitPlane& a, const SplitPlane& b) {
-        SplitPlane::Side sideA = a.whichSide(split);
-        SplitPlane::Side sideB = b.whichSide(split);
+SplitInsertIter SplitPlane::duplicatePlanes(const SplitPlane& plane, SplitInsertIter iter)
+{
+    if ((plane._axis != SPLIT_AXIS_X) || !plane._minBound) 
+        return iter;
 
-        if (sideA == sideB) 
-            return (a < b);
+    SplitPlane* planes[6] = {
+        new SplitPlane(*plane._others[0]),
+        new SplitPlane(*plane._others[1]),
+        new SplitPlane(*plane._others[2]),
+        new SplitPlane(*plane._others[3]),
+        new SplitPlane(*plane._others[4]),
+        new SplitPlane(*plane._others[5])
+    };
 
-        return (sideA < sideB);
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++)
+            planes[i]->_others[j] = planes[j];
     }
-    const SplitPlane& split;
+
+    std::copy(planes, planes + 6, iter);
+
+    return iter;
+}
+
+struct MinCost {
+    const SplitPlane* operator()(const SplitPlane* min, const SplitPlane* next) const {
+        return (next->_cost < min->_cost ? next : min);
+    }
 };
 
 struct OnSide {
     OnSide(const SplitPlane& split_, SplitPlane::Side side_) :
         split(split_), side(side_) {}
-    bool operator()(const SplitSplane& plane) const {
-        return split.whichSide(plane, side);
+    bool operator()(const SplitPlane* plane) const {
+        return (split.whichSide(*plane) == side);
     }
     const SplitPlane& split;
     SplitPlane::Side side;
 };
 
-struct Clamp {
-    Clamp(const SplitPlane& split_, SplitPlane::Side side_) :
-        split(split_), side(side_) {}
-    void operator()(SplitPlane& plane) const {
-        switch (side) {
-            case SplitPlane::LEFT:
-                if (!plane.minBound) 
-                    plane.position = split.position;
-            case SplitPlane::RIGHT:
-                if (plane.minBound) 
-                    plane.position = split.position;
+struct UpdateCosts {
+    UpdateCosts(int count, float vol, bool clampMin_ = false, 
+            bool clampMax_ = false, float clampPos_ = 0.0f) :
+        clampMin(clampMin_), clampMax(clampMax_), 
+        clampPos(clampPos_), volume(vol)
+    {
+        for (int i = 0; i < 3; i++) 
+            countL[i] = 0, countR[i] = count;
+    }
+    static UpdateCosts makeL(const SplitPlane& split) {
+        return UpdateCosts(split._countL, split._volumeL, false, true, split._position);
+    }
+    static UpdateCosts makeR(const SplitPlane& split) {
+        return UpdateCosts(split._countR, split._volumeR, true, false, split._position);
+    }
+    void operator()(SplitPlane* plane) {
+        if (!plane->_minBound) {
+            if (clampMax && (plane->_position > clampPos)) 
+                plane->_position = clampPos;
+            countR[plane->_axis]--;
+        }
+
+        plane->_volumeL *= volume;
+        plane->_volumeR *= volume;
+        plane->_countL = countL[plane->_axis];
+        plane->_countR = countR[plane->_axis];
+        plane->_cost = plane->_volumeL * float(plane->_countL) + 
+                      plane->_volumeR * float(plane->_countR);
+
+        if (plane->_minBound) {
+            if (clampMin && (plane->_position < clampPos))
+                plane->_position = clampPos;
+            countL[plane->_axis]++;
         }
     }
-    const SplitPlane& split;
-    SplitPlane::Side side;
+    float clampPos;
+    bool clampMin;
+    bool clampMax;
+    int countL[3];
+    int countR[3];
+    float volume;
 };
 
-void createNode(SplitList& list, SplitIter begin, SplitIter end)
+struct DuplicateOverlapping {
+    DuplicateOverlapping(SplitList list, SplitIter iter) :
+        insertIter(inserter(list, iter)) {}
+    void operator()(const SplitPlane* plane) {
+        insertIter = SplitPlane::duplicatePlanes(*plane, insertIter);
+    };
+    SplitInsertIter insertIter;
+};
+
+void createNode(SplitList& list, SplitIter begin, SplitIter end, int depth)
 {
-    SplitIter split = findOptimalSplit(begin, end);
+    if (depth == 2) 
+        return;
+
     SplitIter first = begin - 1;
+    //                                                    FIX THIS C-STYLE CAST
+    const SplitPlane& split = *std::accumulate(begin, end, (const SplitPlane*)*begin, MinCost());
+    cout << "split on axis " << split._axis << " at " << split._position << endl;
 
     SplitIter beginBoth = std::stable_partition(begin, end, OnSide(split, SplitPlane::LEFT));
     SplitIter endBoth = std::stable_partition(beginBoth, end, OnSide(split, SplitPlane::BOTH));
-    SplitIter beginBothPred = beginBoth - 1;
+    begin = first + 1;
 
-    std::copy(beginBoth, endBoth, std::inserter(list, beginBoth));
-    std::for_each(beginBothPred + 1, beginBoth, Clamp(split, SplitPlane::LEFT));
-    std::for_each(beginBoth, endBoth, Clamp(split, SplitPlane::RIGHT));
+    std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, beginBoth));
+    std::for_each(begin, beginBoth, UpdateCosts::makeL(split));
+    std::for_each(beginBoth, end, UpdateCosts::makeR(split));
 
-    createNode(list, first + 1, beginBoth);
-    createNode(list, beginBoth, end);
+    createNode(list, first + 1, beginBoth, depth + 1);
+    createNode(list, beginBoth, end, depth + 1);
 }
 
-void something()
+#include <iostream>
+using namespace std;
+
+void createKDTree()
 {
-    
+    SplitList list;
+    list.push_back(new SplitPlane(SPLIT_AXIS_Y, 0.0f, vol::AABB::EMPTY, true));
+
+    vol::AABB b1(Vector3(-2.0f, 1.0f, 0.0f), Vector3(4.0f, 2.0f, 0.0f));
+    SplitPlane::createFromBounds(b1, std::inserter(list, list.begin()));
+
+    vol::AABB b2(Vector3(-3.0f, -3.0f, 0.0f), Vector3(-1.0f, -1.0f, 0.0f));
+    SplitPlane::createFromBounds(b2, std::inserter(list, list.begin()));
+
+    std::for_each(list.begin(), list.end(), UpdateCosts(2, 1.0f));
+
+    createNode(list, list.begin() + 1, list.end(), 1);
 }
-
-
-
-
-
-
-
-
-
-
-void initialiseSplits(SplitIter begin, SplitIter end)
-{
-    for (SplitIter i = begin; i != end; ++i) {
-    }
-}
-
-
-SplitIter findBestSplit(SplitIter begin, SplitIter end)
-{
-    SplitIter bestSplit = begin;
-
-    for (SplitIter i = begin; i != end; ++i) {
-        if (!i->minBound) 
-            i->countR++;
-
-        i->cost = percent * float(i->countL) + 
-            (1.0f - percent) * float(i->countR);
-
-        if (i->minBound) 
-            i->countL++;
-    }
-
-    return bestSplit;
-}
-
-void 
-
-void createNode(const std::vector<Triangle*> triangles)
-{
-    std::vector<SplitPlane> 
-}
-
-
-
-
-
-
 
 

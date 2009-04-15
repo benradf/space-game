@@ -12,6 +12,7 @@
 
 
 #include <vecmath.hpp>
+#include "volumes.hpp"
 
 
 class Triangle {
