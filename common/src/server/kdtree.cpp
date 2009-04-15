@@ -12,6 +12,8 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <limits>
+#include <core.hpp>
 
 
 #include <iostream>
@@ -57,6 +59,12 @@ class SplitPlane {
         int _countR;
 
         bool _used;
+};
+
+struct LessThanPtrs {
+    bool operator()(const SplitPlane* a, const SplitPlane* b) {
+        return (*a < *b);
+    }
 };
 
 SplitPlane::SplitPlane(SplitAxis axis, float pos, const vol::AABB& global, bool minBound) :
@@ -134,6 +142,8 @@ SplitInsertIter SplitPlane::duplicatePlanes(const SplitPlane& plane, SplitInsert
     if ((plane._axis != SPLIT_AXIS_X) || !plane._minBound) 
         return iter;
 
+    cout << "duplicatePlanes of " << &plane << endl;
+
     SplitPlane* planes[6] = {
         new SplitPlane(*plane._others[0]),
         new SplitPlane(*plane._others[1]),
@@ -146,6 +156,8 @@ SplitInsertIter SplitPlane::duplicatePlanes(const SplitPlane& plane, SplitInsert
     for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 6; j++)
             planes[i]->_others[j] = planes[j];
+
+        cout << plane._others[i] << " -> " << planes[i] << endl;
     }
 
     std::copy(planes, planes + 6, iter);
@@ -155,7 +167,7 @@ SplitInsertIter SplitPlane::duplicatePlanes(const SplitPlane& plane, SplitInsert
 
 struct MinCost {
     SplitPlane* operator()(SplitPlane* min, SplitPlane* next) const {
-        return (next->_cost < min->_cost ? next : min);
+        return ((next->_cost < min->_cost) || ((next->_cost == min->_cost) && next->_used) ? next : min);
     }
 };
 
@@ -173,10 +185,36 @@ struct UpdateCosts {
     UpdateCosts(int count, bool updateVol_ = false, float volL = 0.0f, float volR = 0.0f, SplitAxis axis_ = SPLIT_AXIS_X, 
             bool clampMin_ = false, bool clampMax_ = false, float clampPos_ = 0.0f) :
         clampMin(clampMin_), clampMax(clampMax_), updateVol(updateVol_),
-        clampPos(clampPos_), volumeL(volL), volumeR(volR), axis(axis_)
+        clampPos(clampPos_), volumeL(volL), volumeR(volR), axis(axis_),
+        prevPos(std::numeric_limits<float>::quiet_NaN()), prevAxis(SPLIT_AXIS_X)
     {
         for (int i = 0; i < 3; i++) 
             countL[i] = 0, countR[i] = count;
+    }
+    ~UpdateCosts() {
+        char axes[3] = { 'X', 'Y', 'Z' };
+        if (countPending.empty()) 
+            return;
+        ;//cout << "COUNTS STILL PENDING ON UpdateCosts DESTRUCTION" << endl;
+        int peakCountR = countR[countPending.back()->_axis];
+        if (!countPending.back()->_minBound && (countPending.size() == 1)) {
+            peakCountR--;
+        }
+        foreach (SplitPlane* p, countPending) {
+            if (!p->_minBound) {
+                countR[p->_axis]--;
+                printCounts();
+            }
+            ;//cout << "processing pending count for plane " << p << endl;
+            ;//cout << "    p->_position = " << p->_position << endl;
+            ;//cout << "    p->_axis = " << axes[p->_axis] << endl;
+            p->_countL = countL[p->_axis];
+            p->_countR = peakCountR;
+            p->_cost = p->_volumeL * float(p->_countL) + 
+                       p->_volumeR * float(p->_countR);
+            ;//cout << "    p->_countL = " << p->_countL << endl;
+            ;//cout << "    p->_countR = " << p->_countR << endl;
+        }
     }
     static UpdateCosts makeL(const SplitPlane& split) {
         return UpdateCosts(split._countL, true, split._volumeL, split._volumeR, split._axis, false, true, split._position);
@@ -184,20 +222,77 @@ struct UpdateCosts {
     static UpdateCosts makeR(const SplitPlane& split) {
         return UpdateCosts(split._countR, true, split._volumeL, split._volumeR, split._axis, true, false, split._position);
     }
-    void operator()(SplitPlane* plane) {
-        if (!plane->_minBound) {
-            if (clampMax && (plane->_position > clampPos) && (axis == plane->_axis)) 
-                plane->_position = clampPos;
-            countR[plane->_axis]--;
+    void printCounts() {
+        ;//cout << "countL = { ";
+        char axes[3] = { 'X', 'Y', 'Z' };
+        for (int i = 0; i < 3; i++) {
+            ;//cout << axes[i] << " = " << countL[i];
+            if (i != 2) 
+                ;//cout << ", ";
         }
+        ;//cout << " }" << endl;
+        ;//cout << "countR = { ";
+        for (int i = 0; i < 3; i++) {
+            ;//cout << axes[i] << " = " << countR[i];
+            if (i != 2) 
+                ;//cout << ", ";
+        }
+        ;//cout << " }" << endl;
+    }
+    void operator()(SplitPlane* plane) {
+        //float posL = plane->_others[2*plane->_axis]->_position;
+        //float posR = plane->_others[2*plane->_axis+1]->_position;
+        //bool flat = (posL == posR);
 
-        // TODO: Only clamp if the axis matches the split.
+        ;//cout << "UpdateCosts::operator()(" << plane << ")" << endl;
+
+        char axes[3] = { 'X', 'Y', 'Z' };
+
+#if 0
+        ;//cout << "    prevPos = " << prevPos << endl;
+        ;//cout << "    plane->_position = " << plane->_position << endl;
+        ;//cout << "    prevAxis = " << axes[prevAxis] << endl;
+        ;//cout << "    plane->_axis = " << axes[plane->_axis] << endl;
+#endif
+        bool flat = ((prevPos == plane->_position) && (prevAxis == plane->_axis));
+        prevPos = plane->_position;
+        prevAxis = plane->_axis;
+#if 0
+        ;//cout << "    flat = " << flat << endl;
+        printCounts();
+#endif
+
+//#if 0
+        //if (!flat) {
+            if (!plane->_minBound) {
+                if (clampMax && (plane->_position > clampPos) && (axis == plane->_axis)) {
+                    plane->_position = clampPos;
+                    cout << "clamping max " << plane << endl;
+                    // TODO: Adjust when clamping.
+                    plane->_volumeL -= (volumeR - plane->_volumeR);
+                    plane->_volumeR = volumeR;
+                }
+                //countR[plane->_axis]--;
+            } else {
+                if (clampMin && (plane->_position < clampPos) && (axis == plane->_axis)) {
+                    plane->_position = clampPos;
+                    cout << "clamping min " << plane << endl;
+                    plane->_volumeR -= (volumeL - plane->_volumeL);
+                    plane->_volumeL = volumeL;
+                }
+                //countL[plane->_axis]++;
+                //printCounts();
+            }
+        //}
+//#endif
 
         if (updateVol) {
             if (plane->_axis == axis) {
                 if (clampMax) {
+                    assert(plane->_volumeR >= volumeR);
                     plane->_volumeR -= volumeR;
                 } else {
+                    assert(plane->_volumeL >= volumeL);
                     plane->_volumeL -= volumeL;
                 }
             } else {
@@ -211,18 +306,75 @@ struct UpdateCosts {
                     plane->_volumeR *= s;
                 }
             }
+            assert(plane->_volumeR >= 0.0f);
+            assert(plane->_volumeL >= 0.0f);
         }
 
-        plane->_countL = countL[plane->_axis];
-        plane->_countR = countR[plane->_axis];
-        plane->_cost = plane->_volumeL * float(plane->_countL) + 
-                      plane->_volumeR * float(plane->_countR);
-
-        if (plane->_minBound) {
-            if (clampMin && (plane->_position < clampPos) && (axis == plane->_axis))
-                plane->_position = clampPos;
-            countL[plane->_axis]++;
+#if 0
+        if (flat) {
+            if (plane->_minBound) {
+                //countL[plane->_axis]++;
+                //printCounts();
+            }
+        } else
+#endif
+        
+        if (!countPending.empty()) {
+            if (flat) {
+            } else {
+                int peakCountR = countR[countPending.back()->_axis];
+                if (!countPending.back()->_minBound && (countPending.size() == 1)) {
+                    peakCountR--;
+                }
+                foreach (SplitPlane* p, countPending) {
+                    if (!p->_minBound) {
+                        countR[p->_axis]--;
+                        printCounts();
+                    }
+                    ;//cout << "processing pending count for plane " << p << endl;
+                    ;//cout << "    p->_position = " << p->_position << endl;
+                    ;//cout << "    p->_axis = " << axes[p->_axis] << endl;
+                    p->_countL = countL[p->_axis];
+                    p->_countR = peakCountR;
+                    p->_cost = p->_volumeL * float(p->_countL) + 
+                               p->_volumeR * float(p->_countR);
+                    assert(p->_countL >= 0.0f);
+                    assert(p->_countR >= 0.0f);
+                    assert(p->_cost >= 0.0f);
+                    ;//cout << "    p->_countL = " << p->_countL << endl;
+                    ;//cout << "    p->_countR = " << p->_countR << endl;
+                }
+            }
+            if (countPending.back()->_minBound) {
+                countL[countPending.back()->_axis]++;
+                //countL[plane->_axis]++;
+                printCounts();
+            }
+            if (!flat) {
+                countPending.clear();
+            }
         }
+
+        countPending.push_back(plane);
+
+        //plane->_countL = countL[plane->_axis];
+        //plane->_countR = countR[plane->_axis];
+        //plane->_cost = plane->_volumeL * float(plane->_countL) + 
+        //               plane->_volumeR * float(plane->_countR);
+
+#if 0
+        //if (!flat) {
+            if (plane->_minBound) {
+                if (clampMin && (plane->_position < clampPos) && (axis == plane->_axis)) {
+                    plane->_position = clampPos;
+                    plane->_volumeR -= (volumeL - plane->_volumeL);
+                    plane->_volumeL = volumeL;
+                }
+                //countL[plane->_axis]++;
+                //printCounts();
+            }
+        //}
+#endif
     }
     float clampPos;
     bool clampMin;
@@ -233,12 +385,16 @@ struct UpdateCosts {
     float volumeR;
     SplitAxis axis;
     bool updateVol;
+    std::vector<SplitPlane*> countPending;
+    float prevPos;
+    SplitAxis prevAxis;
 };
 
 struct DuplicateOverlapping {
-    DuplicateOverlapping(SplitList list, SplitIter iter) :
+    DuplicateOverlapping(SplitList& list, SplitIter iter) :
         insertIter(inserter(list, iter)) {}
     void operator()(const SplitPlane* plane) {
+        cout << "duplicate " << plane << endl;
         insertIter = SplitPlane::duplicatePlanes(*plane, insertIter);
     };
     SplitInsertIter insertIter;
@@ -290,41 +446,73 @@ void createNode(SplitList& list, SplitIter begin, SplitIter end, int depth)
     }
     split._used = true;
 
-    SplitIter beginBoth = std::stable_partition(begin, end, OnSide(split, SplitPlane::LEFT));
-    cout << "beginBoth = " << *beginBoth << endl;
-    printSplits("PARTITIONED1", first + 1, end);
-    SplitIter endBoth = std::stable_partition(beginBoth, end, OnSide(split, SplitPlane::BOTH));
-    cout << "endBoth = " << *endBoth << endl;
-    printSplits("PARTITIONED2", first + 1, end);
-    begin = first + 1;
+    for (int i = 1; i < depth; i++) 
+        cerr << "| ";
+    cerr << "\033[01;31msplit at " << split._position << " on axis " << axes[split._axis] << "\033[00m" << endl;
 
-    printSplits("BOTH", beginBoth, endBoth);
+    SplitIter beginBoth = std::stable_partition(begin, end, OnSide(split, SplitPlane::LEFT));
+    //cout << "beginBoth = " << *beginBoth << endl;
+    //printSplits("PARTITIONED1", first + 1, end);
+    SplitIter endBoth = std::stable_partition(beginBoth, end, OnSide(split, SplitPlane::BOTH));
+    //cout << "endBoth = " << *endBoth << endl;
+    //printSplits("PARTITIONED2", first + 1, end);
+    begin = first + 1;
 
     UpdateCosts updaterL = UpdateCosts::makeL(split);
     UpdateCosts updaterR = UpdateCosts::makeR(split);
 
-    std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, beginBoth));
-    cout << "a" << endl;
-    //printSplits("DUPLICATE", first + 1, end);
-    std::for_each(begin, beginBoth, updaterL);
-    cout << "b" << endl;
-    //printSplits("UPDATE_L", first + 1, end);
-    std::for_each(beginBoth, end, updaterR);
-    cout << "c" << endl;
-    //printSplits("UPDATE_R", first + 1, end);
+    SplitList::difference_type indexFirst = std::distance(list.begin(), first);
+    SplitList::difference_type indexBegin = std::distance(list.begin(), begin);
+    SplitList::difference_type indexBeginBoth = std::distance(list.begin(), beginBoth);
+    SplitList::difference_type indexEndBoth = std::distance(list.begin(), endBoth);
+    SplitList::difference_type indexEnd = std::distance(list.begin(), end);
 
-    createNode(list, first + 1, beginBoth, depth + 1);
-    createNode(list, beginBoth, end, depth + 1);
+    ptrdiff_t overlap = std::distance(beginBoth, endBoth);
+    list.reserve(list.size() + overlap);
+
+    first = list.begin() + indexFirst;
+    begin = list.begin() + indexBegin;
+    beginBoth = list.begin() + indexBeginBoth;
+    endBoth = list.begin() + indexEndBoth;
+    end = list.begin() + indexEnd;
+
+    //printSplits("BOTH", beginBoth, endBoth);
+    //cout << "about to duplicate" << endl;
+
+    std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, endBoth));
+    std::advance(end, overlap);
+
+    std::stable_sort(begin, endBoth, LessThanPtrs());
+    std::stable_sort(endBoth, end, LessThanPtrs());
+
+    //printSplits("ALL AFTER DUPLICATE", first + 1, end);
+    std::for_each(begin, endBoth, updaterL);
+    printSplits("UPDATE_L", begin, endBoth);
+    std::for_each(endBoth, end, updaterR);
+    printSplits("UPDATE_R", endBoth, end);
+
+    //createNode(list, first + 1, beginBoth, depth + 1);
+    //createNode(list, beginBoth, end, depth + 1);
+    
+    indexFirst = std::distance(list.begin(), first);
+    indexBegin = std::distance(list.begin(), begin);
+    indexBeginBoth = std::distance(list.begin(), beginBoth);
+    indexEndBoth = std::distance(list.begin(), endBoth);
+    indexEnd = std::distance(list.begin(), end);
+
+    createNode(list, begin, endBoth, depth + 1);
+
+    first = list.begin() + indexFirst;
+    begin = list.begin() + indexBegin;
+    beginBoth = list.begin() + indexBeginBoth;
+    endBoth = list.begin() + indexEndBoth;
+    end = list.begin() + indexEnd;
+
+    createNode(list, endBoth, end, depth + 1);
 }
 
 #include <iostream>
 using namespace std;
-
-struct LessThanPtrs {
-    bool operator()(const SplitPlane* a, const SplitPlane* b) {
-        return (*a < *b);
-    }
-};
 
 void createKDTree()
 {
@@ -333,18 +521,34 @@ void createKDTree()
     vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
 
     vol::AABB b1(Vector3(-2.0f, 1.0f, 0.0f), Vector3(4.0f, 2.0f, 0.0f));
-    SplitPlane::createFromBounds(b1, bounds, std::inserter(list, list.begin()));
+    //SplitPlane::createFromBounds(b1, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b2(Vector3(-3.0f, -3.0f, 0.0f), Vector3(-1.0f, -1.0f, 0.0f));
-    SplitPlane::createFromBounds(b2, bounds, std::inserter(list, list.begin()));
+    //SplitPlane::createFromBounds(b2, bounds, std::inserter(list, list.begin()));
 
-    std::sort(list.begin(), list.end(), LessThanPtrs());
+    vol::AABB b3(Vector3(-3.0f, 2.0f, 0.0f), Vector3(-1.0f, 4.0f, 0.0f));
+    //SplitPlane::createFromBounds(b3, bounds, std::inserter(list, list.begin()));
+
+    vol::AABB b4(Vector3(1.0f, -4.0f, 0.0f), Vector3(2.0f, 0.0f, 0.0f));
+    //SplitPlane::createFromBounds(b4, bounds, std::inserter(list, list.begin()));
+
+    vol::AABB b5(Vector3(3.0f, -3.0f, 0.0f), Vector3(4.0f, 0.0f, 0.0f));
+    //SplitPlane::createFromBounds(b5, bounds, std::inserter(list, list.begin()));
+
+    vol::AABB b6(Vector3(-3.0f, -2.0f, 0.0f), Vector3(2.0f, 3.0f, 0.0f));
+    SplitPlane::createFromBounds(b6, bounds, std::inserter(list, list.begin()));
+
+    vol::AABB b7(Vector3(-1.0f, -4.0f, 0.0f), Vector3(4.0f, 1.0f, 0.0f));
+    SplitPlane::createFromBounds(b7, bounds, std::inserter(list, list.begin()));
+
+    std::stable_sort(list.begin(), list.end(), LessThanPtrs());
 
     std::for_each(list.begin(), list.end(), UpdateCosts(2));
 
     list.insert(list.begin(), new SplitPlane(SPLIT_AXIS_Y, 0.0f, vol::AABB::EMPTY, true));
+    list.insert(list.end(), new SplitPlane(SPLIT_AXIS_Y, 0.0f, vol::AABB::EMPTY, true));
 
-    createNode(list, list.begin() + 1, list.end(), 1);
+    createNode(list, list.begin() + 1, list.end() - 1, 1);
 }
 
 
