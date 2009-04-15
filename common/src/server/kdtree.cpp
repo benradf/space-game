@@ -68,7 +68,8 @@ class SplitPlane {
 
 struct LessThanPtrs {
     bool operator()(const SplitPlane* a, const SplitPlane* b) {
-        return (*a < *b);
+        float d = fabs(a->_position - b->_position);
+        return (d < 0.00001f ? a->_axis < b->_axis : a->_position < b->_position);
     }
 };
 
@@ -596,19 +597,19 @@ void createKDTree()
     vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
 
     vol::AABB b1(Vector3(-2.0f, 1.0f, 0.0f), Vector3(4.0f, 2.0f, 0.0f));
-    //SplitPlane::createFromBounds(b1, bounds, std::inserter(list, list.begin()));
+    SplitPlane::createFromBounds(b1, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b2(Vector3(-3.0f, -3.0f, 0.0f), Vector3(-1.0f, -1.0f, 0.0f));
-    //SplitPlane::createFromBounds(b2, bounds, std::inserter(list, list.begin()));
+    SplitPlane::createFromBounds(b2, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b3(Vector3(-3.0f, 2.0f, 0.0f), Vector3(-1.0f, 4.0f, 0.0f));
-    //SplitPlane::createFromBounds(b3, bounds, std::inserter(list, list.begin()));
+    SplitPlane::createFromBounds(b3, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b4(Vector3(1.0f, -4.0f, 0.0f), Vector3(2.0f, 0.0f, 0.0f));
-    //SplitPlane::createFromBounds(b4, bounds, std::inserter(list, list.begin()));
+    SplitPlane::createFromBounds(b4, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b5(Vector3(3.0f, -3.0f, 0.0f), Vector3(4.0f, 0.0f, 0.0f));
-    //SplitPlane::createFromBounds(b5, bounds, std::inserter(list, list.begin()));
+    SplitPlane::createFromBounds(b5, bounds, std::inserter(list, list.begin()));
 
     vol::AABB b6(Vector3(-3.0f, -2.0f, 0.0f), Vector3(2.0f, 3.0f, 0.0f));
     SplitPlane::createFromBounds(b6, bounds, std::inserter(list, list.begin()));
@@ -619,7 +620,7 @@ void createKDTree()
     //std::stable_sort(list.begin(), list.end(), LessThanPtrs());
     list.sort(LessThanPtrs());
 
-    std::for_each(list.begin(), list.end(), UpdateCosts(2));
+    std::for_each(list.begin(), list.end(), UpdateCosts(7));
 
     createNode(list, 1, 100.0f);
 }
