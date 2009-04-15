@@ -505,7 +505,7 @@ void printSplits(const char* prefix, SplitIter begin, SplitIter end)
     cout << endl;
 }
 
-void createNode(SplitList& list, int depth, float cost)
+Node* createNode(SplitList& list, int depth, float cost)
 {
 //    if (depth == 4) 
 //        return;
@@ -519,7 +519,7 @@ void createNode(SplitList& list, int depth, float cost)
     if (list.empty()) {
         cout << "    no splits to choose from" << endl;
         cerr << "\033[01;35msplit list empty\033[00m" << endl;
-        return;
+        return new Node;
     }
 
     char axes[3] = { 'X', 'Y', 'Z' };
@@ -532,9 +532,11 @@ void createNode(SplitList& list, int depth, float cost)
     if (split._cost + 0.00001f >= cost) {
         cout << "cheapest to stop splitting here" << endl;
         cerr << "\033[01;33mTriangles: ";
+        Node* node = new Node;
         foreach (const SplitPlane* plane, list) {
             if ((plane->_axis != SPLIT_AXIS_X) || (!plane->_minBound)) 
                 continue;
+            node->addTriangle(plane->_tri);
             cerr << "[";
             const Vector3& v0 = plane->_tri->_v0;
             cerr << "(" << v0.x << ", " << v0.y << ", " << v0.z << "), ";
@@ -545,7 +547,7 @@ void createNode(SplitList& list, int depth, float cost)
             cerr << "]   ";
         }
         cerr << "\033[00m" << endl;
-        return;
+        return node;
     }
     split._used = true;
 
@@ -619,7 +621,7 @@ void createNode(SplitList& list, int depth, float cost)
     indexEnd = std::distance(list.begin(), end);
 #endif
 
-    createNode(listL, depth + 1, costL);
+    Node* leftNode = createNode(listL, depth + 1, costL);
 
 #if 0
     first = list.begin() + indexFirst;
@@ -629,7 +631,9 @@ void createNode(SplitList& list, int depth, float cost)
     end = list.begin() + indexEnd;
 #endif
 
-    createNode(listR, depth + 1, costR);
+    Node* rightNode = createNode(listR, depth + 1, costR);
+
+    return new Node(leftNode, rightNode);
 }
 
 #include <iostream>
@@ -684,7 +688,8 @@ void createKDTree()
 
     std::for_each(list.begin(), list.end(), UpdateCosts(2));
 
-    createNode(list, 1, 100.0f);
+    // TODO: Not leak memory :)
+    Node* root = createNode(list, 1, 100.0f);
 }
 
 Triangle::Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2) :
@@ -715,4 +720,51 @@ vol::AABB Triangle::determineBounds() const
     return vol::AABB(min, max);
 }
 
+Node::Node() :
+    _left(0), _right(0), _triangles(new Triangles)
+{
+
+}
+
+Node::Node(Node* left, Node* right) :
+    _left(left), _right(right), _triangles(0)
+{
+
+}
+
+Node::~Node()
+{
+    delete _left;
+    delete _right;
+    delete _triangles;
+}
+
+bool Node::isLeaf() const
+{
+    return (_triangles != 0);
+}
+
+const Node& Node::getLeft() const
+{
+    assert(!isLeaf());
+
+    return *_left;
+}
+
+const Node& Node::getRight() const
+{
+    assert(!isLeaf());
+
+    return *_right;
+}
+
+const Node::Triangles& Node::getTriangles() const
+{
+    return *_triangles;
+}
+
+void Node::addTriangle(const Triangle* triangle)
+{
+    _triangles->push_back(triangle);
+}
 

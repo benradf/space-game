@@ -13,6 +13,7 @@
 
 #include <vecmath.hpp>
 #include "volumes.hpp"
+#include <vector>
 
 
 class Triangle {
@@ -25,6 +26,29 @@ class Triangle {
         Vector3 _v0;
         Vector3 _v1;
         Vector3 _v2;
+};
+
+class Node {
+    public:
+        typedef std::vector<const Triangle*> Triangles;
+
+        Node();
+        Node(Node* left, Node* right);
+        ~Node();
+
+        bool isLeaf() const;
+
+        const Node& getLeft() const;
+        const Node& getRight() const;
+
+        const Triangles& getTriangles() const;
+        void addTriangle(const Triangle* triangle);
+
+    private:
+        Node* _left;
+        Node* _right;
+
+        Triangles* _triangles;
 };
 
 struct KDTreeNode {
