@@ -48,6 +48,9 @@ class AABB {
         const Vector3& getMax() const;
         Vector3 getMid() const;
         float getVolume() const;
+        float getLengthX() const;
+        float getLengthY() const;
+        float getLengthZ() const;
 
         static const AABB EMPTY;
 
@@ -136,6 +139,21 @@ inline Vector3 AABB::getMid() const
 inline float AABB::getVolume() const
 {
     return ((_max.x - _min.x) * (_max.y - _min.y) * (_max.z - _min.z));
+}
+
+inline float AABB::getLengthX() const
+{
+    return (_max.x - _min.x);
+}
+
+inline float AABB::getLengthY() const
+{
+    return (_max.y - _min.y);
+}
+
+inline float AABB::getLengthZ() const
+{
+    return (_max.z - _min.z);
 }
 
 

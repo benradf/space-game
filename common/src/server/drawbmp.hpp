@@ -30,12 +30,16 @@ class Bitmap {
         ~Bitmap();
 
         void loadFile(const char* filename);
-        void saveFile(const char* filename, BitDepth depth);
+        void saveFile(const char* filename, BitDepth depth = BITS_24) const;
 
         void resize(uint32_t width, uint32_t height);
 
         Colour getPixel(uint32_t x, uint32_t y) const;
         void setPixel(uint32_t x, uint32_t y, Colour c);
+        void setPixelSafe(uint32_t x, uint32_t y, Colour c);
+
+        uint32_t getWidth() const;
+        uint32_t getHeight() const;
 
         void fill(Colour colour);
         void swap(Bitmap& other);
@@ -53,31 +57,50 @@ class Bitmap {
 void drawLine(Bitmap& bitmap, Bitmap::Colour c, int x0, int y0, int x1, int y1);
 
 
-};  // namespace bmp
+////////// Bitmap //////////
 
-
-////////// bmp::Bitmap //////////
-
-inline bmp::Bitmap::Colour bmp::Bitmap::getPixel(uint32_t x, uint32_t y) const
+inline Bitmap::Colour bmp::Bitmap::getPixel(uint32_t x, uint32_t y) const
 {
     assert((x < _width) && (y < _height));
 
     return _data[y*_width+x];
 }
 
-inline void bmp::Bitmap::setPixel(uint32_t x, uint32_t y, Colour c)
+inline void Bitmap::setPixel(uint32_t x, uint32_t y, Colour c)
 {
     assert((x < _width) && (y < _height));
 
     _data[y*_width+x] = c;
 }
 
-inline void bmp::Bitmap::swap(Bitmap& other)
+inline void Bitmap::setPixelSafe(uint32_t x, uint32_t y, Colour c)
+{
+    if ((x >= _width) || (y >= _height)) 
+        return;
+
+    setPixel(x, y, c);
+}
+
+inline uint32_t Bitmap::getWidth() const
+{
+    return _width;
+}
+
+inline uint32_t Bitmap::getHeight() const
+{
+    return _height;
+}
+
+inline void Bitmap::swap(Bitmap& other)
 {
     std::swap(_data, other._data);
     std::swap(_width, other._width);
     std::swap(_height, other._height);
 }
+
+
+};  // namespace bmp
+
 
 #endif  // DRAWBMP_HPP
 

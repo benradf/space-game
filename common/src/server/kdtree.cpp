@@ -505,12 +505,14 @@ void printSplits(const char* prefix, SplitIter begin, SplitIter end)
     cout << endl;
 }
 
-Node* createNode(SplitList& list, int depth, float cost)
+Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas& canvas, const vol::AABB& bounds)
 {
 //    if (depth == 4) 
 //        return;
 
     cout << "create node (depth = " << depth << ", cost = " << cost << ")" << endl;
+
+    canvas.drawAABB(bounds, bmp::Bitmap::Colour(depth * 25, 0, 0, 0));
 
     cerr << depth << " \033[01;32m(cost: " << cost << ")\033[00m\t";
     for (int i = 1; i < depth; i++) 
@@ -536,6 +538,7 @@ Node* createNode(SplitList& list, int depth, float cost)
         foreach (const SplitPlane* plane, list) {
             if ((plane->_axis != SPLIT_AXIS_X) || (!plane->_minBound)) 
                 continue;
+            canvas.drawTriangle(*plane->_tri, bmp::Bitmap::Colour(0, 0, 255, 0));
             node->addTriangle(plane->_tri);
             cerr << "[";
             const Vector3& v0 = plane->_tri->_v0;
@@ -553,6 +556,25 @@ Node* createNode(SplitList& list, int depth, float cost)
 
     cerr << "\033[01;31msplit at " << split._position << " on axis " << axes[split._axis];
     cerr << "\033[00m (cost: " << split._cost << ")" << endl;
+
+    const Vector3& boundsMinL = bounds.getMin();
+    const Vector3& boundsMaxR = bounds.getMax();
+    Vector3 boundsMaxL = boundsMaxR;
+    Vector3 boundsMinR = boundsMinL;
+    switch (split._axis) {
+        case SPLIT_AXIS_X:
+            boundsMaxL.x = split._position;
+            boundsMinR.x = split._position;
+            break;
+        case SPLIT_AXIS_Y:
+            boundsMaxL.y = split._position;
+            boundsMinR.y = split._position;
+            break;
+        case SPLIT_AXIS_Z:
+            boundsMaxL.z = split._position;
+            boundsMinR.z = split._position;
+            break;
+    }
 
     float costL = split._costL;
     float costR = split._costR;
@@ -621,7 +643,7 @@ Node* createNode(SplitList& list, int depth, float cost)
     indexEnd = std::distance(list.begin(), end);
 #endif
 
-    Node* leftNode = createNode(listL, depth + 1, costL);
+    Node* leftNode = createNode(listL, depth + 1, costL, canvas, vol::AABB(boundsMinL, boundsMaxL));
 
 #if 0
     first = list.begin() + indexFirst;
@@ -631,7 +653,7 @@ Node* createNode(SplitList& list, int depth, float cost)
     end = list.begin() + indexEnd;
 #endif
 
-    Node* rightNode = createNode(listR, depth + 1, costR);
+    Node* rightNode = createNode(listR, depth + 1, costR, canvas, vol::AABB(boundsMinR, boundsMaxR));
 
     return new Node(leftNode, rightNode);
 }
@@ -688,8 +710,12 @@ void createKDTree()
 
     std::for_each(list.begin(), list.end(), UpdateCosts(2));
 
+    SpatialCanvas canvas(bounds, 50, SpatialCanvas::Z_AXIS);
+
     // TODO: Not leak memory :)
-    Node* root = createNode(list, 1, 100.0f);
+    Node* root = createNode(list, 1, 100.0f, canvas, bounds);
+
+    canvas.getBitmap().saveFile("kdtree.bmp");
 }
 
 Triangle::Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2) :
@@ -718,6 +744,31 @@ vol::AABB Triangle::determineBounds() const
     max.z = std::max(max.z, _v2.z);
 
     return vol::AABB(min, max);
+}
+
+const Vector3& Triangle::getVertex(int index) const
+{
+    switch (index) {
+        case 0: return _v0;
+        case 1: return _v1;
+        case 2: return _v2;
+        default: assert(false);
+    }
+}
+
+const Vector3& Triangle::getV0() const
+{
+    return _v0;
+}
+
+const Vector3& Triangle::getV1() const
+{
+    return _v1;
+}
+
+const Vector3& Triangle::getV2() const
+{
+    return _v2;
 }
 
 Node::Node() :
@@ -767,4 +818,93 @@ void Node::addTriangle(const Triangle* triangle)
 {
     _triangles->push_back(triangle);
 }
+
+
+
+////////// SpatialCanvas //////////
+
+SpatialCanvas::SpatialCanvas(const vol::AABB& bounds, int scale, Axis plane) :
+    _bounds(bounds), _scale(scale), _plane(plane), _bitmap(1, 1)
+{
+    switch (_plane) {
+        case X_AXIS:
+            _bitmap.resize(
+                int(_bounds.getLengthY()) * _scale + 1,
+                int(_bounds.getLengthZ()) * _scale + 1);
+            break;
+        case Y_AXIS:
+            _bitmap.resize(
+                int(_bounds.getLengthX()) * _scale + 1,
+                int(_bounds.getLengthZ()) * _scale + 1);
+            break;
+        case Z_AXIS:
+            _bitmap.resize(
+                int(_bounds.getLengthX()) * _scale + 1,
+                int(_bounds.getLengthY()) * _scale + 1);
+            break;
+    }
+
+    _bitmap.fill(bmp::Bitmap::Colour(255, 255, 255, 0));
+}
+
+void SpatialCanvas::drawAABB(const vol::AABB& aabb, bmp::Bitmap::Colour colour)
+{
+    Point2D min = convertCoords(aabb.getMin());
+    Point2D max = convertCoords(aabb.getMax());
+
+    bmp::drawLine(_bitmap, colour, min.x, max.y, max.x, max.y);
+    bmp::drawLine(_bitmap, colour, max.x, max.y, max.x, min.y);
+    bmp::drawLine(_bitmap, colour, max.x, min.y, min.x, min.y);
+    bmp::drawLine(_bitmap, colour, min.x, min.y, min.x, max.y);
+}
+
+void SpatialCanvas::drawTriangle(const Triangle& triangle, bmp::Bitmap::Colour colour)
+{
+    Point2D v0 = convertCoords(triangle.getV0());
+    Point2D v1 = convertCoords(triangle.getV1());
+    Point2D v2 = convertCoords(triangle.getV2());
+
+    bmp::drawLine(_bitmap, colour, v0.x, v0.y, v1.x, v1.y);
+    bmp::drawLine(_bitmap, colour, v1.x, v1.y, v2.x, v2.y);
+    bmp::drawLine(_bitmap, colour, v2.x, v2.y, v0.x, v0.y);
+}
+
+const bmp::Bitmap& SpatialCanvas::getBitmap() const
+{
+    return _bitmap;
+}
+
+SpatialCanvas::Point2D SpatialCanvas::convertCoords(const Vector3& coords)
+{
+    Point2D point;
+
+    switch (_plane) {
+        case X_AXIS:
+            point.x = int(coords.y) * _scale;
+            point.y = int(coords.z) * _scale;
+            break;
+        case Y_AXIS:
+            point.x = int(coords.x) * _scale;
+            point.y = int(coords.z) * _scale;
+            break;
+        case Z_AXIS:
+            point.x = int(coords.x) * _scale;
+            point.y = int(coords.y) * _scale;
+            break;
+    }
+
+    point.x = _bitmap.getWidth() / 2 + point.x;
+    point.y = _bitmap.getHeight() / 2 - point.y;
+
+    return point;
+}
+
+
+
+
+
+
+
+
+
 

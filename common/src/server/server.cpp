@@ -78,8 +78,14 @@ void serverMain()
     catchSignals(false);
 }
 
+extern void createKDTree();
+
 int main(int argc, char* argv[])
 {
+    createKDTree();
+
+    return 0;
+
     // Initialise logging.
     Log::Console consoleLog;
     Log::File fileLog("server.log");

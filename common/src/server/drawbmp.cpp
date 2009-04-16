@@ -106,7 +106,7 @@ void bmp::Bitmap::loadFile(const char* filename)
     file.close();
 }
 
-void bmp::Bitmap::saveFile(const char* filename, BitDepth depth)
+void bmp::Bitmap::saveFile(const char* filename, BitDepth depth) const
 {
     FileHeader fileHeader;
     fileHeader.magic = 0x4D42;
@@ -217,9 +217,9 @@ void bmp::drawLine(Bitmap& bitmap, Bitmap::Colour c, int x0, int y0, int x1, int
 
     for (int x = x0; x < x1; x++) {
         if (steep) {
-            bitmap.setPixel(y, x, c);
+            bitmap.setPixelSafe(y, x, c);
         } else {
-            bitmap.setPixel(x, y, c);
+            bitmap.setPixelSafe(x, y, c);
         }
         if ((error -= deltaY) < 0) {
             error += deltaX;

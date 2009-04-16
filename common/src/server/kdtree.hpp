@@ -13,6 +13,7 @@
 
 #include <vecmath.hpp>
 #include "volumes.hpp"
+#include "drawbmp.hpp"
 #include <vector>
 
 
@@ -21,6 +22,13 @@ class Triangle {
         Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2);
 
         vol::AABB determineBounds() const;
+
+        const Vector3& getVertex(int index) const;
+
+        const Vector3& getV0() const;
+        const Vector3& getV1() const;
+        const Vector3& getV2() const;
+
 
     //private:
         Vector3 _v0;
@@ -61,6 +69,32 @@ class KDTree {
     public:
 
     private:
+};
+
+
+class SpatialCanvas {
+    public:
+        enum Axis { X_AXIS, Y_AXIS, Z_AXIS };
+
+        SpatialCanvas(const vol::AABB& bounds, int scale, Axis plane);
+
+        void drawAABB(const vol::AABB& aabb, bmp::Bitmap::Colour colour);
+        void drawTriangle(const Triangle& triangle, bmp::Bitmap::Colour colour);
+
+        const bmp::Bitmap& getBitmap() const;
+
+    private:
+        struct Point2D { int x, y; };
+
+        Point2D convertCoords(const Vector3& coords);
+
+        int _scale;
+        Axis _plane;
+        vol::AABB _bounds;
+
+        bmp::Bitmap _bitmap;
+        int _width;
+        int _height;
 };
 
 
