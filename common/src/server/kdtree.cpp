@@ -675,6 +675,16 @@ void createKDTree()
         Vector3( 2.0f,  1.0f,  0.0f),
         Vector3( 4.0f, -1.0f,  0.0f)));
 
+    triangles.push_back(Triangle(
+        Vector3( 3.0f,  2.0f,  0.0f),
+        Vector3( 4.0f,  4.0f,  0.0f),
+        Vector3( 4.0f,  1.0f,  0.0f)));
+
+    triangles.push_back(Triangle(
+        Vector3(-3.0f,  0.0f,  0.0f),
+        Vector3(-1.0f, -2.0f,  0.0f),
+        Vector3(-2.0f, -4.0f,  0.0f)));
+
     SplitList list;
 
     vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
@@ -708,7 +718,7 @@ void createKDTree()
     //std::stable_sort(list.begin(), list.end(), LessThanPtrs());
     list.sort(LessThanPtrs());
 
-    std::for_each(list.begin(), list.end(), UpdateCosts(2));
+    std::for_each(list.begin(), list.end(), UpdateCosts(4));
 
     SpatialCanvas canvas(bounds, 50, SpatialCanvas::Z_AXIS);
 
