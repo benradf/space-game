@@ -21,13 +21,6 @@
 #include <iostream>
 using namespace std;
 
-enum SplitAxis {
-    SPLIT_AXIS_X = 0,
-    SPLIT_AXIS_Y = 1,
-    SPLIT_AXIS_Z = 2,
-    SPLIT_LEAF
-};
-
 typedef std::list<class SplitPlane*> SplitList;
 typedef SplitList::iterator SplitIter;
 typedef std::insert_iterator<SplitList> SplitInsertIter;
@@ -599,46 +592,17 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvas
             break;
     }
 
+    float splitPos = split._position;
+    SplitAxis splitAxis = split._axis;
+
     float costL = split._costL;
     float costR = split._costR;
     SplitIter beginBoth = std::stable_partition(list.begin(), list.end(), OnSide(split, SplitPlane::LEFT));
-    //cout << "beginBoth = " << *beginBoth << endl;
-    //printSplits("PARTITIONED1", first + 1, end);
     SplitIter endBoth = std::stable_partition(beginBoth, list.end(), OnSide(split, SplitPlane::BOTH));
-    //cout << "endBoth = " << *endBoth << endl;
-    //printSplits("PARTITIONED", list.begin(), list.end());
 
     UpdateCosts updaterL = UpdateCosts::makeL(split);
     UpdateCosts updaterR = UpdateCosts::makeR(split);
-
-#if 0
-    SplitList::difference_type indexFirst = std::distance(list.begin(), first);
-    SplitList::difference_type indexBegin = std::distance(list.begin(), begin);
-    SplitList::difference_type indexBeginBoth = std::distance(list.begin(), beginBoth);
-    SplitList::difference_type indexEndBoth = std::distance(list.begin(), endBoth);
-    SplitList::difference_type indexEnd = std::distance(list.begin(), end);
-
-    ptrdiff_t overlap = std::distance(beginBoth, endBoth);
-    list.reserve(list.size() + overlap);
-
-    first = list.begin() + indexFirst;
-    begin = list.begin() + indexBegin;
-    beginBoth = list.begin() + indexBeginBoth;
-    endBoth = list.begin() + indexEndBoth;
-    end = list.begin() + indexEnd;
-#endif
-
-    //printSplits("BOTH", beginBoth, endBoth);
-    //cout << "about to duplicate" << endl;
-
     std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, beginBoth));
-    //std::advance(end, overlap);
-
-    //printSplits("DUPLICATED", list.begin(), list.end());
-
-    //std::stable_sort(begin, endBoth, LessThanPtrs());
-    //std::stable_sort(endBoth, end, LessThanPtrs());
-
     SplitList listL;
     listL.splice(listL.begin(), list, list.begin(), beginBoth);
     listL.sort(LessThanPtrs());
@@ -646,37 +610,13 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvas
     SplitList listR;
     listR.splice(listR.begin(), list, beginBoth, list.end());
     listR.sort(LessThanPtrs());
-
-    //printSplits("ALL AFTER DUPLICATE", first + 1, end);
     std::for_each(listL.begin(), listL.end(), updaterL);
-    //printSplits("UPDATE_L", listL.begin(), listL.end());
     std::for_each(listR.begin(), listR.end(), updaterR);
-    //printSplits("UPDATE_R", listR.begin(), listR.end());
-
-    //createNode(list, first + 1, beginBoth, depth + 1);
-    //createNode(list, beginBoth, end, depth + 1);
-    
-#if 0
-    indexFirst = std::distance(list.begin(), first);
-    indexBegin = std::distance(list.begin(), begin);
-    indexBeginBoth = std::distance(list.begin(), beginBoth);
-    indexEndBoth = std::distance(list.begin(), endBoth);
-    indexEnd = std::distance(list.begin(), end);
-#endif
 
     Node* leftNode = createNode(listL, depth + 1, costL, canvases, vol::AABB(boundsMinL, boundsMaxL));
-
-#if 0
-    first = list.begin() + indexFirst;
-    begin = list.begin() + indexBegin;
-    beginBoth = list.begin() + indexBeginBoth;
-    endBoth = list.begin() + indexEndBoth;
-    end = list.begin() + indexEnd;
-#endif
-
     Node* rightNode = createNode(listR, depth + 1, costR, canvases, vol::AABB(boundsMinR, boundsMaxR));
 
-    return new Node(leftNode, rightNode);
+    return new Node(leftNode, rightNode, splitAxis, splitPos);
 }
 
 #include <iostream>
@@ -692,6 +632,8 @@ float randFloat(float min, float max)
 
 void makeRandomTriangles(std::vector<Triangle>& vec, size_t count, const vol::AABB& bounds)
 {
+    srand(time(0));
+
     const Vector3& min = bounds.getMin();
     const Vector3& max = bounds.getMax();
 
@@ -791,8 +733,8 @@ Node::Node() :
 
 }
 
-Node::Node(Node* left, Node* right) :
-    _left(left), _right(right), _triangles(0)
+Node::Node(Node* left, Node* right, SplitAxis axis, float position) :
+    _left(left), _right(right), _axis(axis), _position(position), _triangles(0)
 {
 
 }
@@ -807,6 +749,16 @@ Node::~Node()
 bool Node::isLeaf() const
 {
     return (_triangles != 0);
+}
+
+SplitAxis Node::getAxis() const
+{
+    return _axis;
+}
+
+float Node::getPosition() const
+{
+    return _position;
 }
 
 const Node& Node::getLeft() const
@@ -843,18 +795,18 @@ SpatialCanvas::SpatialCanvas(const vol::AABB& bounds, int scale, Axis plane) :
     switch (_plane) {
         case X_AXIS:
             _bitmap.resize(
-                int(_bounds.getLengthY()) * _scale + 1,
-                int(_bounds.getLengthZ()) * _scale + 1);
+                int(_bounds.getLengthY()) * scale + 1,
+                int(_bounds.getLengthZ()) * scale + 1);
             break;
         case Y_AXIS:
             _bitmap.resize(
-                int(_bounds.getLengthX()) * _scale + 1,
-                int(_bounds.getLengthZ()) * _scale + 1);
+                int(_bounds.getLengthX()) * scale + 1,
+                int(_bounds.getLengthZ()) * scale + 1);
             break;
         case Z_AXIS:
             _bitmap.resize(
-                int(_bounds.getLengthX()) * _scale + 1,
-                int(_bounds.getLengthY()) * _scale + 1);
+                int(_bounds.getLengthX()) * scale + 1,
+                int(_bounds.getLengthY()) * scale + 1);
             break;
     }
 
@@ -899,16 +851,16 @@ SpatialCanvas::Point2D SpatialCanvas::convertCoords(const Vector3& coords)
 
     switch (_plane) {
         case X_AXIS:
-            point.x = int(coords.y) * _scale;
-            point.y = int(coords.z) * _scale;
+            point.x = int(coords.y * _scale);
+            point.y = int(coords.z * _scale);
             break;
         case Y_AXIS:
-            point.x = int(coords.x) * _scale;
-            point.y = int(coords.z) * _scale;
+            point.x = int(coords.x * _scale);
+            point.y = int(coords.z * _scale);
             break;
         case Z_AXIS:
-            point.x = int(coords.x) * _scale;
-            point.y = int(coords.y) * _scale;
+            point.x = int(coords.x * _scale);
+            point.y = int(coords.y * _scale);
             break;
     }
 

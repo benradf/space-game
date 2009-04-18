@@ -17,6 +17,14 @@
 #include <vector>
 
 
+enum SplitAxis {
+    SPLIT_AXIS_X = 0,
+    SPLIT_AXIS_Y = 1,
+    SPLIT_AXIS_Z = 2,
+    SPLIT_LEAF
+};
+
+
 class Triangle {
     public:
         Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2);
@@ -41,10 +49,13 @@ class Node {
         typedef std::vector<const Triangle*> Triangles;
 
         Node();
-        Node(Node* left, Node* right);
+        Node(Node* left, Node* right, SplitAxis axis, float position);
         ~Node();
 
         bool isLeaf() const;
+
+        SplitAxis getAxis() const;
+        float getPosition() const;
 
         const Node& getLeft() const;
         const Node& getRight() const;
@@ -56,19 +67,24 @@ class Node {
         Node* _left;
         Node* _right;
 
+        SplitAxis _axis;
+        float _position;
+
         Triangles* _triangles;
 };
 
 struct KDTreeNode {
-    unsigned children : 30;
-    unsigned splitAxis : 2;
     float splitPosition;
+    unsigned splitAxis : 2;
+    unsigned children : 30;
 };
 
 class KDTree {
     public:
+        KDTree(Node& root);
 
     private:
+        KDTreeNode* _data;
 };
 
 
@@ -91,9 +107,9 @@ class SpatialCanvas {
 
         Point2D convertCoords(const Vector3& coords);
 
-        int _scale;
         Axis _plane;
         vol::AABB _bounds;
+        float _scale;
 
         bmp::Bitmap _bitmap;
         int _width;
