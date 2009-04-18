@@ -193,7 +193,7 @@ SplitInsertIter SplitPlane::duplicatePlanes(const SplitPlane& plane, SplitInsert
     if ((plane._axis != SPLIT_AXIS_X) || !plane._minBound) 
         return iter;
 
-    cout << "duplicatePlanes of " << &plane << endl;
+    //cout << "duplicatePlanes of " << &plane << endl;
 
     SplitPlane* planes[6] = {
         new SplitPlane(*plane._others[0]),
@@ -208,7 +208,7 @@ SplitInsertIter SplitPlane::duplicatePlanes(const SplitPlane& plane, SplitInsert
         for (int j = 0; j < 6; j++)
             planes[i]->_others[j] = planes[j];
 
-        cout << plane._others[i] << " -> " << planes[i] << endl;
+        //cout << plane._others[i] << " -> " << planes[i] << endl;
     }
 
     std::copy(planes, planes + 6, iter);
@@ -337,7 +337,7 @@ struct UpdateCosts {
             if (!plane->_minBound) {
                 if (clampMax && (plane->_position > clampPos) && (axis == plane->_axis)) {
                     plane->_position = clampPos;
-                    cout << "clamping max " << plane << endl;
+                    //cout << "clamping max " << plane << endl;
                     plane->_volumeL -= (volumeR - plane->_volumeR);
                     plane->_volumeR = volumeR;
                 }
@@ -345,7 +345,7 @@ struct UpdateCosts {
             } else {
                 if (clampMin && (plane->_position < clampPos) && (axis == plane->_axis)) {
                     plane->_position = clampPos;
-                    cout << "clamping min " << plane << endl;
+                    //cout << "clamping min " << plane << endl;
                     plane->_volumeR -= (volumeL - plane->_volumeL);
                     plane->_volumeL = volumeL;
                 }
@@ -447,7 +447,7 @@ struct UpdateCosts {
                 }
             }
             if (countPending.back()->_minBound) {
-                cout << "countPending.back() = " << countPending.back() << endl;
+                //cout << "countPending.back() = " << countPending.back() << endl;
                 countL[countPending.back()->_axis]++;
                 //countL[plane->_axis]++;
                 printCounts();
@@ -496,7 +496,7 @@ struct DuplicateOverlapping {
     DuplicateOverlapping(SplitList& list, SplitIter iter) :
         insertIter(inserter(list, iter)) {}
     void operator()(const SplitPlane* plane) {
-        cout << "duplicate " << plane << endl;
+        //cout << "duplicate " << plane << endl;
         insertIter = SplitPlane::duplicatePlanes(*plane, insertIter);
     };
     SplitInsertIter insertIter;
@@ -527,7 +527,7 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvas
 //    if (depth == 4) 
 //        return;
 
-    cout << "create node (depth = " << depth << ", cost = " << cost << ")" << endl;
+    //cout << "create node (depth = " << depth << ", cost = " << cost << ")" << endl;
 
     foreach (SpatialCanvas* canvas, canvases) 
         canvas->drawAABB(bounds, bmp::Bitmap::Colour(0, 0, 0, 0));
@@ -537,20 +537,20 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvas
         cerr << "| ";
 
     if (list.empty()) {
-        cout << "    no splits to choose from" << endl;
+        //cout << "    no splits to choose from" << endl;
         cerr << "\033[01;35msplit list empty\033[00m" << endl;
         return new Node;
     }
 
     char axes[3] = { 'X', 'Y', 'Z' };
 
-    printSplits("ALL", list.begin(), list.end());
+    //printSplits("ALL", list.begin(), list.end());
 
     SplitPlane& split = *std::accumulate(list.begin(), list.end(), *list.begin(), MinCost());
-    cout << "    choose split(" << &split << ") on axis " << axes[split._axis] << " at " << split._position << endl;
+    //cout << "    choose split(" << &split << ") on axis " << axes[split._axis] << " at " << split._position << endl;
 
     if (split._cost + 0.00001f >= cost) {
-        cout << "cheapest to stop splitting here" << endl;
+        //cout << "cheapest to stop splitting here" << endl;
         cerr << "\033[01;33mTriangles: ";
         Node* node = new Node;
         foreach (const SplitPlane* plane, list) {
@@ -602,10 +602,10 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvas
     float costL = split._costL;
     float costR = split._costR;
     SplitIter beginBoth = std::stable_partition(list.begin(), list.end(), OnSide(split, SplitPlane::LEFT));
-    cout << "beginBoth = " << *beginBoth << endl;
+    //cout << "beginBoth = " << *beginBoth << endl;
     //printSplits("PARTITIONED1", first + 1, end);
     SplitIter endBoth = std::stable_partition(beginBoth, list.end(), OnSide(split, SplitPlane::BOTH));
-    cout << "endBoth = " << *endBoth << endl;
+    //cout << "endBoth = " << *endBoth << endl;
     //printSplits("PARTITIONED", list.begin(), list.end());
 
     UpdateCosts updaterL = UpdateCosts::makeL(split);
@@ -642,18 +642,16 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvas
     SplitList listL;
     listL.splice(listL.begin(), list, list.begin(), beginBoth);
     listL.sort(LessThanPtrs());
-    cout << "listL.size() = " << listL.size() << endl; // O(n), for debugging only
 
     SplitList listR;
     listR.splice(listR.begin(), list, beginBoth, list.end());
     listR.sort(LessThanPtrs());
-    cout << "listR.size() = " << listR.size() << endl; // O(n), for debugging only
 
     //printSplits("ALL AFTER DUPLICATE", first + 1, end);
     std::for_each(listL.begin(), listL.end(), updaterL);
-    printSplits("UPDATE_L", listL.begin(), listL.end());
+    //printSplits("UPDATE_L", listL.begin(), listL.end());
     std::for_each(listR.begin(), listR.end(), updaterR);
-    printSplits("UPDATE_R", listR.begin(), listR.end());
+    //printSplits("UPDATE_R", listR.begin(), listR.end());
 
     //createNode(list, first + 1, beginBoth, depth + 1);
     //createNode(list, beginBoth, end, depth + 1);
@@ -716,30 +714,6 @@ void createKDTree()
     foreach (const Triangle& triangle, triangles) 
         SplitPlane::createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
 
-#if 0
-    vol::AABB b1(Vector3(-2.0f, 1.0f, 0.0f), Vector3(4.0f, 2.0f, 0.0f));
-    SplitPlane::createFromBounds(b1, bounds, std::inserter(list, list.begin()));
-
-    vol::AABB b2(Vector3(-3.0f, -3.0f, 0.0f), Vector3(-1.0f, -1.0f, 0.0f));
-    //SplitPlane::createFromBounds(b2, bounds, std::inserter(list, list.begin()));
-
-    vol::AABB b3(Vector3(-3.0f, 2.0f, 0.0f), Vector3(-1.0f, 4.0f, 0.0f));
-    SplitPlane::createFromBounds(b3, bounds, std::inserter(list, list.begin()));
-
-    vol::AABB b4(Vector3(1.0f, -4.0f, 0.0f), Vector3(2.0f, 0.0f, 0.0f));
-    //SplitPlane::createFromBounds(b4, bounds, std::inserter(list, list.begin()));
-
-    vol::AABB b5(Vector3(3.0f, -3.0f, 0.0f), Vector3(4.0f, 0.0f, 0.0f));
-    //SplitPlane::createFromBounds(b5, bounds, std::inserter(list, list.begin()));
-
-    vol::AABB b6(Vector3(-3.0f, -2.0f, 0.0f), Vector3(2.0f, 3.0f, 0.0f));
-    //SplitPlane::createFromBounds(b6, bounds, std::inserter(list, list.begin()));
-
-    vol::AABB b7(Vector3(-1.0f, -4.0f, 0.0f), Vector3(4.0f, 1.0f, 0.0f));
-    //SplitPlane::createFromBounds(b7, bounds, std::inserter(list, list.begin()));
-#endif
-
-    //std::stable_sort(list.begin(), list.end(), LessThanPtrs());
     list.sort(LessThanPtrs());
 
     std::for_each(list.begin(), list.end(), UpdateCosts(triangles.size()));
