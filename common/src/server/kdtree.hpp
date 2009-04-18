@@ -74,12 +74,15 @@ class KDTree {
 
 class SpatialCanvas {
     public:
+        typedef bmp::Bitmap::Colour Colour;
+
         enum Axis { X_AXIS, Y_AXIS, Z_AXIS };
 
         SpatialCanvas(const vol::AABB& bounds, int scale, Axis plane);
 
-        void drawAABB(const vol::AABB& aabb, bmp::Bitmap::Colour colour);
-        void drawTriangle(const Triangle& triangle, bmp::Bitmap::Colour colour);
+        void drawAABB(const vol::AABB& aabb, Colour colour);
+        void drawTriangle(const Triangle& triangle, Colour colour);
+        void drawTriangle(const Triangle& triangle, Colour c0, Colour c1, Colour c2);
 
         const bmp::Bitmap& getBitmap() const;
 

@@ -15,6 +15,7 @@
 #include <limits>
 #include <core.hpp>
 #include <list>
+#include <stdlib.h>
 
 
 #include <iostream>
@@ -529,7 +530,7 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvas
     cout << "create node (depth = " << depth << ", cost = " << cost << ")" << endl;
 
     foreach (SpatialCanvas* canvas, canvases) 
-        canvas->drawAABB(bounds, bmp::Bitmap::Colour(depth * 25, 0, 0, 0));
+        canvas->drawAABB(bounds, bmp::Bitmap::Colour(0, 0, 0, 0));
 
     cerr << depth << " \033[01;32m(cost: " << cost << ")\033[00m\t";
     for (int i = 1; i < depth; i++) 
@@ -555,8 +556,12 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvas
         foreach (const SplitPlane* plane, list) {
             if ((plane->_axis != SPLIT_AXIS_X) || (!plane->_minBound)) 
                 continue;
-            foreach (SpatialCanvas* canvas, canvases) 
-                canvas->drawTriangle(*plane->_tri, bmp::Bitmap::Colour(0, 0, 255, 0));
+            foreach (SpatialCanvas* canvas, canvases) {
+                canvas->drawTriangle(*plane->_tri, 
+                    bmp::Bitmap::Colour(255, 0, 0, 0), 
+                    bmp::Bitmap::Colour(0, 255, 0, 0), 
+                    bmp::Bitmap::Colour(0, 0, 255, 0));
+            }
             node->addTriangle(plane->_tri);
             cerr << "[";
             const Vector3& v0 = plane->_tri->_v0;
@@ -679,36 +684,35 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvas
 #include <iostream>
 using namespace std;
 
+float randFloat(float min, float max)
+{
+    float val = (float(rand()) * (max - min) / float(RAND_MAX) + min);
+    assert(val >= min);
+    assert(val <= max);
+    return val;
+}
+
+void makeRandomTriangles(std::vector<Triangle>& vec, size_t count, const vol::AABB& bounds)
+{
+    const Vector3& min = bounds.getMin();
+    const Vector3& max = bounds.getMax();
+
+    for (size_t i = 0; i < count; i++) {
+        Vector3 v0(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
+        Vector3 v1(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
+        Vector3 v2(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
+        vec.push_back(Triangle(v0, v1, v2));
+    }
+}
+
 void createKDTree()
 {
-    std::vector<Triangle> triangles;
-
-    triangles.push_back(Triangle(
-        Vector3(-3.0f,  0.0f,  0.0f),
-        Vector3( 2.0f,  3.0f,  1.0f),
-        Vector3(-1.0f, -2.0f,  0.0f)));
-
-    triangles.push_back(Triangle(
-        Vector3(-1.0f, -4.0f,  0.0f),
-        Vector3( 2.0f,  1.0f,  0.0f),
-        Vector3( 4.0f, -1.0f,  0.0f)));
-
-#if 0
-    triangles.push_back(Triangle(
-        Vector3( 3.0f,  2.0f,  0.0f),
-        Vector3( 4.0f,  4.0f,  0.0f),
-        Vector3( 4.0f,  1.0f,  0.0f)));
-
-    triangles.push_back(Triangle(
-        Vector3(-3.0f,  0.0f,  0.0f),
-        Vector3(-1.0f, -2.0f,  0.0f),
-        Vector3(-2.0f, -4.0f,  1.0f)));
-#endif
-
-    SplitList list;
-
     vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
 
+    std::vector<Triangle> triangles;
+    makeRandomTriangles(triangles, 20, bounds);
+
+    SplitList list;
     foreach (const Triangle& triangle, triangles) 
         SplitPlane::createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
 
@@ -738,7 +742,7 @@ void createKDTree()
     //std::stable_sort(list.begin(), list.end(), LessThanPtrs());
     list.sort(LessThanPtrs());
 
-    std::for_each(list.begin(), list.end(), UpdateCosts(2));
+    std::for_each(list.begin(), list.end(), UpdateCosts(triangles.size()));
 
     SpatialCanvas canvasX(bounds, 50, SpatialCanvas::X_AXIS);
     SpatialCanvas canvasY(bounds, 50, SpatialCanvas::Y_AXIS);
@@ -883,7 +887,7 @@ SpatialCanvas::SpatialCanvas(const vol::AABB& bounds, int scale, Axis plane) :
     _bitmap.fill(bmp::Bitmap::Colour(255, 255, 255, 0));
 }
 
-void SpatialCanvas::drawAABB(const vol::AABB& aabb, bmp::Bitmap::Colour colour)
+void SpatialCanvas::drawAABB(const vol::AABB& aabb, Colour colour)
 {
     Point2D min = convertCoords(aabb.getMin());
     Point2D max = convertCoords(aabb.getMax());
@@ -894,15 +898,20 @@ void SpatialCanvas::drawAABB(const vol::AABB& aabb, bmp::Bitmap::Colour colour)
     bmp::drawLine(_bitmap, colour, min.x, min.y, min.x, max.y);
 }
 
-void SpatialCanvas::drawTriangle(const Triangle& triangle, bmp::Bitmap::Colour colour)
+void SpatialCanvas::drawTriangle(const Triangle& triangle, Colour colour)
+{
+    drawTriangle(triangle, colour, colour, colour);
+}
+
+void SpatialCanvas::drawTriangle(const Triangle& triangle, Colour c0, Colour c1, Colour c2)
 {
     Point2D v0 = convertCoords(triangle.getV0());
     Point2D v1 = convertCoords(triangle.getV1());
     Point2D v2 = convertCoords(triangle.getV2());
 
-    bmp::drawLine(_bitmap, colour, v0.x, v0.y, v1.x, v1.y);
-    bmp::drawLine(_bitmap, colour, v1.x, v1.y, v2.x, v2.y);
-    bmp::drawLine(_bitmap, colour, v2.x, v2.y, v0.x, v0.y);
+    bmp::drawLine(_bitmap, c0, v0.x, v0.y, v1.x, v1.y);
+    bmp::drawLine(_bitmap, c1, v1.x, v1.y, v2.x, v2.y);
+    bmp::drawLine(_bitmap, c2, v2.x, v2.y, v0.x, v0.y);
 }
 
 const bmp::Bitmap& SpatialCanvas::getBitmap() const
