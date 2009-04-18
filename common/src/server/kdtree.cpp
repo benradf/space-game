@@ -37,8 +37,8 @@ class SplitPlane {
 
         SplitPlane(SplitAxis axis, float pos, const vol::AABB& global, bool minBound);
 
-        bool operator<(const SplitPlane& plane) const;
-        Side whichSide(const SplitPlane& plane) const;
+        bool operator<(const SplitPlane& that) const;
+        Side whichSide(const SplitPlane& that) const;
 
         static SplitInsertIter createFromTriangle(const Triangle& triangle, const vol::AABB& global, SplitInsertIter iter);
         static SplitInsertIter createFromBounds(const vol::AABB& local, const vol::AABB& global, SplitInsertIter iter);
@@ -96,27 +96,43 @@ SplitPlane::SplitPlane(SplitAxis axis, float pos, const vol::AABB& global, bool 
     _volumeR = 1.0f - _volumeL;
 }
 
-bool SplitPlane::operator<(const SplitPlane& plane) const
+bool SplitPlane::operator<(const SplitPlane& that) const
 {
-    return (_position < plane._position);
+    return (_position < that._position);
 }
 
-SplitPlane::Side SplitPlane::whichSide(const SplitPlane& plane) const
+SplitPlane::Side SplitPlane::whichSide(const SplitPlane& that) const
 {
-    assert((_axis >= 0) && (_axis <= 2));
+    const SplitPlane& thisL = *_others[2*_axis];
+    const SplitPlane& thisR = *_others[2*_axis+1];
 
-    const SplitPlane& planeL = *plane._others[2*_axis];
-    const SplitPlane& planeR = *plane._others[2*_axis+1];
+    const SplitPlane& thatL = *that._others[2*_axis];
+    const SplitPlane& thatR = *that._others[2*_axis+1];
 
-    if ((planeL._position == planeR._position) && (planeL._position == _position)) 
-        return BOTH;
+    bool thatIsFlat = (thatL._position == thatR._position);
+    bool thisIsFlat = (thisL._position == thisR._position);
 
-    if (planeL._position >= _position)
+    Side side = (this == &thisL ? LEFT : RIGHT);
+
+    if (thatIsFlat) {
+        if (thatL._position > _position) 
+            return RIGHT;
+
+        if (thatR._position < _position) 
+            return LEFT;
+
+        if (thisIsFlat) 
+            return BOTH;
+
+        return side;
+    }
+        
+    if (thatL._position >= _position) 
         return RIGHT;
 
-    if (planeR._position <= _position)
+    if (thatR._position <= _position) 
         return LEFT;
-    
+
     return BOTH;
 }
 
@@ -505,14 +521,15 @@ void printSplits(const char* prefix, SplitIter begin, SplitIter end)
     cout << endl;
 }
 
-Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas& canvas, const vol::AABB& bounds)
+Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvases)[3], const vol::AABB& bounds)
 {
 //    if (depth == 4) 
 //        return;
 
     cout << "create node (depth = " << depth << ", cost = " << cost << ")" << endl;
 
-    canvas.drawAABB(bounds, bmp::Bitmap::Colour(depth * 25, 0, 0, 0));
+    foreach (SpatialCanvas* canvas, canvases) 
+        canvas->drawAABB(bounds, bmp::Bitmap::Colour(depth * 25, 0, 0, 0));
 
     cerr << depth << " \033[01;32m(cost: " << cost << ")\033[00m\t";
     for (int i = 1; i < depth; i++) 
@@ -538,7 +555,8 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas& canvas, 
         foreach (const SplitPlane* plane, list) {
             if ((plane->_axis != SPLIT_AXIS_X) || (!plane->_minBound)) 
                 continue;
-            canvas.drawTriangle(*plane->_tri, bmp::Bitmap::Colour(0, 0, 255, 0));
+            foreach (SpatialCanvas* canvas, canvases) 
+                canvas->drawTriangle(*plane->_tri, bmp::Bitmap::Colour(0, 0, 255, 0));
             node->addTriangle(plane->_tri);
             cerr << "[";
             const Vector3& v0 = plane->_tri->_v0;
@@ -643,7 +661,7 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas& canvas, 
     indexEnd = std::distance(list.begin(), end);
 #endif
 
-    Node* leftNode = createNode(listL, depth + 1, costL, canvas, vol::AABB(boundsMinL, boundsMaxL));
+    Node* leftNode = createNode(listL, depth + 1, costL, canvases, vol::AABB(boundsMinL, boundsMaxL));
 
 #if 0
     first = list.begin() + indexFirst;
@@ -653,7 +671,7 @@ Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas& canvas, 
     end = list.begin() + indexEnd;
 #endif
 
-    Node* rightNode = createNode(listR, depth + 1, costR, canvas, vol::AABB(boundsMinR, boundsMaxR));
+    Node* rightNode = createNode(listR, depth + 1, costR, canvases, vol::AABB(boundsMinR, boundsMaxR));
 
     return new Node(leftNode, rightNode);
 }
@@ -667,7 +685,7 @@ void createKDTree()
 
     triangles.push_back(Triangle(
         Vector3(-3.0f,  0.0f,  0.0f),
-        Vector3( 2.0f,  3.0f,  0.0f),
+        Vector3( 2.0f,  3.0f,  1.0f),
         Vector3(-1.0f, -2.0f,  0.0f)));
 
     triangles.push_back(Triangle(
@@ -675,6 +693,7 @@ void createKDTree()
         Vector3( 2.0f,  1.0f,  0.0f),
         Vector3( 4.0f, -1.0f,  0.0f)));
 
+#if 0
     triangles.push_back(Triangle(
         Vector3( 3.0f,  2.0f,  0.0f),
         Vector3( 4.0f,  4.0f,  0.0f),
@@ -683,7 +702,8 @@ void createKDTree()
     triangles.push_back(Triangle(
         Vector3(-3.0f,  0.0f,  0.0f),
         Vector3(-1.0f, -2.0f,  0.0f),
-        Vector3(-2.0f, -4.0f,  0.0f)));
+        Vector3(-2.0f, -4.0f,  1.0f)));
+#endif
 
     SplitList list;
 
@@ -718,14 +738,20 @@ void createKDTree()
     //std::stable_sort(list.begin(), list.end(), LessThanPtrs());
     list.sort(LessThanPtrs());
 
-    std::for_each(list.begin(), list.end(), UpdateCosts(4));
+    std::for_each(list.begin(), list.end(), UpdateCosts(2));
 
-    SpatialCanvas canvas(bounds, 50, SpatialCanvas::Z_AXIS);
+    SpatialCanvas canvasX(bounds, 50, SpatialCanvas::X_AXIS);
+    SpatialCanvas canvasY(bounds, 50, SpatialCanvas::Y_AXIS);
+    SpatialCanvas canvasZ(bounds, 50, SpatialCanvas::Z_AXIS);
+
+    SpatialCanvas* canvases[3] = { &canvasX, &canvasY, &canvasZ };
 
     // TODO: Not leak memory :)
-    Node* root = createNode(list, 1, 100.0f, canvas, bounds);
+    Node* root = createNode(list, 1, 100.0f, canvases, bounds);
 
-    canvas.getBitmap().saveFile("kdtree.bmp");
+    canvasX.getBitmap().saveFile("kdtree_x.bmp");
+    canvasY.getBitmap().saveFile("kdtree_y.bmp");
+    canvasZ.getBitmap().saveFile("kdtree_z.bmp");
 }
 
 Triangle::Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2) :
