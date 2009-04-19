@@ -63,6 +63,9 @@ class Node {
         const Triangles& getTriangles() const;
         void addTriangle(const Triangle* triangle);
 
+        template<typename T>
+        void accept(T& visitor);
+
     private:
         Node* _left;
         Node* _right;
@@ -72,6 +75,18 @@ class Node {
 
         Triangles* _triangles;
 };
+
+template<typename T>
+inline void Node::accept(T& visitor)
+{
+    visitor.visit(*_left);
+    visitor.visit(*_right);
+
+    _left->accept(visitor);
+    _right->accept(visitor);
+
+}
+
 
 struct KDTreeNode {
     float splitPosition;
@@ -84,7 +99,13 @@ class KDTree {
         KDTree(Node& root);
 
     private:
+        KDTreeNode compressNode(const Node* node);
+
+        void reserve(size_t space);
+        KDTreeNode* alloc();
         KDTreeNode* _data;
+        size_t _space;
+        size_t _index;
 };
 
 

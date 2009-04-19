@@ -786,7 +786,6 @@ void Node::addTriangle(const Triangle* triangle)
 }
 
 
-
 ////////// SpatialCanvas //////////
 
 SpatialCanvas::SpatialCanvas(const vol::AABB& bounds, int scale, Axis plane) :
@@ -868,6 +867,67 @@ SpatialCanvas::Point2D SpatialCanvas::convertCoords(const Vector3& coords)
     point.y = _bitmap.getHeight() / 2 - point.y;
 
     return point;
+}
+
+
+////////// KDTree //////////
+
+class KDTreeData {
+    public:
+        KDTreeData(size_t nodeCount);
+        ~KDTreeData();
+
+        KDTreeNode& getNode(size_t index);
+
+    private:
+        KDTreeData(const KDTreeData&);
+        KDTreeData& operator=(const KDTreeData&);
+
+        KDTreeNode* _nodes;
+        size_t _nodeCount;
+};
+
+class KDTreeConstructor {
+    public:
+        KDTreeConstructor(const std::vector<Triangle>& triangles);
+
+    private:
+};
+
+class KDTreeCompressor {
+    public:
+        KDTreeCompressor(const TemporaryNode& root);
+
+};
+
+KDTree::KDTree() :
+    _data(0), _space(0), _index(0)
+{
+
+}
+
+struct CountNodes {
+    CountNode() : count(0) {}
+    void visit(const Node&) { count++; }
+    unsigned int count;
+};
+
+void KDTree::reserve(size_t space)
+{
+    if (space <= _space) 
+        return;
+
+    KDTreeNode* data = new KDTreeNode[nodes];
+
+    for (int i = 0; i < _space; i++) 
+        data[i] = _data[i];
+}
+
+KDTreeNode* KDTree::alloc()
+{
+    assert(_index < _space);
+
+    return _data[_index++];
 }
 
 
