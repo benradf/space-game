@@ -286,34 +286,26 @@ struct IsFlat {
     }
 };
 
+
+
 struct UpdateCosts {
-    UpdateCosts(int count, bool updateVol_ = false, float volL = 0.0f, float volR = 0.0f, SplitAxis axis_ = SPLIT_AXIS_X, 
-            bool clampMin_ = false, bool clampMax_ = false, float clampPos_ = 0.0f) :
-        clampMin(clampMin_), clampMax(clampMax_), updateVol(updateVol_),
-        clampPos(clampPos_), volumeL(volL), volumeR(volR), axis(axis_),
-        prevPos(std::numeric_limits<float>::quiet_NaN()), prevAxis(SPLIT_AXIS_X)
+    UpdateCosts(int count, float volumeL, float volumeR, SplitAxis axis, float pos) :
+        _volumeL(volumeL), _volumeR(volumeR), _axis(axis), _position(pos)
     {
         for (int i = 0; i < 3; i++) 
-            countL[i] = 0, countR[i] = count;
+            _countL[i] = 0, _countR[i] = count;
     }
     ~UpdateCosts() {
-        char axes[3] = { 'X', 'Y', 'Z' };
         if (countPending.empty()) 
             return;
-        ;//cout << "COUNTS STILL PENDING ON UpdateCosts DESTRUCTION" << endl;
-        int peakCountR = countR[countPending.back()->_axis];
+        int peakCountR = _countR[countPending.back()->_axis];
         if (!countPending.back()->_minBound && (countPending.size() == 1)) {
             peakCountR--;
         }
         foreach (SplitPlane* p, countPending) {
-            if (!p->_minBound) {
-                countR[p->_axis]--;
-                printCounts();
-            }
-            ;//cout << "processing pending count for plane " << p << endl;
-            ;//cout << "    p->_position = " << p->_position << endl;
-            ;//cout << "    p->_axis = " << axes[p->_axis] << endl;
-            p->_countL = countL[p->_axis];
+            if (!p->_minBound)
+                _countR[p->_axis]--;
+            p->_countL = _countL[p->_axis];
             p->_countR = peakCountR;
             p->_costL = p->_volumeL * float(p->_countL);
             p->_costR = p->_volumeR * float(p->_countR);
@@ -321,120 +313,25 @@ struct UpdateCosts {
             if ((p->_volumeL < 0.00001f) || (p->_volumeR < 0.00001f)) {
                 p->_cost = 100.0f;
             }
-            //cout << "update " << p << ": cost = " << p->_cost << endl;
             assert(p->_countL >= 0.0f);
             assert(p->_countR >= 0.0f);
             assert(p->_cost >= 0.0f);
-            ;//cout << "    p->_countL = " << p->_countL << endl;
-            ;//cout << "    p->_countR = " << p->_countR << endl;
         }
     }
-    static UpdateCosts makeL(const SplitPlane& split) {
-        return UpdateCosts(split._countL, true, split._volumeL, split._volumeR, split._axis, false, true, split._position);
-    }
-    static UpdateCosts makeR(const SplitPlane& split) {
-        return UpdateCosts(split._countR, true, split._volumeL, split._volumeR, split._axis, true, false, split._position);
-    }
-    void printCounts() {
-        ;//cout << "countL = { ";
-        char axes[3] = { 'X', 'Y', 'Z' };
-        for (int i = 0; i < 3; i++) {
-            ;//cout << axes[i] << " = " << countL[i];
-            if (i != 2) 
-                ;//cout << ", ";
-        }
-        ;//cout << " }" << endl;
-        ;//cout << "countR = { ";
-        for (int i = 0; i < 3; i++) {
-            ;//cout << axes[i] << " = " << countR[i];
-            if (i != 2) 
-                ;//cout << ", ";
-        }
-        ;//cout << " }" << endl;
-    }
+    virtual void maybeClampPosition(SplitPlane* plane) = 0;
+    virtual void maybeUpdateVolume(SplitPlane* plane) = 0;
     void operator()(SplitPlane* plane) {
-        //float posL = plane->_others[2*plane->_axis]->_position;
-        //float posR = plane->_others[2*plane->_axis+1]->_position;
-        //bool moveZeroDist = (posL == posR);
-
-        ;//cout << "UpdateCosts::operator()(" << plane << ")" << endl;
-
-        char axes[3] = { 'X', 'Y', 'Z' };
-
-#if 0
-        ;//cout << "    prevPos = " << prevPos << endl;
-        ;//cout << "    plane->_position = " << plane->_position << endl;
-        ;//cout << "    prevAxis = " << axes[prevAxis] << endl;
-        ;//cout << "    plane->_axis = " << axes[plane->_axis] << endl;
-#endif
         bool moveZeroDist = ((prevPos == plane->_position) && (prevAxis == plane->_axis));
         prevPos = plane->_position;
         prevAxis = plane->_axis;
-#if 0
-        ;//cout << "    moveZeroDist = " << flat << endl;
-        printCounts();
-#endif
 
-//#if 0
-        //if (!moveZeroDist) {
-            if (!plane->_minBound) {
-                if (clampMax && (plane->_position > clampPos) && (axis == plane->_axis)) {
-                    plane->_position = clampPos;
-                    //cout << "clamping max " << plane << endl;
-                    plane->_volumeL -= (volumeR - plane->_volumeR);
-                    plane->_volumeR = volumeR;
-                }
-                //countR[plane->_axis]--;
-            } else {
-                if (clampMin && (plane->_position < clampPos) && (axis == plane->_axis)) {
-                    plane->_position = clampPos;
-                    //cout << "clamping min " << plane << endl;
-                    plane->_volumeR -= (volumeL - plane->_volumeL);
-                    plane->_volumeL = volumeL;
-                }
-                //countL[plane->_axis]++;
-                //printCounts();
-            }
-        //}
-//#endif
+        maybeClampPosition(plane);
+        maybeUpdateVolume(plane);
 
-        if (updateVol) {
-            if (plane->_axis == axis) {
-                if (clampMax) {
-                    assert(plane->_volumeR >= volumeR);
-                    plane->_volumeR -= volumeR;
-                } else {
-                    assert(plane->_volumeL >= volumeL);
-                    plane->_volumeL -= volumeL;
-                }
-            } else {
-                if (clampMax) {
-                    float s = volumeL / (volumeL + volumeR);
-                    plane->_volumeL *= s;
-                    plane->_volumeR *= s;
-                } else {
-                    float s = volumeR / (volumeL + volumeR);
-                    plane->_volumeL *= s;
-                    plane->_volumeR *= s;
-                }
-            }
-            assert(plane->_volumeR >= 0.0f);
-            assert(plane->_volumeL >= 0.0f);
-        }
-
-#if 0
-        if (moveZeroDist) {
-            if (plane->_minBound) {
-                //countL[plane->_axis]++;
-                //printCounts();
-            }
-        } else
-#endif
-        
         if (!countPending.empty()) {
             if (moveZeroDist) {
             } else {
-                int peakCountR = countR[countPending.back()->_axis];
+                int peakCountR = _countR[countPending.back()->_axis];
                 if (!countPending.back()->_minBound && (countPending.size() == 1)) {
                     peakCountR--;
                 }
@@ -442,108 +339,148 @@ struct UpdateCosts {
                 Iter iterNonFlat = std::stable_partition(countPending.begin(), countPending.end(), IsFlat());
                 for (Iter i = countPending.begin(); i != iterNonFlat; ++i) {
                     SplitPlane* p = *i;
-                    if (!p->_minBound) {
-                        countR[p->_axis]--;
-                        printCounts();
-                    }
-                    ;//cout << "processing pending count for FLAT plane " << p << endl;
-                    ;//cout << "    p->_position = " << p->_position << endl;
-                    ;//cout << "    p->_axis = " << axes[p->_axis] << endl;
-                    p->_countL = countL[p->_axis];
+
+                    if (!p->_minBound)
+                        _countR[p->_axis]--;
+
+                    p->_countL = _countL[p->_axis];
                     p->_countR = peakCountR;
                     p->_costL = p->_volumeL * float(p->_countL);
                     p->_costR = p->_volumeR * float(p->_countR);
                     p->_cost = p->_costL + p->_costR;
-                    if ((p->_volumeL < 0.00001f) || (p->_volumeR < 0.00001f)) {
+
+                    if ((p->_volumeL < 0.00001f) || (p->_volumeR < 0.00001f))
                         p->_cost = 100.0f;
-                    }
-                    //cout << "update " << p << ": cost = " << p->_cost << endl;
+
                     assert(p->_countL >= 0.0f);
                     assert(p->_countR >= 0.0f);
                     assert(p->_cost >= 0.0f);
-                    ;//cout << "    p->_countL = " << p->_countL << endl;
-                    ;//cout << "    p->_countR = " << p->_countR << endl;
                 }
                 for (Iter i = iterNonFlat; i != countPending.end(); ++i) {
                     SplitPlane* p = *i;
-                    if (!p->_minBound) {
-                        countR[p->_axis]--;
-                        printCounts();
-                    }
-                    ;//cout << "processing pending count for NON-FLAT plane " << p << endl;
-                    ;//cout << "    p->_position = " << p->_position << endl;
-                    ;//cout << "    p->_axis = " << axes[p->_axis] << endl;
-                    p->_countL = countL[p->_axis];
-                    p->_countR = countR[p->_axis];
+
+                    if (!p->_minBound)
+                        _countR[p->_axis]--;
+
+                    p->_countL = _countL[p->_axis];
+                    p->_countR = _countR[p->_axis];
                     p->_costL = p->_volumeL * float(p->_countL);
                     p->_costR = p->_volumeR * float(p->_countR);
                     p->_cost = p->_costL + p->_costR;
-                    if ((p->_volumeL < 0.00001f) || (p->_volumeR < 0.00001f)) {
+
+                    if ((p->_volumeL < 0.00001f) || (p->_volumeR < 0.00001f))
                         p->_cost = 100.0f;
-                    }
-                    //cout << "update " << p << ": cost = " << p->_cost << endl;
+
                     assert(p->_countL >= 0.0f);
                     assert(p->_countR >= 0.0f);
                     assert(p->_cost >= 0.0f);
-                    ;//cout << "    p->_countL = " << p->_countL << endl;
-                    ;//cout << "    p->_countR = " << p->_countR << endl;
                 }
             }
-            if (countPending.back()->_minBound) {
-                //cout << "countPending.back() = " << countPending.back() << endl;
-                countL[countPending.back()->_axis]++;
-                //countL[plane->_axis]++;
-                printCounts();
-            }
+
+            if (countPending.back()->_minBound)
+                _countL[countPending.back()->_axis]++;
+
             if (!moveZeroDist) {
                 countPending.clear();
             }
         }
 
         countPending.push_back(plane);
-
-        //plane->_countL = countL[plane->_axis];
-        //plane->_countR = countR[plane->_axis];
-        //plane->_cost = plane->_volumeL * float(plane->_countL) + 
-        //               plane->_volumeR * float(plane->_countR);
-
-#if 0
-        //if (!moveZeroDist) {
-            if (plane->_minBound) {
-                if (clampMin && (plane->_position < clampPos) && (axis == plane->_axis)) {
-                    plane->_position = clampPos;
-                    plane->_volumeR -= (volumeL - plane->_volumeL);
-                    plane->_volumeL = volumeL;
-                }
-                //countL[plane->_axis]++;
-                //printCounts();
-            }
-        //}
-#endif
     }
-    float clampPos;
-    bool clampMin;
-    bool clampMax;
-    int countL[3];
-    int countR[3];
-    float volumeL;
-    float volumeR;
-    SplitAxis axis;
-    bool updateVol;
+
+    float _volumeL;
+    float _volumeR;
+    int _countL[3];
+    int _countR[3];
+    SplitAxis _axis;
+    float _position;
+
+    //float clampPos;
+    //bool clampMin;
+    //bool clampMax;
+    //int countL[3];
+    //int countR[3];
+    //float volumeL;
+    //float volumeR;
+    //SplitAxis axis;
+    //bool updateVol;
+
     std::vector<SplitPlane*> countPending;
     float prevPos;
     SplitAxis prevAxis;
+};
+
+struct UpdateLeft : public UpdateCosts {
+    UpdateLeft(const SplitPlane& split) :
+        UpdateCosts(split._countL, split._volumeL, split._volumeR, split._axis, split._position) {}
+    UpdateLeft(int count, float volumeL, float volumeR, SplitAxis axis, float pos) :
+        UpdateCosts(count, volumeL, volumeR, axis, pos) {}
+
+    virtual void maybeClampPosition(SplitPlane* plane) {
+        if (!plane->_minBound && (plane->_position > _position) && (_axis == plane->_axis)) {
+            plane->_position = _position;
+            plane->_volumeL -= (_volumeR - plane->_volumeR);
+            plane->_volumeR = _volumeR;
+        }
+    }
+    virtual void maybeUpdateVolume(SplitPlane* plane) {
+        if (plane->_axis == _axis) {
+            plane->_volumeR -= _volumeR;
+        } else {
+            float s = _volumeL / (_volumeL + _volumeR);
+            plane->_volumeL *= s;
+            plane->_volumeR *= s;
+        }
+        assert(plane->_volumeR >= 0.0f);
+        assert(plane->_volumeL >= 0.0f);
+    }
+};
+
+struct UpdateRight : public UpdateCosts {
+    UpdateRight(const SplitPlane& split) :
+        UpdateCosts(split._countR, split._volumeL, split._volumeR, split._axis, split._position) {}
+    UpdateRight(int count, float volumeL, float volumeR, SplitAxis axis, float pos) :
+        UpdateCosts(count, volumeL, volumeR, axis, pos) {}
+
+    virtual void maybeClampPosition(SplitPlane* plane) {
+        if (plane->_minBound && (plane->_position < _position) && (_axis == plane->_axis)) {
+            plane->_position = _position;
+            plane->_volumeR -= (_volumeL - plane->_volumeL);
+            plane->_volumeL = _volumeL;
+        }
+    }
+    virtual void maybeUpdateVolume(SplitPlane* plane) {
+        if (plane->_axis == _axis) {
+            plane->_volumeL -= _volumeL;
+        } else {
+            float s = _volumeR / (_volumeL + _volumeR);
+            plane->_volumeL *= s;
+            plane->_volumeR *= s;
+        }
+        assert(plane->_volumeR >= 0.0f);
+        assert(plane->_volumeL >= 0.0f);
+    }
+};
+
+struct UpdateInitial : public UpdateCosts {
+    UpdateInitial(int count) :
+        UpdateCosts(count, 0.0f, 0.0f, SPLIT_LEAF, 0.0f) {}
+    virtual void maybeClampPosition(SplitPlane* plane) {}
+    virtual void maybeUpdateVolume(SplitPlane* plane) {}
 };
 
 struct DuplicateOverlapping {
     DuplicateOverlapping(SplitList& list, SplitIter iter) :
         insertIter(inserter(list, iter)) {}
     void operator()(const SplitPlane* plane) {
-        //cout << "duplicate " << plane << endl;
         insertIter = SplitPlane::duplicatePlanes(*plane, insertIter);
     };
     SplitInsertIter insertIter;
 };
+
+
+//========================================================================================================================================================//
+//========================================================================================================================================================//
 
 void printSplits(const char* prefix, SplitIter begin, SplitIter end)
 {
@@ -651,8 +588,8 @@ TemporaryNode* createNode(SplitList& list, int depth, float cost, SpatialCanvas*
     SplitIter beginBoth = std::stable_partition(list.begin(), list.end(), OnSide(split, SplitPlane::LEFT));
     SplitIter endBoth = std::stable_partition(beginBoth, list.end(), OnSide(split, SplitPlane::BOTH));
 
-    UpdateCosts updaterL = UpdateCosts::makeL(split);
-    UpdateCosts updaterR = UpdateCosts::makeR(split);
+    UpdateLeft updaterL(split);
+    UpdateRight updaterR(split);
     std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, beginBoth));
     SplitList listL;
     listL.splice(listL.begin(), list, list.begin(), beginBoth);
@@ -717,6 +654,9 @@ void makeTestTriangles(std::vector<Triangle>& vec)
         Vector3(-2.0f, -4.0f,  1.0f)));
 }
 
+//========================================================================================================================================================//
+//========================================================================================================================================================//
+
 
 std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, int depth, float cost)
 {
@@ -741,8 +681,8 @@ std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, int depth, flo
     float costL = split._costL;
     float costR = split._costR;
 
-    UpdateCosts updaterL = UpdateCosts::makeL(split);
-    UpdateCosts updaterR = UpdateCosts::makeR(split);
+    UpdateLeft updaterL(split);
+    UpdateRight updaterR(split);
 
     SplitIter beginBoth = std::stable_partition(list.begin(), list.end(), OnSide(split, SplitPlane::LEFT));
     SplitIter endBoth = std::stable_partition(beginBoth, list.end(), OnSide(split, SplitPlane::BOTH));
@@ -773,7 +713,7 @@ std::auto_ptr<TemporaryNode> constructKDTree(const std::vector<Triangle>& triang
 
     list.sort(LessThanPtrs());
 
-    std::for_each(list.begin(), list.end(), UpdateCosts(triangles.size()));
+    std::for_each(list.begin(), list.end(), UpdateInitial(triangles.size()));
 
     return createTemporaryNode(list, 1, 100.0f);
 }
@@ -824,51 +764,6 @@ std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
     assert(nextTriangle == triangleCount);
 
     return data;
-}
-
-void createKDTree()
-{
-    std::vector<Triangle> triangles;
-    makeTestTriangles(triangles);
-
-    vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
-
-    KDTree::Ptr tree(KDTree::create(triangles, bounds));
-    tree->save("kdtree.dat");
-
-    return;
-
-#if 0
-    SplitList list;
-    foreach (const Triangle& triangle, triangles) 
-        SplitPlane::createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
-
-    list.sort(LessThanPtrs());
-
-    std::for_each(list.begin(), list.end(), UpdateCosts(triangles.size()));
-
-    SpatialCanvas canvasX(bounds, 50, SpatialCanvas::X_AXIS);
-    SpatialCanvas canvasY(bounds, 50, SpatialCanvas::Y_AXIS);
-    SpatialCanvas canvasZ(bounds, 50, SpatialCanvas::Z_AXIS);
-
-    SpatialCanvas* canvases[3] = { &canvasX, &canvasY, &canvasZ };
-
-    // TODO: Not leak memory :)
-    TemporaryNode* root = createNode(list, 1, 100.0f, canvases, bounds);
-
-    canvasX.getBitmap().saveFile("kdtree_x.bmp");
-    canvasY.getBitmap().saveFile("kdtree_y.bmp");
-    canvasZ.getBitmap().saveFile("kdtree_z.bmp");
-
-    std::auto_ptr<const KDTreeData> data(compressKDTree(*root));
-    data->saveFile("kdtree.dat");
-
-    KDTreeData tempData(1, 1);
-    tempData.loadFile("kdtree.dat");
-    tempData.saveFile("kdtree2.dat");
-
-    delete root;
-#endif
 }
 
 
@@ -1110,5 +1005,63 @@ KDTree::Ptr KDTree::load(const char* filename)
 {
     std::auto_ptr<KDTreeData> data(new KDTreeData(filename));
     return std::auto_ptr<KDTree>(new KDTree(data));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void createKDTree()
+{
+    std::vector<Triangle> triangles;
+    makeTestTriangles(triangles);
+
+    vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
+
+    KDTree::Ptr tree(KDTree::create(triangles, bounds));
+    tree->save("kdtree.dat");
+
+    return;
+
+#if 0
+    SplitList list;
+    foreach (const Triangle& triangle, triangles) 
+        SplitPlane::createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
+
+    list.sort(LessThanPtrs());
+
+    std::for_each(list.begin(), list.end(), UpdateCosts(triangles.size()));
+
+    SpatialCanvas canvasX(bounds, 50, SpatialCanvas::X_AXIS);
+    SpatialCanvas canvasY(bounds, 50, SpatialCanvas::Y_AXIS);
+    SpatialCanvas canvasZ(bounds, 50, SpatialCanvas::Z_AXIS);
+
+    SpatialCanvas* canvases[3] = { &canvasX, &canvasY, &canvasZ };
+
+    // TODO: Not leak memory :)
+    TemporaryNode* root = createNode(list, 1, 100.0f, canvases, bounds);
+
+    canvasX.getBitmap().saveFile("kdtree_x.bmp");
+    canvasY.getBitmap().saveFile("kdtree_y.bmp");
+    canvasZ.getBitmap().saveFile("kdtree_z.bmp");
+
+    std::auto_ptr<const KDTreeData> data(compressKDTree(*root));
+    data->saveFile("kdtree.dat");
+
+    KDTreeData tempData(1, 1);
+    tempData.loadFile("kdtree.dat");
+    tempData.saveFile("kdtree2.dat");
+
+    delete root;
+#endif
 }
 
