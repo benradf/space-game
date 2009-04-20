@@ -27,6 +27,19 @@ class Point {
 };
 
 
+class Ray {
+    public:
+        Ray(const Vector3& start, const Vector3& direction);
+        const Vector3& getDirection() const;
+        const Vector3& getStart() const;
+        float getLength() const;
+
+    private:
+        Vector3 _pos;
+        Vector3 _dir;
+};
+
+
 class Circle {
     public:
         Circle(const Vector3& centre, float radius);
@@ -81,6 +94,30 @@ inline Point::Point(const Vector3& pos) :
 inline const Vector3& Point::getPosition() const
 {
     return _position;
+}
+
+
+////////// Ray //////////
+
+inline Ray::Ray(const Vector3& start, const Vector3& direction) :
+    _pos(start), _dir(direction)
+{
+
+}
+
+inline const Vector3& Ray::getDirection() const
+{
+    return _dir;
+}
+
+inline const Vector3& Ray::getStart() const
+{
+    return _pos;
+}
+
+inline float Ray::getLength() const
+{
+    return magnitude(_dir);
 }
 
 

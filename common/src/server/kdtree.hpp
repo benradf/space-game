@@ -14,7 +14,9 @@
 #include <vecmath.hpp>
 #include "volumes.hpp"
 #include "drawbmp.hpp"
+#include "prim.hpp"
 #include <vector>
+#include <memory>
 
 
 enum SplitAxis {
@@ -24,26 +26,6 @@ enum SplitAxis {
     SPLIT_LEAF
 };
 
-
-class Triangle {
-    public:
-        Triangle();
-        Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2);
-
-        vol::AABB determineBounds() const;
-
-        const Vector3& getVertex(int index) const;
-
-        const Vector3& getV0() const;
-        const Vector3& getV1() const;
-        const Vector3& getV2() const;
-
-
-    //private:
-        Vector3 _v0;
-        Vector3 _v1;
-        Vector3 _v2;
-};
 
 class TemporaryNode {
     public:
@@ -110,13 +92,120 @@ struct KDTreeNode {
     };
 };
 
-class KDTree {
+class KDTreeData {
     public:
-        KDTree();
+        enum Validity {
+            VALID,
+            INVALID_STRUCTURE,
+            INVALID_INDEX,
+            UNREACHABLE_NODES
+        };
+
+        KDTreeData(const char* filename);
+        KDTreeData(size_t nodeCount, size_t triangleCount);
+        ~KDTreeData();
+
+        size_t getNodeCount() const;
+        size_t getTriangleCount() const;
+
+        KDTreeNode& getNode(size_t index);
+        const KDTreeNode& getNode(size_t index) const;
+
+        Triangle& getTriangle(size_t index);
+        const Triangle& getTriangle(size_t index) const;
+
+        void saveFile(const char* filename) const;
+        void loadFile(const char* filename);
+
+        Validity checkValidity() const;
 
     private:
+        KDTreeData(const KDTreeData&);
+        KDTreeData& operator=(const KDTreeData&);
 
+        static const int MAX_NODES = 1 << 15;
+        static const int MAX_TRIANGLES = 1 << 30;
+
+        KDTreeNode* _nodes;
+        size_t _nodeCount;
+
+        Triangle* _triangles;
+        size_t _triangleCount;
 };
+
+
+class KDTree {
+    public:
+        KDTree(std::auto_ptr<KDTreeData> data);
+
+        template<typename T>
+        void process(T& visitor, const vol::AABB& aabb) const;
+
+        template<typename T>
+        void process(T& visitor, const vol::Ray& ray) const;
+
+        static std::auto_ptr<KDTree> load(const char* filename);
+
+    private:
+        KDTree(const KDTree&);
+        KDTree& operator=(const KDTree&);
+
+        template<typename T>
+        void process(const KDTreeNode& node, T& visitor, const vol::AABB& aabb);
+
+        template<typename T>
+        void process(const KDTreeNode& node, T& visitor, const vol::Ray& ray);
+
+        std::auto_ptr<KDTreeData> _data;
+};
+
+
+template<typename T>
+void KDTree::process(T& visitor, const vol::AABB& aabb) const
+{
+    process(_data->getNode(0), visitor, aabb);
+}
+
+template<typename T>
+void KDTree::process(T& visitor, const vol::Ray& ray) const
+{
+    process(_data->getNode(0), visitor, ray);
+}
+
+template<typename T>
+void KDTree::process(const KDTreeNode& node, T& visitor, const vol::AABB& aabb)
+{
+    if (node.splitAxis == SPLIT_LEAF) {
+        for (size_t i = 0; i < node.triangleCount; i++) 
+            visitor(_data->getTriangle(node.triangles + i));
+
+        return;
+    }
+
+    float min = 0.0f, max = 0.0f;
+
+    switch (node.splitAxis) {
+        case SPLIT_AXIS_X: min = aabb.getMin().x; max = aabb.getMax().x; break;
+        case SPLIT_AXIS_Y: min = aabb.getMin().y; max = aabb.getMax().y; break;
+        case SPLIT_AXIS_Z: min = aabb.getMin().z; max = aabb.getMax().z; break;
+    }
+
+    if (max <= node.splitPosition) {
+        process(_data->getNode(node.left), visitor, aabb);
+    } else if (min >= node.splitPosition) {
+        process(_data->getNode(node.right), visitor, aabb);
+    } else {
+        process(_data->getNode(node.left), visitor, aabb);
+        process(_data->getNode(node.right), visitor, aabb);
+    }
+}
+
+template<typename T>
+void KDTree::process(const KDTreeNode& node, T& visitor, const vol::Ray& ray)
+{
+    // TODO: Implement this.
+    assert(false);
+}
 
 
 class SpatialCanvas {

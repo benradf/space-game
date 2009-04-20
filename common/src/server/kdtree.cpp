@@ -519,65 +519,6 @@ void printSplits(const char* prefix, SplitIter begin, SplitIter end)
     cout << endl;
 }
 
-Triangle::Triangle() :
-    _v0(Vector3::ZERO), _v1(Vector3::ZERO), _v2(Vector3::ZERO)
-{
-
-}
-
-Triangle::Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2) :
-    _v0(v0), _v1(v1), _v2(v2)
-{
-
-}
-
-vol::AABB Triangle::determineBounds() const
-{
-    Vector3 min = _v0;
-    Vector3 max = _v0;
-
-    min.x = std::min(min.x, _v1.x);
-    min.y = std::min(min.y, _v1.y);
-    min.z = std::min(min.z, _v1.z);
-    max.x = std::max(max.x, _v1.x);
-    max.y = std::max(max.y, _v1.y);
-    max.z = std::max(max.z, _v1.z);
-
-    min.x = std::min(min.x, _v2.x);
-    min.y = std::min(min.y, _v2.y);
-    min.z = std::min(min.z, _v2.z);
-    max.x = std::max(max.x, _v2.x);
-    max.y = std::max(max.y, _v2.y);
-    max.z = std::max(max.z, _v2.z);
-
-    return vol::AABB(min, max);
-}
-
-const Vector3& Triangle::getVertex(int index) const
-{
-    switch (index) {
-        case 0: return _v0;
-        case 1: return _v1;
-        case 2: return _v2;
-        default: assert(false);
-    }
-}
-
-const Vector3& Triangle::getV0() const
-{
-    return _v0;
-}
-
-const Vector3& Triangle::getV1() const
-{
-    return _v1;
-}
-
-const Vector3& Triangle::getV2() const
-{
-    return _v2;
-}
-
 TemporaryNode::TemporaryNode() :
     _left(0), _right(0), _triangles(new Triangles)
 {
@@ -737,50 +678,16 @@ SpatialCanvas::Point2D SpatialCanvas::convertCoords(const Vector3& coords)
 }
 
 
-////////// KDTree //////////
+////////// KDTreeData //////////
 
-class KDTreeData {
-    public:
-        enum Validity {
-            VALID,
-            INVALID_STRUCTURE,
-            INVALID_INDEX,
-            UNREACHABLE_NODES
-        };
-
-        KDTreeData(size_t nodeCount, size_t triangleCount);
-        ~KDTreeData();
-
-        size_t getNodeCount() const;
-        size_t getTriangleCount() const;
-
-        KDTreeNode& getNode(size_t index);
-        const KDTreeNode& getNode(size_t index) const;
-
-        Triangle& getTriangle(size_t index);
-        const Triangle& getTriangle(size_t index) const;
-
-        void saveFile(const char* filename) const;
-        void loadFile(const char* filename);
-
-        Validity checkValidity() const;
-
-    private:
-        KDTreeData(const KDTreeData&);
-        KDTreeData& operator=(const KDTreeData&);
-
-        static const int MAX_NODES = 1 << 15;
-        static const int MAX_TRIANGLES = 1 << 30;
-
-        KDTreeNode* _nodes;
-        size_t _nodeCount;
-
-        Triangle* _triangles;
-        size_t _triangleCount;
-};
+KDTreeData::KDTreeData(const char* filename) :
+    _nodeCount(0), _nodes(0), _triangles(0), _triangleCount(0)
+{
+    loadFile(filename);
+}
 
 KDTreeData::KDTreeData(size_t nodeCount, size_t triangleCount) :
-    _nodeCount(nodeCount), _triangleCount(triangleCount)
+    _nodeCount(nodeCount), _nodes(0), _triangles(0), _triangleCount(triangleCount)
 {
     if (nodeCount > MAX_NODES) 
         throw MemoryException("node count exceeds max");
@@ -1008,7 +915,11 @@ class KDTreeCompressor {
         
 };
 
-KDTree::KDTree()
+
+////////// KDTree //////////
+
+KDTree::KDTree(std::auto_ptr<KDTreeData> data) :
+    _data(data)
 {
 
 }
@@ -1072,7 +983,7 @@ TemporaryNode* createNode(SplitList& list, int depth, float cost, SpatialCanvas*
     SplitPlane& split = *std::accumulate(list.begin(), list.end(), *list.begin(), MinCost());
     //cout << "    choose split(" << &split << ") on axis " << axes[split._axis] << " at " << split._position << endl;
 
-    if ((split._cost + 0.00001f >= cost) || (depth > 5)) {
+    if ((split._cost + 0.00001f >= cost) || (depth > 10)) {
         //cout << "cheapest to stop splitting here" << endl;
         cerr << "\033[01;33mTriangles: ";
         TemporaryNode* node = new TemporaryNode;
@@ -1087,11 +998,11 @@ TemporaryNode* createNode(SplitList& list, int depth, float cost, SpatialCanvas*
             }
             node->addTriangle(plane->_tri);
             cerr << "[";
-            const Vector3& v0 = plane->_tri->_v0;
+            const Vector3& v0 = plane->_tri->getV0();
             cerr << "(" << v0.x << ", " << v0.y << ", " << v0.z << "), ";
-            const Vector3& v1 = plane->_tri->_v1;
+            const Vector3& v1 = plane->_tri->getV1();
             cerr << "(" << v1.x << ", " << v1.y << ", " << v1.z << "), ";
-            const Vector3& v2 = plane->_tri->_v2;
+            const Vector3& v2 = plane->_tri->getV2();
             cerr << "(" << v2.x << ", " << v2.y << ", " << v2.z << ")";
             cerr << "]   ";
         }
@@ -1162,7 +1073,8 @@ float randFloat(float min, float max)
 
 void makeRandomTriangles(std::vector<Triangle>& vec, size_t count, const vol::AABB& bounds)
 {
-    srand(time(0));
+    //srand(time(0));
+    srand(1);
 
     const Vector3& min = bounds.getMin();
     const Vector3& max = bounds.getMax();
@@ -1175,12 +1087,33 @@ void makeRandomTriangles(std::vector<Triangle>& vec, size_t count, const vol::AA
     }
 }
 
+void makeTestTriangles(std::vector<Triangle>& vec)
+{
+    vec.push_back(Triangle(
+        Vector3(-3.0f,  0.0f,  0.0f),
+        Vector3( 2.0f,  3.0f,  1.0f),
+        Vector3(-1.0f, -2.0f,  0.0f)));
+    vec.push_back(Triangle(
+        Vector3(-1.0f, -4.0f,  0.0f),
+        Vector3( 2.0f,  1.0f,  0.0f),
+        Vector3( 4.0f, -1.0f,  0.0f)));
+    vec.push_back(Triangle(
+        Vector3( 3.0f,  2.0f,  0.0f),
+        Vector3( 4.0f,  4.0f,  0.0f),
+        Vector3( 4.0f,  1.0f,  0.0f)));
+    vec.push_back(Triangle(
+        Vector3(-3.0f,  0.0f,  0.0f),
+        Vector3(-1.0f, -2.0f,  0.0f),
+        Vector3(-2.0f, -4.0f,  1.0f)));
+}
+
 void createKDTree()
 {
     vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
 
     std::vector<Triangle> triangles;
-    makeRandomTriangles(triangles, 2, bounds);
+    //makeRandomTriangles(triangles, 50, bounds);
+    makeTestTriangles(triangles);
 
     SplitList list;
     foreach (const Triangle& triangle, triangles) 
