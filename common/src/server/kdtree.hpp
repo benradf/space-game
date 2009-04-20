@@ -27,53 +27,6 @@ enum SplitAxis {
 };
 
 
-class TemporaryNode {
-    public:
-        typedef std::vector<const Triangle*> Triangles;
-
-        TemporaryNode();
-        TemporaryNode(TemporaryNode* left, TemporaryNode* right, SplitAxis axis, float position);
-        ~TemporaryNode();
-
-        bool isLeaf() const;
-
-        SplitAxis getAxis() const;
-        float getPosition() const;
-
-        const TemporaryNode& getLeft() const;
-        const TemporaryNode& getRight() const;
-
-        const Triangles& getTriangles() const;
-        void addTriangle(const Triangle* triangle);
-
-        size_t getDescendantCount() const;
-        size_t getTriangleCount() const;
-
-        template<typename T>
-        void accept(T& visitor);
-
-    private:
-        TemporaryNode* _left;
-        TemporaryNode* _right;
-
-        SplitAxis _axis;
-        float _position;
-
-        Triangles* _triangles;
-};
-
-template<typename T>
-inline void TemporaryNode::accept(T& visitor)
-{
-    visitor.visit(*_left);
-    visitor.visit(*_right);
-
-    _left->accept(visitor);
-    _right->accept(visitor);
-
-}
-
-
 struct KDTreeNode {
     union {
         struct {
@@ -91,6 +44,7 @@ struct KDTreeNode {
         unsigned triangles : 32;
     };
 };
+
 
 class KDTreeData {
     public:
@@ -136,7 +90,12 @@ class KDTreeData {
 
 class KDTree {
     public:
+        typedef std::auto_ptr<KDTree> Ptr;
+        typedef std::vector<Triangle> Triangles;
+
         KDTree(std::auto_ptr<KDTreeData> data);
+
+        void save(const char* filename) const;
 
         template<typename T>
         void process(T& visitor, const vol::AABB& aabb) const;
@@ -144,7 +103,8 @@ class KDTree {
         template<typename T>
         void process(T& visitor, const vol::Ray& ray) const;
 
-        static std::auto_ptr<KDTree> load(const char* filename);
+        static Ptr create(const Triangles& triangles, const vol::AABB& bounds);
+        static Ptr load(const char* filename);
 
     private:
         KDTree(const KDTree&);
@@ -160,14 +120,57 @@ class KDTree {
 };
 
 
+////////// KDTreeData //////////
+
+inline KDTreeNode& KDTreeData::getNode(size_t index)
+{
+    assert(index < _nodeCount);
+
+    return _nodes[index];
+}
+
+inline const KDTreeNode& KDTreeData::getNode(size_t index) const
+{
+    assert(index < _nodeCount);
+
+    return _nodes[index];
+}
+
+inline Triangle& KDTreeData::getTriangle(size_t index)
+{
+    assert(index < _triangleCount);
+
+    return _triangles[index];
+}
+
+inline const Triangle& KDTreeData::getTriangle(size_t index) const
+{
+    assert(index < _triangleCount);
+
+    return _triangles[index];
+}
+
+inline size_t KDTreeData::getNodeCount() const
+{
+    return _nodeCount;
+}
+
+inline size_t KDTreeData::getTriangleCount() const
+{
+    return _triangleCount;
+}
+
+
+////////// KDTree //////////
+
 template<typename T>
-void KDTree::process(T& visitor, const vol::AABB& aabb) const
+inline void KDTree::process(T& visitor, const vol::AABB& aabb) const
 {
     process(_data->getNode(0), visitor, aabb);
 }
 
 template<typename T>
-void KDTree::process(T& visitor, const vol::Ray& ray) const
+inline void KDTree::process(T& visitor, const vol::Ray& ray) const
 {
     process(_data->getNode(0), visitor, ray);
 }
@@ -206,35 +209,6 @@ void KDTree::process(const KDTreeNode& node, T& visitor, const vol::Ray& ray)
     // TODO: Implement this.
     assert(false);
 }
-
-
-class SpatialCanvas {
-    public:
-        typedef bmp::Bitmap::Colour Colour;
-
-        enum Axis { X_AXIS, Y_AXIS, Z_AXIS };
-
-        SpatialCanvas(const vol::AABB& bounds, int scale, Axis plane);
-
-        void drawAABB(const vol::AABB& aabb, Colour colour);
-        void drawTriangle(const Triangle& triangle, Colour colour);
-        void drawTriangle(const Triangle& triangle, Colour c0, Colour c1, Colour c2);
-
-        const bmp::Bitmap& getBitmap() const;
-
-    private:
-        struct Point2D { int x, y; };
-
-        Point2D convertCoords(const Vector3& coords);
-
-        Axis _plane;
-        vol::AABB _bounds;
-        float _scale;
-
-        bmp::Bitmap _bitmap;
-        int _width;
-        int _height;
-};
 
 
 #endif  // KDTREE_HPP
