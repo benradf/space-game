@@ -27,6 +27,7 @@ enum SplitAxis {
 
 class Triangle {
     public:
+        Triangle();
         Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2);
 
         vol::AABB determineBounds() const;
@@ -44,31 +45,34 @@ class Triangle {
         Vector3 _v2;
 };
 
-class Node {
+class TemporaryNode {
     public:
         typedef std::vector<const Triangle*> Triangles;
 
-        Node();
-        Node(Node* left, Node* right, SplitAxis axis, float position);
-        ~Node();
+        TemporaryNode();
+        TemporaryNode(TemporaryNode* left, TemporaryNode* right, SplitAxis axis, float position);
+        ~TemporaryNode();
 
         bool isLeaf() const;
 
         SplitAxis getAxis() const;
         float getPosition() const;
 
-        const Node& getLeft() const;
-        const Node& getRight() const;
+        const TemporaryNode& getLeft() const;
+        const TemporaryNode& getRight() const;
 
         const Triangles& getTriangles() const;
         void addTriangle(const Triangle* triangle);
+
+        size_t getDescendantCount() const;
+        size_t getTriangleCount() const;
 
         template<typename T>
         void accept(T& visitor);
 
     private:
-        Node* _left;
-        Node* _right;
+        TemporaryNode* _left;
+        TemporaryNode* _right;
 
         SplitAxis _axis;
         float _position;
@@ -77,7 +81,7 @@ class Node {
 };
 
 template<typename T>
-inline void Node::accept(T& visitor)
+inline void TemporaryNode::accept(T& visitor)
 {
     visitor.visit(*_left);
     visitor.visit(*_right);
@@ -89,23 +93,29 @@ inline void Node::accept(T& visitor)
 
 
 struct KDTreeNode {
-    float splitPosition;
-    unsigned splitAxis : 2;
-    unsigned children : 30;
+    union {
+        struct {
+            unsigned splitAxis : 2;
+            unsigned left : 15;
+            unsigned right : 15;
+        };
+        struct {
+            unsigned : 2;
+            unsigned triangleCount : 30;
+        };
+    };
+    union {
+        float splitPosition;
+        unsigned triangles : 32;
+    };
 };
 
 class KDTree {
     public:
-        KDTree(Node& root);
+        KDTree();
 
     private:
-        KDTreeNode compressNode(const Node* node);
 
-        void reserve(size_t space);
-        KDTreeNode* alloc();
-        KDTreeNode* _data;
-        size_t _space;
-        size_t _index;
 };
 
 

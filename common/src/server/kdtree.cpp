@@ -8,14 +8,18 @@
 
 
 #include "kdtree.hpp"
-#include <assert.h>
-#include <vector>
-#include <numeric>
-#include <algorithm>
-#include <limits>
 #include <core.hpp>
-#include <list>
+#include <assert.h>
 #include <stdlib.h>
+#include <algorithm>
+#include <numeric>
+#include <memory>
+#include <limits>
+#include <vector>
+#include <queue>
+#include <list>
+#include <set>
+#include <tr1/unordered_set>
 
 
 #include <iostream>
@@ -515,163 +519,10 @@ void printSplits(const char* prefix, SplitIter begin, SplitIter end)
     cout << endl;
 }
 
-Node* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvases)[3], const vol::AABB& bounds)
+Triangle::Triangle() :
+    _v0(Vector3::ZERO), _v1(Vector3::ZERO), _v2(Vector3::ZERO)
 {
-//    if (depth == 4) 
-//        return;
 
-    //cout << "create node (depth = " << depth << ", cost = " << cost << ")" << endl;
-
-    foreach (SpatialCanvas* canvas, canvases) 
-        canvas->drawAABB(bounds, bmp::Bitmap::Colour(0, 0, 0, 0));
-
-    cerr << depth << " \033[01;32m(cost: " << cost << ")\033[00m\t";
-    for (int i = 1; i < depth; i++) 
-        cerr << "| ";
-
-    if (list.empty()) {
-        //cout << "    no splits to choose from" << endl;
-        cerr << "\033[01;35msplit list empty\033[00m" << endl;
-        return new Node;
-    }
-
-    char axes[3] = { 'X', 'Y', 'Z' };
-
-    //printSplits("ALL", list.begin(), list.end());
-
-    SplitPlane& split = *std::accumulate(list.begin(), list.end(), *list.begin(), MinCost());
-    //cout << "    choose split(" << &split << ") on axis " << axes[split._axis] << " at " << split._position << endl;
-
-    if (split._cost + 0.00001f >= cost) {
-        //cout << "cheapest to stop splitting here" << endl;
-        cerr << "\033[01;33mTriangles: ";
-        Node* node = new Node;
-        foreach (const SplitPlane* plane, list) {
-            if ((plane->_axis != SPLIT_AXIS_X) || (!plane->_minBound)) 
-                continue;
-            foreach (SpatialCanvas* canvas, canvases) {
-                canvas->drawTriangle(*plane->_tri, 
-                    bmp::Bitmap::Colour(255, 0, 0, 0), 
-                    bmp::Bitmap::Colour(0, 255, 0, 0), 
-                    bmp::Bitmap::Colour(0, 0, 255, 0));
-            }
-            node->addTriangle(plane->_tri);
-            cerr << "[";
-            const Vector3& v0 = plane->_tri->_v0;
-            cerr << "(" << v0.x << ", " << v0.y << ", " << v0.z << "), ";
-            const Vector3& v1 = plane->_tri->_v1;
-            cerr << "(" << v1.x << ", " << v1.y << ", " << v1.z << "), ";
-            const Vector3& v2 = plane->_tri->_v2;
-            cerr << "(" << v2.x << ", " << v2.y << ", " << v2.z << ")";
-            cerr << "]   ";
-        }
-        cerr << "\033[00m" << endl;
-        return node;
-    }
-    split._used = true;
-
-    cerr << "\033[01;31msplit at " << split._position << " on axis " << axes[split._axis];
-    cerr << "\033[00m (cost: " << split._cost << ")" << endl;
-
-    const Vector3& boundsMinL = bounds.getMin();
-    const Vector3& boundsMaxR = bounds.getMax();
-    Vector3 boundsMaxL = boundsMaxR;
-    Vector3 boundsMinR = boundsMinL;
-    switch (split._axis) {
-        case SPLIT_AXIS_X:
-            boundsMaxL.x = split._position;
-            boundsMinR.x = split._position;
-            break;
-        case SPLIT_AXIS_Y:
-            boundsMaxL.y = split._position;
-            boundsMinR.y = split._position;
-            break;
-        case SPLIT_AXIS_Z:
-            boundsMaxL.z = split._position;
-            boundsMinR.z = split._position;
-            break;
-    }
-
-    float splitPos = split._position;
-    SplitAxis splitAxis = split._axis;
-
-    float costL = split._costL;
-    float costR = split._costR;
-    SplitIter beginBoth = std::stable_partition(list.begin(), list.end(), OnSide(split, SplitPlane::LEFT));
-    SplitIter endBoth = std::stable_partition(beginBoth, list.end(), OnSide(split, SplitPlane::BOTH));
-
-    UpdateCosts updaterL = UpdateCosts::makeL(split);
-    UpdateCosts updaterR = UpdateCosts::makeR(split);
-    std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, beginBoth));
-    SplitList listL;
-    listL.splice(listL.begin(), list, list.begin(), beginBoth);
-    listL.sort(LessThanPtrs());
-
-    SplitList listR;
-    listR.splice(listR.begin(), list, beginBoth, list.end());
-    listR.sort(LessThanPtrs());
-    std::for_each(listL.begin(), listL.end(), updaterL);
-    std::for_each(listR.begin(), listR.end(), updaterR);
-
-    Node* leftNode = createNode(listL, depth + 1, costL, canvases, vol::AABB(boundsMinL, boundsMaxL));
-    Node* rightNode = createNode(listR, depth + 1, costR, canvases, vol::AABB(boundsMinR, boundsMaxR));
-
-    return new Node(leftNode, rightNode, splitAxis, splitPos);
-}
-
-#include <iostream>
-using namespace std;
-
-float randFloat(float min, float max)
-{
-    float val = (float(rand()) * (max - min) / float(RAND_MAX) + min);
-    assert(val >= min);
-    assert(val <= max);
-    return val;
-}
-
-void makeRandomTriangles(std::vector<Triangle>& vec, size_t count, const vol::AABB& bounds)
-{
-    srand(time(0));
-
-    const Vector3& min = bounds.getMin();
-    const Vector3& max = bounds.getMax();
-
-    for (size_t i = 0; i < count; i++) {
-        Vector3 v0(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
-        Vector3 v1(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
-        Vector3 v2(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
-        vec.push_back(Triangle(v0, v1, v2));
-    }
-}
-
-void createKDTree()
-{
-    vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
-
-    std::vector<Triangle> triangles;
-    makeRandomTriangles(triangles, 20, bounds);
-
-    SplitList list;
-    foreach (const Triangle& triangle, triangles) 
-        SplitPlane::createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
-
-    list.sort(LessThanPtrs());
-
-    std::for_each(list.begin(), list.end(), UpdateCosts(triangles.size()));
-
-    SpatialCanvas canvasX(bounds, 50, SpatialCanvas::X_AXIS);
-    SpatialCanvas canvasY(bounds, 50, SpatialCanvas::Y_AXIS);
-    SpatialCanvas canvasZ(bounds, 50, SpatialCanvas::Z_AXIS);
-
-    SpatialCanvas* canvases[3] = { &canvasX, &canvasY, &canvasZ };
-
-    // TODO: Not leak memory :)
-    Node* root = createNode(list, 1, 100.0f, canvases, bounds);
-
-    canvasX.getBitmap().saveFile("kdtree_x.bmp");
-    canvasY.getBitmap().saveFile("kdtree_y.bmp");
-    canvasZ.getBitmap().saveFile("kdtree_z.bmp");
 }
 
 Triangle::Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2) :
@@ -727,62 +578,78 @@ const Vector3& Triangle::getV2() const
     return _v2;
 }
 
-Node::Node() :
+TemporaryNode::TemporaryNode() :
     _left(0), _right(0), _triangles(new Triangles)
 {
 
 }
 
-Node::Node(Node* left, Node* right, SplitAxis axis, float position) :
+TemporaryNode::TemporaryNode(TemporaryNode* left, TemporaryNode* right, SplitAxis axis, float position) :
     _left(left), _right(right), _axis(axis), _position(position), _triangles(0)
 {
 
 }
 
-Node::~Node()
+TemporaryNode::~TemporaryNode()
 {
     delete _left;
     delete _right;
     delete _triangles;
 }
 
-bool Node::isLeaf() const
+bool TemporaryNode::isLeaf() const
 {
     return (_triangles != 0);
 }
 
-SplitAxis Node::getAxis() const
+SplitAxis TemporaryNode::getAxis() const
 {
     return _axis;
 }
 
-float Node::getPosition() const
+float TemporaryNode::getPosition() const
 {
     return _position;
 }
 
-const Node& Node::getLeft() const
+const TemporaryNode& TemporaryNode::getLeft() const
 {
     assert(!isLeaf());
 
     return *_left;
 }
 
-const Node& Node::getRight() const
+const TemporaryNode& TemporaryNode::getRight() const
 {
     assert(!isLeaf());
 
     return *_right;
 }
 
-const Node::Triangles& Node::getTriangles() const
+const TemporaryNode::Triangles& TemporaryNode::getTriangles() const
 {
     return *_triangles;
 }
 
-void Node::addTriangle(const Triangle* triangle)
+void TemporaryNode::addTriangle(const Triangle* triangle)
 {
     _triangles->push_back(triangle);
+}
+
+size_t TemporaryNode::getDescendantCount() const
+{
+    if (!isLeaf()) 
+        return (_left->getDescendantCount() + _right->getDescendantCount() + 2);
+
+    return 0;
+}
+
+size_t TemporaryNode::getTriangleCount() const
+{
+    if (!isLeaf()) 
+        return (_left->getTriangleCount() + _right->getTriangleCount());
+
+    return _triangles->size();
 }
 
 
@@ -874,68 +741,475 @@ SpatialCanvas::Point2D SpatialCanvas::convertCoords(const Vector3& coords)
 
 class KDTreeData {
     public:
-        KDTreeData(size_t nodeCount);
+        enum Validity {
+            VALID,
+            INVALID_STRUCTURE,
+            INVALID_INDEX,
+            UNREACHABLE_NODES
+        };
+
+        KDTreeData(size_t nodeCount, size_t triangleCount);
         ~KDTreeData();
 
+        size_t getNodeCount() const;
+        size_t getTriangleCount() const;
+
         KDTreeNode& getNode(size_t index);
+        const KDTreeNode& getNode(size_t index) const;
+
+        Triangle& getTriangle(size_t index);
+        const Triangle& getTriangle(size_t index) const;
+
+        void saveFile(const char* filename) const;
+        void loadFile(const char* filename);
+
+        Validity checkValidity() const;
 
     private:
         KDTreeData(const KDTreeData&);
         KDTreeData& operator=(const KDTreeData&);
 
+        static const int MAX_NODES = 1 << 15;
+        static const int MAX_TRIANGLES = 1 << 30;
+
         KDTreeNode* _nodes;
         size_t _nodeCount;
+
+        Triangle* _triangles;
+        size_t _triangleCount;
 };
+
+KDTreeData::KDTreeData(size_t nodeCount, size_t triangleCount) :
+    _nodeCount(nodeCount), _triangleCount(triangleCount)
+{
+    if (nodeCount > MAX_NODES) 
+        throw MemoryException("node count exceeds max");
+
+    if (triangleCount > MAX_TRIANGLES) 
+        throw MemoryException("triangle count exceeds max");
+
+    _nodes = new KDTreeNode[nodeCount];
+
+    try {
+        _triangles = new Triangle[triangleCount];
+    } catch (...) {
+        delete[] _nodes;
+        throw;
+    }
+}
+
+KDTreeData::~KDTreeData()
+{
+    delete[] _nodes;
+    delete[] _triangles;
+}
+
+KDTreeNode& KDTreeData::getNode(size_t index)
+{
+    assert(index < _nodeCount);
+
+    return _nodes[index];
+}
+
+const KDTreeNode& KDTreeData::getNode(size_t index) const
+{
+    assert(index < _nodeCount);
+
+    return _nodes[index];
+}
+
+Triangle& KDTreeData::getTriangle(size_t index)
+{
+    assert(index < _triangleCount);
+
+    return _triangles[index];
+}
+
+const Triangle& KDTreeData::getTriangle(size_t index) const
+{
+    assert(index < _triangleCount);
+
+    return _triangles[index];
+}
+
+size_t KDTreeData::getNodeCount() const
+{
+    return _nodeCount;
+}
+
+size_t KDTreeData::getTriangleCount() const
+{
+    return _triangleCount;
+}
+
+struct KDTreeFileHeader {
+    uint16_t magic;
+    uint32_t fileSize;
+    uint32_t nodeCount;
+    uint32_t triangleCount;
+    uint32_t nodeOffset;
+    uint32_t triangleOffset;
+};
+
+void KDTreeData::saveFile(const char* filename) const
+{
+    assert(checkValidity() == KDTreeData::VALID);
+
+    std::ofstream file(filename, std::ios::binary);
+
+    if (!file.is_open()) 
+        throw FileException(std::string("unable to save to ") + filename);
+
+    size_t nodeSpace = sizeof(KDTreeNode) * _nodeCount;
+    size_t triangleSpace = sizeof(Triangle) * _triangleCount;
+
+    KDTreeFileHeader fileHeader;
+    fileHeader.magic = 0x444b;
+    fileHeader.fileSize = sizeof(fileHeader) + nodeSpace + triangleSpace;
+    fileHeader.nodeCount = _nodeCount;
+    fileHeader.triangleCount = _triangleCount;
+    fileHeader.nodeOffset = sizeof(fileHeader);
+    fileHeader.triangleOffset = fileHeader.nodeOffset + nodeSpace;
+
+    file.write(reinterpret_cast<char*>(&fileHeader), sizeof(fileHeader));
+    file.write(reinterpret_cast<char*>(_nodes), nodeSpace);
+    file.write(reinterpret_cast<char*>(_triangles), triangleSpace);
+
+    file.close();
+}
+
+void KDTreeData::loadFile(const char* filename)
+{
+    std::ifstream file(filename, std::ios::binary);
+
+    if (!file.is_open()) 
+        throw FileException(std::string("unable to load from ") + filename);
+
+    KDTreeFileHeader fileHeader;
+    file.read(reinterpret_cast<char*>(&fileHeader), sizeof(fileHeader));
+    KDTreeData newData(fileHeader.nodeCount, fileHeader.triangleCount);
+
+    size_t nodeSpace = sizeof(KDTreeNode) * newData._nodeCount;
+    size_t triangleSpace = sizeof(Triangle) * newData._triangleCount;
+
+    file.read(reinterpret_cast<char*>(newData._nodes), nodeSpace);
+    file.read(reinterpret_cast<char*>(newData._triangles), triangleSpace);
+
+    if (newData.checkValidity() != KDTreeData::VALID) 
+        throw FileException(std::string("invalid kdtree data in ") + filename);
+
+    std::swap(_nodeCount, newData._nodeCount);
+    std::swap(_nodes, newData._nodes);
+    std::swap(_triangleCount, newData._triangleCount);
+    std::swap(_triangles, newData._triangles);
+}
+
+KDTreeData::Validity KDTreeData::checkValidity() const
+{
+    size_t nodeCount = getNodeCount();
+    size_t triangleCount = getTriangleCount();
+
+    std::tr1::unordered_set<size_t> visited;
+
+    for (size_t i = 0; i < nodeCount; i++) {
+        visited.insert(i);
+        const KDTreeNode& node = getNode(i);
+        if (node.splitAxis == SPLIT_LEAF) {
+            if (node.triangles + node.triangleCount > triangleCount) {
+                assert(false);
+                return INVALID_INDEX;
+            }
+        } else {
+            if (node.left >= nodeCount) {
+                assert(false);
+                return INVALID_INDEX;
+            }
+            if (node.right >= nodeCount) {
+                assert(false);
+                return INVALID_INDEX;
+            }
+            if (visited.find(node.left) != visited.end())
+                return INVALID_STRUCTURE;
+            if (visited.find(node.right) != visited.end())
+                return INVALID_STRUCTURE;
+        }
+    }
+
+    if (visited.size() < nodeCount) 
+        return UNREACHABLE_NODES;
+
+    return VALID;
+}
 
 class KDTreeConstructor {
     public:
         KDTreeConstructor(const std::vector<Triangle>& triangles);
 
+        std::auto_ptr<const TemporaryNode> getRoot() const;
+
     private:
 };
+
+std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
+{
+    size_t nodeCount = root.getDescendantCount() + 1;
+    size_t triangleCount = root.getTriangleCount();
+
+    std::auto_ptr<KDTreeData> data(new KDTreeData(nodeCount, triangleCount));
+
+    size_t nextNode = 0;
+    size_t nextChild = 1;
+    size_t nextTriangle = 0;
+
+    std::queue<const TemporaryNode*> edge;
+    edge.push(&root);
+
+    while (!edge.empty()) {
+        const TemporaryNode& temporaryNode = *edge.front();
+        KDTreeNode& compressedNode = data->getNode(nextNode++);
+
+        if (temporaryNode.isLeaf()) {
+            compressedNode.splitAxis = SPLIT_LEAF;
+            compressedNode.triangles = nextTriangle;
+            compressedNode.triangleCount = 0;
+
+            foreach (const Triangle* triangle, temporaryNode.getTriangles()) {
+                data->getTriangle(nextTriangle++) = *triangle;
+                compressedNode.triangleCount++;
+            }
+
+        } else {
+            compressedNode.splitAxis = temporaryNode.getAxis();
+            compressedNode.splitPosition = temporaryNode.getPosition();
+            compressedNode.left = nextChild++;
+            compressedNode.right = nextChild++;
+
+            edge.push(&temporaryNode.getLeft());
+            edge.push(&temporaryNode.getRight());
+        }
+
+        edge.pop();
+    }
+
+    assert(nextNode == nodeCount);
+    assert(nextChild == nodeCount);
+    assert(nextTriangle == triangleCount);
+
+    return data;
+}
 
 class KDTreeCompressor {
     public:
         KDTreeCompressor(const TemporaryNode& root);
 
+        std::auto_ptr<const KDTreeData> getData() const;
+
+    private:
+        
 };
 
-KDTree::KDTree() :
-    _data(0), _space(0), _index(0)
+KDTree::KDTree()
 {
 
 }
 
-struct CountNodes {
-    CountNode() : count(0) {}
-    void visit(const Node&) { count++; }
-    unsigned int count;
-};
 
-void KDTree::reserve(size_t space)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TemporaryNode* createNode(SplitList& list, int depth, float cost, SpatialCanvas* (&canvases)[3], const vol::AABB& bounds)
 {
-    if (space <= _space) 
-        return;
+//    if (depth == 4) 
+//        return;
 
-    KDTreeNode* data = new KDTreeNode[nodes];
+    //cout << "create node (depth = " << depth << ", cost = " << cost << ")" << endl;
 
-    for (int i = 0; i < _space; i++) 
-        data[i] = _data[i];
+    foreach (SpatialCanvas* canvas, canvases) 
+        canvas->drawAABB(bounds, bmp::Bitmap::Colour(0, 0, 0, 0));
+
+    cerr << depth << " \033[01;32m(cost: " << cost << ")\033[00m\t";
+    for (int i = 1; i < depth; i++) 
+        cerr << "| ";
+
+    if (list.empty()) {
+        //cout << "    no splits to choose from" << endl;
+        cerr << "\033[01;35msplit list empty\033[00m" << endl;
+        return new TemporaryNode;
+    }
+
+    char axes[3] = { 'X', 'Y', 'Z' };
+
+    //printSplits("ALL", list.begin(), list.end());
+
+    SplitPlane& split = *std::accumulate(list.begin(), list.end(), *list.begin(), MinCost());
+    //cout << "    choose split(" << &split << ") on axis " << axes[split._axis] << " at " << split._position << endl;
+
+    if ((split._cost + 0.00001f >= cost) || (depth > 5)) {
+        //cout << "cheapest to stop splitting here" << endl;
+        cerr << "\033[01;33mTriangles: ";
+        TemporaryNode* node = new TemporaryNode;
+        foreach (const SplitPlane* plane, list) {
+            if ((plane->_axis != SPLIT_AXIS_X) || (!plane->_minBound)) 
+                continue;
+            foreach (SpatialCanvas* canvas, canvases) {
+                canvas->drawTriangle(*plane->_tri, 
+                    bmp::Bitmap::Colour(255, 0, 0, 0), 
+                    bmp::Bitmap::Colour(0, 255, 0, 0), 
+                    bmp::Bitmap::Colour(0, 0, 255, 0));
+            }
+            node->addTriangle(plane->_tri);
+            cerr << "[";
+            const Vector3& v0 = plane->_tri->_v0;
+            cerr << "(" << v0.x << ", " << v0.y << ", " << v0.z << "), ";
+            const Vector3& v1 = plane->_tri->_v1;
+            cerr << "(" << v1.x << ", " << v1.y << ", " << v1.z << "), ";
+            const Vector3& v2 = plane->_tri->_v2;
+            cerr << "(" << v2.x << ", " << v2.y << ", " << v2.z << ")";
+            cerr << "]   ";
+        }
+        cerr << "\033[00m" << endl;
+        return node;
+    }
+    split._used = true;
+
+    cerr << "\033[01;31msplit at " << split._position << " on axis " << axes[split._axis];
+    cerr << "\033[00m (cost: " << split._cost << ")" << endl;
+
+    const Vector3& boundsMinL = bounds.getMin();
+    const Vector3& boundsMaxR = bounds.getMax();
+    Vector3 boundsMaxL = boundsMaxR;
+    Vector3 boundsMinR = boundsMinL;
+    switch (split._axis) {
+        case SPLIT_AXIS_X:
+            boundsMaxL.x = split._position;
+            boundsMinR.x = split._position;
+            break;
+        case SPLIT_AXIS_Y:
+            boundsMaxL.y = split._position;
+            boundsMinR.y = split._position;
+            break;
+        case SPLIT_AXIS_Z:
+            boundsMaxL.z = split._position;
+            boundsMinR.z = split._position;
+            break;
+    }
+
+    float splitPos = split._position;
+    SplitAxis splitAxis = split._axis;
+
+    float costL = split._costL;
+    float costR = split._costR;
+    SplitIter beginBoth = std::stable_partition(list.begin(), list.end(), OnSide(split, SplitPlane::LEFT));
+    SplitIter endBoth = std::stable_partition(beginBoth, list.end(), OnSide(split, SplitPlane::BOTH));
+
+    UpdateCosts updaterL = UpdateCosts::makeL(split);
+    UpdateCosts updaterR = UpdateCosts::makeR(split);
+    std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, beginBoth));
+    SplitList listL;
+    listL.splice(listL.begin(), list, list.begin(), beginBoth);
+    listL.sort(LessThanPtrs());
+
+    SplitList listR;
+    listR.splice(listR.begin(), list, beginBoth, list.end());
+    listR.sort(LessThanPtrs());
+    std::for_each(listL.begin(), listL.end(), updaterL);
+    std::for_each(listR.begin(), listR.end(), updaterR);
+
+    TemporaryNode* leftNode = createNode(listL, depth + 1, costL, canvases, vol::AABB(boundsMinL, boundsMaxL));
+    TemporaryNode* rightNode = createNode(listR, depth + 1, costR, canvases, vol::AABB(boundsMinR, boundsMaxR));
+
+    return new TemporaryNode(leftNode, rightNode, splitAxis, splitPos);
 }
 
-KDTreeNode* KDTree::alloc()
-{
-    assert(_index < _space);
+#include <iostream>
+using namespace std;
 
-    return _data[_index++];
+float randFloat(float min, float max)
+{
+    float val = (float(rand()) * (max - min) / float(RAND_MAX) + min);
+    assert(val >= min);
+    assert(val <= max);
+    return val;
 }
 
+void makeRandomTriangles(std::vector<Triangle>& vec, size_t count, const vol::AABB& bounds)
+{
+    srand(time(0));
 
+    const Vector3& min = bounds.getMin();
+    const Vector3& max = bounds.getMax();
 
+    for (size_t i = 0; i < count; i++) {
+        Vector3 v0(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
+        Vector3 v1(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
+        Vector3 v2(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
+        vec.push_back(Triangle(v0, v1, v2));
+    }
+}
 
+void createKDTree()
+{
+    vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
 
+    std::vector<Triangle> triangles;
+    makeRandomTriangles(triangles, 2, bounds);
 
+    SplitList list;
+    foreach (const Triangle& triangle, triangles) 
+        SplitPlane::createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
 
+    list.sort(LessThanPtrs());
 
+    std::for_each(list.begin(), list.end(), UpdateCosts(triangles.size()));
 
+    SpatialCanvas canvasX(bounds, 50, SpatialCanvas::X_AXIS);
+    SpatialCanvas canvasY(bounds, 50, SpatialCanvas::Y_AXIS);
+    SpatialCanvas canvasZ(bounds, 50, SpatialCanvas::Z_AXIS);
+
+    SpatialCanvas* canvases[3] = { &canvasX, &canvasY, &canvasZ };
+
+    // TODO: Not leak memory :)
+    TemporaryNode* root = createNode(list, 1, 100.0f, canvases, bounds);
+
+    canvasX.getBitmap().saveFile("kdtree_x.bmp");
+    canvasY.getBitmap().saveFile("kdtree_y.bmp");
+    canvasZ.getBitmap().saveFile("kdtree_z.bmp");
+
+    std::auto_ptr<const KDTreeData> data(compressKDTree(*root));
+    data->saveFile("kdtree.dat");
+
+    KDTreeData tempData(1, 1);
+    tempData.loadFile("kdtree.dat");
+    tempData.saveFile("kdtree2.dat");
+
+    delete root;
+}
 
