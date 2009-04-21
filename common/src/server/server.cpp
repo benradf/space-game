@@ -81,8 +81,14 @@ void serverMain()
     catchSignals(false);
 }
 
+extern void testKDTree();
+
 int main(int argc, char* argv[])
 {
+    testKDTree();
+
+    return 0;
+
     // Initialise logging.
     Log::Console consoleLog;
     Log::File fileLog("server.log");
@@ -172,17 +178,21 @@ void checkIntersection(KDTree::Ptr& tree, const vol::AABB& bounds)
         Vector3(2.5f, -1.0f, -5.0f),
         Vector3(4.5f, 3.0f, 5.0f));
 
-    SpatialCanvas canvasX(bounds, 50, SpatialCanvas::X_AXIS);
-    SpatialCanvas canvasY(bounds, 50, SpatialCanvas::Y_AXIS);
-    SpatialCanvas canvasZ(bounds, 50, SpatialCanvas::Z_AXIS);
+    SpatialCanvas canvasX(bounds, 5, SpatialCanvas::X_AXIS);
+    SpatialCanvas canvasY(bounds, 5, SpatialCanvas::Y_AXIS);
+    SpatialCanvas canvasZ(bounds, 5, SpatialCanvas::Z_AXIS);
 
     DrawTriangles drawTrianglesX(canvasX);
     DrawTriangles drawTrianglesY(canvasY);
     DrawTriangles drawTrianglesZ(canvasZ);
 
+    Timer timer;
+    timer.reset();
     tree->process(drawTrianglesX, intersection);
-    tree->process(drawTrianglesY, intersection);
-    tree->process(drawTrianglesZ, intersection);
+    uint64_t elapsed = timer.elapsed();
+    cout << "elapsed = " << elapsed << "us" << endl;
+    tree->process(drawTrianglesY, bounds);
+    tree->process(drawTrianglesZ, bounds);
 
     canvasX.getBitmap().saveFile("kdtree_x.bmp");
     canvasY.getBitmap().saveFile("kdtree_y.bmp");
@@ -199,6 +209,13 @@ void createKDTree()
     KDTree::Ptr tree(KDTree::create(triangles, bounds));
     tree->save("kdtree.dat");
 
+    checkIntersection(tree, bounds);
+}
+
+void testKDTree()
+{
+    vol::AABB bounds(Vector3(-100.0f, -100.0f, -100.0f), Vector3(100.0f, 100.0f, 100.0f));
+    KDTree::Ptr tree(KDTree::load("/tmp/collision.dat"));
     checkIntersection(tree, bounds);
 }
 
