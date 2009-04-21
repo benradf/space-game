@@ -113,10 +113,10 @@ class KDTree {
         KDTree& operator=(const KDTree&);
 
         template<typename T>
-        void process(const KDTreeNode& node, T& visitor, const vol::AABB& aabb);
+        void process(const KDTreeNode& node, T& visitor, const vol::AABB& aabb) const;
 
         template<typename T>
-        void process(const KDTreeNode& node, T& visitor, const vol::Ray& ray);
+        void process(const KDTreeNode& node, T& visitor, const vol::Ray& ray) const;
 
         std::auto_ptr<KDTreeData> _data;
 };
@@ -178,7 +178,7 @@ inline void KDTree::process(T& visitor, const vol::Ray& ray) const
 }
 
 template<typename T>
-void KDTree::process(const KDTreeNode& node, T& visitor, const vol::AABB& aabb)
+void KDTree::process(const KDTreeNode& node, T& visitor, const vol::AABB& aabb) const
 {
     if (node.splitAxis == SPLIT_LEAF) {
         for (size_t i = 0; i < node.triangleCount; i++) 
@@ -206,7 +206,7 @@ void KDTree::process(const KDTreeNode& node, T& visitor, const vol::AABB& aabb)
 }
 
 template<typename T>
-void KDTree::process(const KDTreeNode& node, T& visitor, const vol::Ray& ray)
+void KDTree::process(const KDTreeNode& node, T& visitor, const vol::Ray& ray) const
 {
     // TODO: Implement this.
     assert(false);

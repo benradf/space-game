@@ -1100,6 +1100,40 @@ void makeTestTriangles(std::vector<Triangle>& vec)
         Vector3(-2.0f, -4.0f,  1.0f)));
 }
 
+struct DrawTriangles {
+    DrawTriangles(SpatialCanvas& canvas) : _canvas(canvas) {}
+    void operator()(const Triangle& triangle) {
+        _canvas.drawTriangle(triangle,
+            SpatialCanvas::Colour(255, 0, 0, 0),
+            SpatialCanvas::Colour(0, 255, 0, 0),
+            SpatialCanvas::Colour(0, 0, 255, 0));
+    }
+    SpatialCanvas& _canvas;
+};
+
+void checkIntersection(KDTree::Ptr& tree, const vol::AABB& bounds)
+{
+    vol::AABB intersection(
+        Vector3(2.5f, -1.0f, -5.0f),
+        Vector3(4.5f, 3.0f, 5.0f));
+
+    SpatialCanvas canvasX(bounds, 50, SpatialCanvas::X_AXIS);
+    SpatialCanvas canvasY(bounds, 50, SpatialCanvas::Y_AXIS);
+    SpatialCanvas canvasZ(bounds, 50, SpatialCanvas::Z_AXIS);
+
+    DrawTriangles drawTrianglesX(canvasX);
+    DrawTriangles drawTrianglesY(canvasY);
+    DrawTriangles drawTrianglesZ(canvasZ);
+
+    tree->process(drawTrianglesX, intersection);
+    tree->process(drawTrianglesY, intersection);
+    tree->process(drawTrianglesZ, intersection);
+
+    canvasX.getBitmap().saveFile("kdtree_x.bmp");
+    canvasY.getBitmap().saveFile("kdtree_y.bmp");
+    canvasZ.getBitmap().saveFile("kdtree_z.bmp");
+}
+
 void createKDTree()
 {
     std::vector<Triangle> triangles;
@@ -1109,5 +1143,7 @@ void createKDTree()
 
     KDTree::Ptr tree(KDTree::create(triangles, bounds));
     tree->save("kdtree.dat");
+
+    checkIntersection(tree, bounds);
 }
 
