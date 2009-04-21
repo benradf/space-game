@@ -87,7 +87,7 @@ $(1)-$(2)-extract:
 $(1)-$(2)-build:
 	@echo -e "\033[01;31m$$@\033[00m"; mkdir -p $(2)/tmp/$(1) && \
 	cd common/src/$(1) && ../../../scripts/gen-make.sh \
-		-i "$(PWD)/$(2)/include" -j "$(PWD)/$(2)/lib" \
+		-i "$(PWD)/$(2)/include ../" -j "$(PWD)/$(2)/lib" \
 		-l "`sed -n s/$2\://p .linklibs 2>/dev/null`" \
 		-n "`sed -n s/$2\://p .linkname 2>/dev/null`" \
 		-f "`sed -n s/$2\://p .cxxflags 2>/dev/null`" \

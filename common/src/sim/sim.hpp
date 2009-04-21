@@ -13,7 +13,7 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <vecmath.hpp>
+#include <core/vecmath.hpp>
 
 
 namespace sim {

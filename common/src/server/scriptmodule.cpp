@@ -1,4 +1,4 @@
-#include <core.hpp>
+#include <core/core.hpp>
 #include "scriptmodule.hpp"
 #include "settings.hpp"
 #include "network.hpp"

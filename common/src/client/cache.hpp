@@ -11,8 +11,8 @@
 #define CACHE_HPP
 
 
-#include <net.hpp>
-#include <object.hpp>
+#include <net/net.hpp>
+#include <sim/object.hpp>
 #include <tr1/unordered_map>
 #include "visobject.hpp"
 #include "input.hpp"

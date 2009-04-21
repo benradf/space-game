@@ -11,7 +11,7 @@
 #define NETWORK_HPP
 
 
-#include <net.hpp>
+#include <net/net.hpp>
 #include "cache.hpp"
 #include "input.hpp"
 

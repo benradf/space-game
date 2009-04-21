@@ -12,10 +12,10 @@
 
 
 #include <OIS/OIS.h>
-#include <vecmath.hpp>
+#include <core/vecmath.hpp>
 #include <tr1/unordered_map>
 #include "graphics.hpp"
-#include <object.hpp>
+#include <sim/object.hpp>
 
 
 class RemoteController {

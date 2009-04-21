@@ -9,7 +9,7 @@
 
 #include "network.hpp"
 #include "messages.hpp"
-#include <core.hpp>
+#include <core/core.hpp>
 #include <memory>
 
 

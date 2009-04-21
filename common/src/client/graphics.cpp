@@ -8,7 +8,7 @@
 
 
 #include "graphics.hpp"
-#include <core.hpp>
+#include <core/core.hpp>
 
 
 ////////// Entity //////////

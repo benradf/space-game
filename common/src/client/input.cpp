@@ -8,9 +8,9 @@
 
 
 #include "input.hpp"
-#include <core.hpp>
+#include <core/core.hpp>
 #include <sstream>
-#include <object.hpp>
+#include <sim/object.hpp>
 
 
 using namespace sim;

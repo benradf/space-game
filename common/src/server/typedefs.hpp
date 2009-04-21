@@ -4,9 +4,9 @@
 
 #include <string>
 #include <stdint.h>
-#include <net.hpp>
-#include <vecmath.hpp>
-#include <object.hpp>
+#include <net/net.hpp>
+#include <core/vecmath.hpp>
+#include <sim/object.hpp>
 
 
 using net::PeerID;

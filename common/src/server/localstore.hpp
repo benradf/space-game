@@ -13,7 +13,7 @@
 
 
 #include <memory>
-#include <core.hpp>
+#include <core/core.hpp>
 #include "lock.hpp"
 #include "autolock.hpp"
 

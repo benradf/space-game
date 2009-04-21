@@ -8,7 +8,7 @@
 
 
 #include <assert.h>
-#include <core.hpp>
+#include <core/core.hpp>
 #include "postoffice.hpp"
 
 

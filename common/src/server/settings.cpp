@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <argtable2.h>
-#include <core.hpp>
+#include <core/core.hpp>
 #include "settings.hpp"
 
 

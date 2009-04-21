@@ -7,7 +7,7 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include "concurrency.hpp"
-#include <core.hpp>
+#include <core/core.hpp>
 #include "settings.hpp"
 #include "scriptmodule.hpp"
 #include "postoffice.hpp"

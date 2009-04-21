@@ -8,7 +8,7 @@
 
 
 #include "cache.hpp"
-#include <core.hpp>
+#include <core/core.hpp>
 
 
 using namespace sim;

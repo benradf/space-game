@@ -13,14 +13,14 @@
 #include <iostream>
 #include <vector>
 #include <boost/shared_ptr.hpp>
-#include <core.hpp>
-#include <timer.hpp>
+#include <core/core.hpp>
+#include <core/timer.hpp>
 #include "network.hpp"
 #include "graphics.hpp"
 #include "input.hpp"
-#include <sim.hpp>
+#include <sim/sim.hpp>
 #include <stdio.h>
-#include <object.hpp>
+#include <sim/object.hpp>
 
 
 using namespace std;

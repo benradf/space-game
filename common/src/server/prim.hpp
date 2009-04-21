@@ -12,7 +12,7 @@
 
 
 #include "volumes.hpp"
-#include <vecmath.hpp>
+#include <core/vecmath.hpp>
 #include <assert.h>
 
 

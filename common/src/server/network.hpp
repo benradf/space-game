@@ -11,7 +11,7 @@
 #define NETWORK_HPP
 
 
-#include <net.hpp>
+#include <net/net.hpp>
 #include <tr1/unordered_map>
 #include "msgjob.hpp"
 

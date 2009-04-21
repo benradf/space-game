@@ -11,7 +11,7 @@
 #define VOLUMES_HPP
 
 
-#include <vecmath.hpp>
+#include <core/vecmath.hpp>
 
 
 namespace vol {

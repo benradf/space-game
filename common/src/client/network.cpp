@@ -8,7 +8,7 @@
 
 
 #include "network.hpp"
-#include <core.hpp>
+#include <core/core.hpp>
 #include <iostream>
 
 

@@ -11,9 +11,9 @@
 #define OBJECT_HPP
 
 
-#include <sim.hpp>
+#include <sim/sim.hpp>
 #include <stdint.h>
-#include <timer.hpp>
+#include <core/timer.hpp>
 
 
 namespace sim {

@@ -13,7 +13,7 @@
 
 #include <memory.h>
 #include <assert.h>
-#include <luautil.hpp>
+#include <script/luautil.hpp>
 
 
 // cout << "vptr = " << (*(void**)this) << "    " << this << "::" << __FUNCTION__ << ":" << __LINE__ << endl;

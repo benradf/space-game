@@ -9,8 +9,8 @@
 
 #include "sim.hpp"
 #include <unistd.h>
-#include <timer.hpp>
-#include <core.hpp>
+#include <core/timer.hpp>
+#include <core/core.hpp>
 
 
 ////////// sim::Object //////////

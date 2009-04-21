@@ -11,8 +11,8 @@ extern "C" {
 #include "concurrency.hpp"
 #include "autolock.hpp"
 #include "luarpc.hpp"
-#include <core.hpp>
-#include <script.hpp>
+#include <core/core.hpp>
+#include <script/script.hpp>
 #include <string>
 #include <assert.h>
 #include <tr1/unordered_map>

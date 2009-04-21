@@ -11,7 +11,7 @@
 #define QUADTREE_HPP
 
 
-#include <foreach.hpp>
+#include <core/foreach.hpp>
 #include "volumes.hpp"
 
 

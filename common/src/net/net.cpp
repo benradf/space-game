@@ -8,7 +8,7 @@
 
 
 #include "net.hpp"
-#include <core.hpp>
+#include <core/core.hpp>
 #include <assert.h>
 #include <enet/enet.h>
 

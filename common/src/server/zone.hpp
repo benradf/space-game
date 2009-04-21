@@ -11,14 +11,14 @@
 #define ZONE_HPP
 
 
-#include <sim.hpp>
-#include <timer.hpp>
-#include <foreach.hpp>
+#include <sim/sim.hpp>
+#include <core/timer.hpp>
+#include <core/foreach.hpp>
 #include "msgjob.hpp"
 #include "quadtree.hpp"
 #include "typedefs.hpp"
 #include <tr1/unordered_map>
-#include <object.hpp>
+#include <sim/object.hpp>
 
 
 typedef uint32_t ZoneID;
