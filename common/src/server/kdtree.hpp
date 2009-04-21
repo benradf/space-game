@@ -90,6 +90,8 @@ class KDTreeData {
 
 class KDTree {
     public:
+        static const int MAX_DEPTH = 16;
+
         typedef std::auto_ptr<KDTree> Ptr;
         typedef std::vector<Triangle> Triangles;
 
