@@ -64,7 +64,19 @@ echo 'CFLAGS:=$(CFLAGS) '"$flags $incpath"
 echo 'CXXFLAGS:=$(CXXFLAGS) '"$flags $incpath"
 echo 'LDFLAGS:=$(LDFLAGS) '"$libpath"
 echo 'RANLIB?=ranlib'
-echo
+
+# Generate library dependencies.
+echo -n 'LIBDEPS='
+searchpaths=`echo $libpath | sed 's/\\\//g' | sed 's/-L//g' | tr -d '\n'`
+for lib in $libs; do
+    libname=`echo $lib | sed 's/-l\(.*\)/lib\1.a/'`
+    for path in $searchpaths; do
+        if [ -f $path/$libname ]; then
+            echo -e -n ' \\\n\t'"$path/$libname"
+        fi
+    done
+done
+echo -e '\n'
 
 # Generate all target.
 if [ $islibs ] || [ $islibd ]; then
@@ -83,35 +95,36 @@ echo
 echo '# Install link target and headers.'
 if [ $islibs ] || [ $islibd ]; then
     echo 'install: $(BUILDPATH)/$(LIB)'" $headers"
-    echo '	cp -v $(BUILDPATH)/$(LIB) $(PREFIX)/'"$installdir"
+    echo '	cp -uv $(BUILDPATH)/$(LIB) $(PREFIX)/'"$installdir"
 else
     echo 'install: $(BUILDPATH)/$(BIN)'" $headers"
-    echo '	cp -v $(BUILDPATH)/$(BIN) $(PREFIX)/'"$installdir"
-fi
-if [ "$headers" ]; then 
-    echo '	cp -v '"$headers"' $(PREFIX)/include'
+    echo '	cp -uv $(BUILDPATH)/$(BIN) $(PREFIX)/'"$installdir"
 fi
 echo
 
 # Generate Link target.
 echo '# Link object files.'
 if [ $islibs ]; then
-    echo '$(BUILDPATH)/$(LIB): $(OBJS)'
+    echo '$(BUILDPATH)/$(LIB): $(OBJS) $(LIBDEPS)'
     echo '	$(AR) cru $(BUILDPATH)/$(LIB) $(OBJS)'
     echo '	$(RANLIB) $(BUILDPATH)/$(LIB)'
 elif [ $islibd ]; then
-    echo '$(BUILDPATH)/$(LIB): $(OBJS)'
+    echo '$(BUILDPATH)/$(LIB): $(OBJS) $(LIBDEPS)'
     echo '	$(CXX) -shared -Wl,-soname,$(LIB) $(LDFLAGS) -o $(BUILDPATH)/$(LIB) $(OBJS)'" $libs"
 else
-    echo '$(BUILDPATH)/$(BIN): $(OBJS)'
+    echo '$(BUILDPATH)/$(BIN): $(OBJS) $(LIBDEPS)'
     echo '	$(CXX) $(LDFLAGS) -o $(BUILDPATH)/$(BIN) $(OBJS)'" $libs"
 fi
 echo
 
+function obj-name() {
+    echo $1 | sed 's/^\(.*\)\.cpp$/\$(BUILDPATH)\/\1\.o/'
+}
+
 # Generate compilation targets.
 echo "# Compile source files."
 for file in $sources; do
-	obj=`echo $file | sed 's/^\(.*\)\.cpp$/\$(BUILDPATH)\/\1\.o/'`
+    obj=`obj-name $file`
     echo "$obj: $file"
 	echo '	$(CXX) '"$picflag"'-c $(CXXFLAGS)'" -o $obj $file"
 done
@@ -119,15 +132,12 @@ echo
 
 # Generate header dependencies.
 echo "# Header dependencies."
-for file in `ls *.?pp`; do
-	echo -n "$file:"
-    sed -n 's/^[ \t]*#include.*\"\(.*\)\"[ \t]*$/\1/p;' <$file |
-    while read inc; do
-        echo -n " $inc"
-    done 
-	echo -e "\n	@touch $file"
+cflags=`echo $incpath | sed 's/\\\//g' | tr -d '\n'`
+for file in $sources; do
+    echo -n '$(BUILDPATH)/'
+    gcc -MM $cflags $file
+    echo
 done
-echo
 
 echo "$phony"
 
