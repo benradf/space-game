@@ -15,6 +15,9 @@
 #include "player.hpp"
 #include "idle.hpp"
 #include "zone.hpp"
+#include "prim.hpp"
+#include "canvas.hpp"
+#include "kdtree.hpp"
 
 // temp testing of headers
 #include "volumes.hpp"
@@ -111,3 +114,97 @@ int main(int argc, char* argv[])
     
     return 0;
 }
+
+
+////////// KDTree Test Code //////////
+
+float randFloat(float min, float max)
+{
+    float val = (float(rand()) * (max - min) / float(RAND_MAX) + min);
+    assert(val >= min);
+    assert(val <= max);
+    return val;
+}
+
+void makeRandomTriangles(std::vector<Triangle>& vec, size_t count, const vol::AABB& bounds)
+{
+    srand(time(0));
+
+    const Vector3& min = bounds.getMin();
+    const Vector3& max = bounds.getMax();
+
+    for (size_t i = 0; i < count; i++) {
+        Vector3 v0(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
+        Vector3 v1(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
+        Vector3 v2(randFloat(min.x, max.x), randFloat(min.y, max.y), randFloat(min.z, max.z));
+        vec.push_back(Triangle(v0, v1, v2));
+    }
+}
+
+void makeTestTriangles(std::vector<Triangle>& vec)
+{
+    vec.push_back(Triangle(
+        Vector3(-3.0f,  0.0f,  0.0f),
+        Vector3( 2.0f,  3.0f,  1.0f),
+        Vector3(-1.0f, -2.0f,  0.0f)));
+    vec.push_back(Triangle(
+        Vector3(-1.0f, -4.0f,  0.0f),
+        Vector3( 2.0f,  1.0f,  0.0f),
+        Vector3( 4.0f, -1.0f,  0.0f)));
+    vec.push_back(Triangle(
+        Vector3( 3.0f,  2.0f,  0.0f),
+        Vector3( 4.0f,  4.0f,  0.0f),
+        Vector3( 4.0f,  1.0f,  0.0f)));
+    vec.push_back(Triangle(
+        Vector3(-3.0f,  0.0f,  0.0f),
+        Vector3(-1.0f, -2.0f,  0.0f),
+        Vector3(-2.0f, -4.0f,  1.0f)));
+}
+
+struct DrawTriangles {
+    DrawTriangles(SpatialCanvas& canvas) : _canvas(canvas) {}
+    void operator()(const Triangle& triangle) {
+        _canvas.drawTriangle(triangle,
+            SpatialCanvas::Colour(255, 0, 0, 0),
+            SpatialCanvas::Colour(0, 255, 0, 0),
+            SpatialCanvas::Colour(0, 0, 255, 0));
+    }
+    SpatialCanvas& _canvas;
+};
+
+void checkIntersection(KDTree::Ptr& tree, const vol::AABB& bounds)
+{
+    vol::AABB intersection(
+        Vector3(2.5f, -1.0f, -5.0f),
+        Vector3(4.5f, 3.0f, 5.0f));
+
+    SpatialCanvas canvasX(bounds, 50, SpatialCanvas::X_AXIS);
+    SpatialCanvas canvasY(bounds, 50, SpatialCanvas::Y_AXIS);
+    SpatialCanvas canvasZ(bounds, 50, SpatialCanvas::Z_AXIS);
+
+    DrawTriangles drawTrianglesX(canvasX);
+    DrawTriangles drawTrianglesY(canvasY);
+    DrawTriangles drawTrianglesZ(canvasZ);
+
+    tree->process(drawTrianglesX, intersection);
+    tree->process(drawTrianglesY, intersection);
+    tree->process(drawTrianglesZ, intersection);
+
+    canvasX.getBitmap().saveFile("kdtree_x.bmp");
+    canvasY.getBitmap().saveFile("kdtree_y.bmp");
+    canvasZ.getBitmap().saveFile("kdtree_z.bmp");
+}
+
+void createKDTree()
+{
+    std::vector<Triangle> triangles;
+    makeTestTriangles(triangles);
+
+    vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
+
+    KDTree::Ptr tree(KDTree::create(triangles, bounds));
+    tree->save("kdtree.dat");
+
+    checkIntersection(tree, bounds);
+}
+

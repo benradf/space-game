@@ -13,7 +13,6 @@
 
 #include <vecmath.hpp>
 #include "volumes.hpp"
-#include "drawbmp.hpp"
 #include "prim.hpp"
 #include <vector>
 #include <memory>
