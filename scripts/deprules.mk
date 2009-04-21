@@ -71,6 +71,7 @@ $(call PKG_DEP,client,tvmet)
 # zonebuild
 $(call PKG_DEP,zonebuild,argtable)
 $(call PKG_DEP,zonebuild,core)
+$(call PKG_DEP,zonebuild,expat)
 $(call PKG_DEP,zonebuild,math)
 $(call PKG_DEP,zonebuild,physics)
 

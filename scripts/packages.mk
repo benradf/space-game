@@ -7,6 +7,7 @@ PACKAGES= \
 	CEGUI \
 	DevIL \
 	enet \
+	expat \
 	freetype \
 	jpeg \
 	lcms \
