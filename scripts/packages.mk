@@ -28,5 +28,6 @@ COMPONENTS= \
 	net \
 	physics \
 	script \
-	server
+	server \
+	zonebuild
 

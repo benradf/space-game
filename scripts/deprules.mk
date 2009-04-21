@@ -68,3 +68,9 @@ $(call PKG_DEP,client,physics)
 $(call PKG_DEP,client,script)
 $(call PKG_DEP,client,tvmet)
 
+# zonebuild
+$(call PKG_DEP,zonebuild,argtable)
+$(call PKG_DEP,zonebuild,core)
+$(call PKG_DEP,zonebuild,math)
+$(call PKG_DEP,zonebuild,physics)
+

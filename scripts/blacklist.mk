@@ -2,5 +2,5 @@
 # MMOEngine Blacklisted Combinations
 #
 
-BLACKLIST=server-mingw
+BLACKLIST=server-mingw zonebuild-mingw
 
