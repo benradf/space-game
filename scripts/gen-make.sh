@@ -136,6 +136,9 @@ cflags=`echo $incpath | sed 's/\\\//g' | tr -d '\n'`
 for file in $sources; do
     echo -n '$(BUILDPATH)/'
     gcc -MM $cflags $file
+    if [ $? = 1 ]; then
+        echo "$file:" | sed s/\.cpp/\.o/
+    fi
     echo
 done
 

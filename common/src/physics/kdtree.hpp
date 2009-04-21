@@ -11,9 +11,9 @@
 #define KDTREE_HPP
 
 
-#include <core/vecmath.hpp>
-#include "volumes.hpp"
-#include "prim.hpp"
+#include <math/vecmath.hpp>
+#include <math/volumes.hpp>
+#include <math/prim.hpp>
 #include <vector>
 #include <memory>
 

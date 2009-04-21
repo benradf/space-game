@@ -12,7 +12,7 @@
 
 
 #include <core/foreach.hpp>
-#include "volumes.hpp"
+#include <math/volumes.hpp>
 
 
 template<typename T>

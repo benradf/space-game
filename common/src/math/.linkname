@@ -1,0 +1,2 @@
+linux: libmath.a
+mingw: libmath.a

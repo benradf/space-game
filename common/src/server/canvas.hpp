@@ -12,8 +12,8 @@
 
 
 #include "drawbmp.hpp"
-#include "volumes.hpp"
-#include "prim.hpp"
+#include <math/volumes.hpp>
+#include <math/prim.hpp>
 
 
 class SpatialCanvas {

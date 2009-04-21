@@ -11,7 +11,7 @@
 #define OBJECT_HPP
 
 
-#include <physics/sim.hpp>
+#include "sim.hpp"
 #include <stdint.h>
 #include <core/timer.hpp>
 

@@ -12,7 +12,7 @@
 
 
 #include <OIS/OIS.h>
-#include <core/vecmath.hpp>
+#include <math/vecmath.hpp>
 #include <tr1/unordered_map>
 #include "graphics.hpp"
 #include <physics/object.hpp>

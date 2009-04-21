@@ -5,7 +5,7 @@
 #include <string>
 #include <stdint.h>
 #include <net/net.hpp>
-#include <core/vecmath.hpp>
+#include <math/vecmath.hpp>
 #include <physics/object.hpp>
 
 

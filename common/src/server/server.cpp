@@ -15,12 +15,12 @@
 #include "player.hpp"
 #include "idle.hpp"
 #include "zone.hpp"
-#include "prim.hpp"
+#include <math/prim.hpp>
 #include "canvas.hpp"
-#include "kdtree.hpp"
+#include <physics/kdtree.hpp>
 
 // temp testing of headers
-#include "volumes.hpp"
+#include <math/volumes.hpp>
 #include "zone.hpp"
 
 using namespace std;
@@ -81,14 +81,8 @@ void serverMain()
     catchSignals(false);
 }
 
-extern void createKDTree();
-
 int main(int argc, char* argv[])
 {
-    createKDTree();
-
-    return 0;
-
     // Initialise logging.
     Log::Console consoleLog;
     Log::File fileLog("server.log");

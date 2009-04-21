@@ -24,6 +24,7 @@ PACKAGES= \
 COMPONENTS= \
 	client \
 	core \
+	math \
 	net \
 	physics \
 	script \
