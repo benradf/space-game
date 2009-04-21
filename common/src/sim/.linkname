@@ -1,2 +1,0 @@
-linux: libsim.a
-mingw: libsim.a

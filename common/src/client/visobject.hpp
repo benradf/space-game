@@ -11,7 +11,7 @@
 #define VISOBJECT_HPP
 
 
-#include <sim/object.hpp>
+#include <physics/object.hpp>
 #include "graphics.hpp"
 
 

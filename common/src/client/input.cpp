@@ -10,7 +10,7 @@
 #include "input.hpp"
 #include <core/core.hpp>
 #include <sstream>
-#include <sim/object.hpp>
+#include <physics/object.hpp>
 
 
 using namespace sim;

@@ -43,8 +43,8 @@ $(call PKG_DEP,net,core)
 # script
 $(call PKG_DEP,script,core)
 
-# sim
-$(call PKG_DEP,sim,core)
+# physics
+$(call PKG_DEP,physics,core)
 
 # server
 $(call PKG_DEP,server,argtable)
@@ -53,7 +53,7 @@ $(call PKG_DEP,server,enet)
 $(call PKG_DEP,server,lua)
 $(call PKG_DEP,server,net)
 $(call PKG_DEP,server,script)
-$(call PKG_DEP,server,sim)
+$(call PKG_DEP,server,physics)
 $(call PKG_DEP,server,tvmet)
 
 # client
@@ -63,6 +63,6 @@ $(call PKG_DEP,client,lua)
 $(call PKG_DEP,client,net)
 $(call PKG_DEP,client,ogre)
 $(call PKG_DEP,client,script)
-$(call PKG_DEP,client,sim)
+$(call PKG_DEP,client,physics)
 $(call PKG_DEP,client,tvmet)
 

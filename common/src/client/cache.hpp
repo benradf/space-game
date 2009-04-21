@@ -12,7 +12,7 @@
 
 
 #include <net/net.hpp>
-#include <sim/object.hpp>
+#include <physics/object.hpp>
 #include <tr1/unordered_map>
 #include "visobject.hpp"
 #include "input.hpp"

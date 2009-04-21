@@ -1,1 +1,1 @@
-linux: core script net sim lua enet argtable2 pthread dl
+linux: core script net physics lua enet argtable2 pthread dl

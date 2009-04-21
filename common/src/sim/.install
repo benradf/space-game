@@ -1,2 +1,0 @@
-linux: sim.hpp object.hpp
-mingw: sim.hpp object.hpp

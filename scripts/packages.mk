@@ -25,7 +25,7 @@ COMPONENTS= \
 	client \
 	core \
 	net \
+	physics \
 	script \
-	server \
-	sim
+	server
 

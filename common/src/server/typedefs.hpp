@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <net/net.hpp>
 #include <core/vecmath.hpp>
-#include <sim/object.hpp>
+#include <physics/object.hpp>
 
 
 using net::PeerID;

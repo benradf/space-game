@@ -15,7 +15,7 @@
 #include <core/vecmath.hpp>
 #include <tr1/unordered_map>
 #include "graphics.hpp"
-#include <sim/object.hpp>
+#include <physics/object.hpp>
 
 
 class RemoteController {

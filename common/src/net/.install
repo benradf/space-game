@@ -1,2 +1,0 @@
-linux: net.hpp protocol.hpp
-mingw: net.hpp protocol.hpp

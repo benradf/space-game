@@ -18,9 +18,9 @@
 #include "network.hpp"
 #include "graphics.hpp"
 #include "input.hpp"
-#include <sim/sim.hpp>
+#include <physics/sim.hpp>
 #include <stdio.h>
-#include <sim/object.hpp>
+#include <physics/object.hpp>
 
 
 using namespace std;

@@ -1,2 +1,2 @@
-linux: core script net sim lua enet OgreMain OIS dl
-mingw: core script net sim lua enet OgreMain OIS ws2_32 winmm
+linux: core script net physics lua enet OgreMain OIS dl
+mingw: core script net physics lua enet OgreMain OIS ws2_32 winmm
