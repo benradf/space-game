@@ -16,6 +16,7 @@
 #include <math/prim.hpp>
 #include <vector>
 #include <memory>
+#include <stdint.h>
 
 
 enum SplitAxis {
@@ -54,11 +55,14 @@ class KDTreeData {
             UNREACHABLE_NODES
         };
 
+        typedef uint32_t Reference;
+
         KDTreeData(const char* filename);
-        KDTreeData(size_t nodeCount, size_t triangleCount);
+        KDTreeData(size_t nodes, size_t triangles, size_t references);
         ~KDTreeData();
 
         size_t getNodeCount() const;
+        size_t getReferenceCount() const;
         size_t getTriangleCount() const;
 
         KDTreeNode& getNode(size_t index);
@@ -66,6 +70,9 @@ class KDTreeData {
 
         Triangle& getTriangle(size_t index);
         const Triangle& getTriangle(size_t index) const;
+
+        Reference& getReference(size_t index);
+        const Reference& getReference(size_t index) const;
 
         void saveFile(const char* filename) const;
         void loadFile(const char* filename);
@@ -81,6 +88,9 @@ class KDTreeData {
 
         KDTreeNode* _nodes;
         size_t _nodeCount;
+
+        Reference* _references;
+        size_t _referenceCount;
 
         Triangle* _triangles;
         size_t _triangleCount;
@@ -129,6 +139,21 @@ class KDTree {
 
 ////////// KDTreeData //////////
 
+inline size_t KDTreeData::getNodeCount() const
+{
+    return _nodeCount;
+}
+
+inline size_t KDTreeData::getTriangleCount() const
+{
+    return _triangleCount;
+}
+
+inline size_t KDTreeData::getReferenceCount() const
+{
+    return _referenceCount;
+}
+
 inline KDTreeNode& KDTreeData::getNode(size_t index)
 {
     assert(index < _nodeCount);
@@ -157,14 +182,18 @@ inline const Triangle& KDTreeData::getTriangle(size_t index) const
     return _triangles[index];
 }
 
-inline size_t KDTreeData::getNodeCount() const
+inline KDTreeData::Reference& KDTreeData::getReference(size_t index)
 {
-    return _nodeCount;
+    assert(index <_referenceCount);
+
+    return _references[index];
 }
 
-inline size_t KDTreeData::getTriangleCount() const
+inline const KDTreeData::Reference& KDTreeData::getReference(size_t index) const
 {
-    return _triangleCount;
+    assert(index <_referenceCount);
+
+    return _references[index];
 }
 
 
@@ -192,8 +221,8 @@ template<typename T>
 void KDTree::walkEntireTree(const KDTreeNode& node, T& walker) const
 {
     if (node.splitAxis == SPLIT_LEAF) {
-        for (size_t i = 0; i < node.triangleCount; i++) 
-            walker.triangle(_data->getTriangle(node.triangles + i));
+        for (size_t i = 0; i < node.triangleCount; i++)
+            walker.triangle(_data->getTriangle(_data->getReference(node.triangles + i)));
 
         return;
     }
@@ -211,8 +240,8 @@ template<typename T>
 void KDTree::process(const KDTreeNode& node, T& visitor, const vol::AABB& aabb) const
 {
     if (node.splitAxis == SPLIT_LEAF) {
-        for (size_t i = 0; i < node.triangleCount; i++) 
-            visitor(_data->getTriangle(node.triangles + i));
+        for (size_t i = 0; i < node.triangleCount; i++)
+            visitor(_data->getTriangle(_data->getReference(node.triangles + i)));
 
         return;
     }

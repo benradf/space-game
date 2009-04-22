@@ -20,21 +20,19 @@
 #include <list>
 #include <set>
 #include <tr1/unordered_set>
-
-
-#include <iostream>
-using namespace std;
+#include <tr1/unordered_map>
 
 
 typedef std::list<class SplitPlane*> SplitList;
 typedef SplitList::iterator SplitIter;
 typedef std::insert_iterator<SplitList> SplitInsertIter;
+typedef std::tr1::unordered_set<const Triangle*> TriangleSet;
+typedef std::tr1::unordered_map<const Triangle*, size_t> TriangleMap;
 
 
 class TemporaryNode {
     public:
         typedef std::auto_ptr<TemporaryNode> Ptr;
-        typedef std::vector<const Triangle*> Triangles;
 
         TemporaryNode();
         TemporaryNode(Ptr left, Ptr right, SplitAxis axis, float position);
@@ -48,8 +46,9 @@ class TemporaryNode {
         const TemporaryNode& getLeft() const;
         const TemporaryNode& getRight() const;
 
-        const Triangles& getTriangles() const;
+        const TriangleSet& getTriangles() const;
         void addTriangle(const Triangle* triangle);
+        void uniqueTriangles(TriangleSet& triangles) const;
 
         size_t getDescendantCount() const;
         size_t getTriangleCount() const;
@@ -64,7 +63,7 @@ class TemporaryNode {
         SplitAxis _axis;
         float _position;
 
-        Triangles* _triangles;
+        TriangleSet* _triangles;
 };
 
 
@@ -196,6 +195,12 @@ struct OnSide {
     SplitPlane::Side side;
 };
 
+struct AssignIndex {
+    AssignIndex(KDTreeData& data);
+    TriangleMap::value_type operator()(TriangleMap::key_type key);
+    KDTreeData& _data;
+    size_t _index;
+};
 
 struct LessThanPtrs {
     bool operator()(const SplitPlane* a, const SplitPlane* b);
@@ -214,39 +219,39 @@ struct IsFlat {
 
 ////////// TemporaryNode //////////
 
-TemporaryNode::TemporaryNode() :
-    _left(0), _right(0), _triangles(new Triangles)
+inline TemporaryNode::TemporaryNode() :
+    _left(0), _right(0), _triangles(new TriangleSet)
 {
 
 }
 
-TemporaryNode::TemporaryNode(Ptr left, Ptr right, SplitAxis axis, float position) :
+inline TemporaryNode::TemporaryNode(Ptr left, Ptr right, SplitAxis axis, float position) :
     _left(left), _right(right), _axis(axis), _position(position), _triangles(0)
 {
 
 }
 
-TemporaryNode::~TemporaryNode()
+inline TemporaryNode::~TemporaryNode()
 {
     delete _triangles;
 }
 
-bool TemporaryNode::isLeaf() const
+inline bool TemporaryNode::isLeaf() const
 {
     return (_triangles != 0);
 }
 
-SplitAxis TemporaryNode::getAxis() const
+inline SplitAxis TemporaryNode::getAxis() const
 {
     return _axis;
 }
 
-float TemporaryNode::getPosition() const
+inline float TemporaryNode::getPosition() const
 {
     return _position;
 }
 
-const TemporaryNode& TemporaryNode::getLeft() const
+inline const TemporaryNode& TemporaryNode::getLeft() const
 {
     assert(!isLeaf());
     assert(_left.get() != 0);
@@ -254,7 +259,7 @@ const TemporaryNode& TemporaryNode::getLeft() const
     return *_left;
 }
 
-const TemporaryNode& TemporaryNode::getRight() const
+inline const TemporaryNode& TemporaryNode::getRight() const
 {
     assert(!isLeaf());
     assert(_right.get() != 0);
@@ -262,14 +267,26 @@ const TemporaryNode& TemporaryNode::getRight() const
     return *_right;
 }
 
-const TemporaryNode::Triangles& TemporaryNode::getTriangles() const
+inline const TriangleSet& TemporaryNode::getTriangles() const
 {
     return *_triangles;
 }
 
-void TemporaryNode::addTriangle(const Triangle* triangle)
+inline void TemporaryNode::addTriangle(const Triangle* triangle)
 {
-    _triangles->push_back(triangle);
+    _triangles->insert(triangle);
+}
+
+void TemporaryNode::uniqueTriangles(TriangleSet& triangles) const
+{
+    if (!isLeaf()) {
+        _left->uniqueTriangles(triangles);
+        _right->uniqueTriangles(triangles);
+        return;
+    }
+
+    std::copy(_triangles->begin(), _triangles->end(), 
+        std::inserter(triangles, triangles.begin()));
 }
 
 size_t TemporaryNode::getDescendantCount() const
@@ -390,7 +407,7 @@ SplitInsertIter SplitPlane::duplicatePlanes(const SplitPlane& plane, SplitInsert
     return iter;
 }
 
-bool SplitPlane::operator<(const SplitPlane& that) const
+inline bool SplitPlane::operator<(const SplitPlane& that) const
 {
     return (_position < that._position);
 }
@@ -440,12 +457,12 @@ void SplitPlane::recalculateCosts()
         _cost = 100.0f;
 }
 
-const Triangle* SplitPlane::getTriangle() const
+inline const Triangle* SplitPlane::getTriangle() const
 {
     return _tri;
 }
 
-bool SplitPlane::isFlat() const
+inline bool SplitPlane::isFlat() const
 {
     return (_others[2*_axis]->_position == _others[2*_axis+1]->_position);
 }
@@ -749,6 +766,22 @@ bool OnSide::operator()(const SplitPlane* plane) const
 }
 
 
+////////// AssignIndex //////////
+
+inline AssignIndex::AssignIndex(KDTreeData& data) : 
+    _data(data), _index(0)
+{
+
+}
+
+inline TriangleMap::value_type AssignIndex::operator()(TriangleMap::key_type key)
+{
+    _data.getTriangle(_index) = *key;
+
+    return std::make_pair(key, _index++);
+}
+
+
 ////////// LessThanPtrs //////////
 
 bool LessThanPtrs::operator()(const SplitPlane* a, const SplitPlane* b)
@@ -843,14 +876,20 @@ std::auto_ptr<TemporaryNode> constructKDTree(const std::vector<Triangle>& triang
 
 std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
 {
-    size_t nodeCount = root.getDescendantCount() + 1;
-    size_t triangleCount = root.getTriangleCount();
+    TriangleSet triangles;
+    TriangleMap triangleMap;
+    root.uniqueTriangles(triangles);
 
-    std::auto_ptr<KDTreeData> data(new KDTreeData(nodeCount, triangleCount));
+    std::auto_ptr<KDTreeData> data(
+        new KDTreeData(root.getDescendantCount() + 1, 
+        triangles.size(), root.getTriangleCount()));
 
+    std::transform(triangles.begin(), triangles.end(), std::inserter(
+        triangleMap, triangleMap.begin()), AssignIndex(*data));
+
+    size_t nextRef = 0;
     size_t nextNode = 0;
     size_t nextChild = 1;
-    size_t nextTriangle = 0;
 
     std::queue<const TemporaryNode*> edge;
     edge.push(&root);
@@ -861,11 +900,11 @@ std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
 
         if (temporaryNode.isLeaf()) {
             compressedNode.splitAxis = SPLIT_LEAF;
-            compressedNode.triangles = nextTriangle;
+            compressedNode.triangles = nextRef;
             compressedNode.triangleCount = 0;
 
             foreach (const Triangle* triangle, temporaryNode.getTriangles()) {
-                data->getTriangle(nextTriangle++) = *triangle;
+                data->getReference(nextRef++) = triangleMap[triangle];
                 compressedNode.triangleCount++;
             }
 
@@ -882,10 +921,6 @@ std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
         edge.pop();
     }
 
-    assert(nextNode == nodeCount);
-    assert(nextChild == nodeCount);
-    assert(nextTriangle == triangleCount);
-
     return data;
 }
 
@@ -893,34 +928,44 @@ std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
 ////////// KDTreeData //////////
 
 KDTreeData::KDTreeData(const char* filename) :
-    _nodeCount(0), _nodes(0), _triangles(0), _triangleCount(0)
+    _nodes(0), _nodeCount(0), _triangles(0), _triangleCount(0),
+    _references(0), _referenceCount(0)
 {
     loadFile(filename);
 }
 
-KDTreeData::KDTreeData(size_t nodeCount, size_t triangleCount) :
-    _nodeCount(nodeCount), _nodes(0), _triangles(0), _triangleCount(triangleCount)
+template<typename T>
+struct ScopedArray {
+    ScopedArray(T* p) : _p(p) {}
+    ~ScopedArray() { delete[] _p; }
+    T* release() { T* p = _p; _p = 0; return p; }
+    T* _p;
+};
+
+KDTreeData::KDTreeData(size_t nodes, size_t triangles, size_t references) :
+    _nodes(0), _nodeCount(nodes), _triangles(0), _triangleCount(triangles),
+    _references(0), _referenceCount(references)
 {
-    if (nodeCount > MAX_NODES) 
+    if (nodes > MAX_NODES) 
         throw MemoryException("node count exceeds max");
 
-    if (triangleCount > MAX_TRIANGLES) 
+    if (triangles > MAX_TRIANGLES) 
         throw MemoryException("triangle count exceeds max");
 
-    _nodes = new KDTreeNode[nodeCount];
+    ScopedArray<KDTreeNode> nodeArray(new KDTreeNode[nodes]);
+    ScopedArray<Triangle> triangleArray(new Triangle[triangles]);
+    ScopedArray<Reference> referenceArray(new Reference[references]);
 
-    try {
-        _triangles = new Triangle[triangleCount];
-    } catch (...) {
-        delete[] _nodes;
-        throw;
-    }
+    _nodes = nodeArray.release();
+    _triangles = triangleArray.release();
+    _references = referenceArray.release();
 }
 
 KDTreeData::~KDTreeData()
 {
     delete[] _nodes;
     delete[] _triangles;
+    delete[] _references;
 }
 
 #pragma pack(push, 1)
@@ -930,8 +975,10 @@ struct KDTreeFileHeader {
     uint32_t fileSize;
     uint32_t nodeCount;
     uint32_t triangleCount;
+    uint32_t referenceCount;
     uint32_t nodeOffset;
     uint32_t triangleOffset;
+    uint32_t referenceOffset;
 };
 
 #pragma pack(pop)
@@ -947,18 +994,22 @@ void KDTreeData::saveFile(const char* filename) const
 
     size_t nodeSpace = sizeof(KDTreeNode) * _nodeCount;
     size_t triangleSpace = sizeof(Triangle) * _triangleCount;
+    size_t referenceSpace = sizeof(Reference) * _referenceCount;
 
     KDTreeFileHeader fileHeader;
     fileHeader.magic = 0x444b;
     fileHeader.fileSize = sizeof(fileHeader) + nodeSpace + triangleSpace;
     fileHeader.nodeCount = _nodeCount;
     fileHeader.triangleCount = _triangleCount;
+    fileHeader.referenceCount = _referenceCount;
     fileHeader.nodeOffset = sizeof(fileHeader);
     fileHeader.triangleOffset = fileHeader.nodeOffset + nodeSpace;
+    fileHeader.referenceOffset = fileHeader.triangleOffset + referenceSpace;
 
     file.write(reinterpret_cast<char*>(&fileHeader), sizeof(fileHeader));
     file.write(reinterpret_cast<char*>(_nodes), nodeSpace);
     file.write(reinterpret_cast<char*>(_triangles), triangleSpace);
+    file.write(reinterpret_cast<char*>(_references), referenceSpace);
 
     file.close();
 }
@@ -972,13 +1023,19 @@ void KDTreeData::loadFile(const char* filename)
 
     KDTreeFileHeader fileHeader;
     file.read(reinterpret_cast<char*>(&fileHeader), sizeof(fileHeader));
-    KDTreeData newData(fileHeader.nodeCount, fileHeader.triangleCount);
+
+    KDTreeData newData(
+        fileHeader.nodeCount, 
+        fileHeader.triangleCount,
+        fileHeader.referenceCount);
 
     size_t nodeSpace = sizeof(KDTreeNode) * newData._nodeCount;
     size_t triangleSpace = sizeof(Triangle) * newData._triangleCount;
+    size_t referenceSpace = sizeof(Reference) * newData._referenceCount;
 
     file.read(reinterpret_cast<char*>(newData._nodes), nodeSpace);
     file.read(reinterpret_cast<char*>(newData._triangles), triangleSpace);
+    file.read(reinterpret_cast<char*>(newData._references), referenceSpace);
 
     if (newData.checkValidity() != KDTreeData::VALID) 
         throw FileException(std::string("invalid kdtree data in ") + filename);
@@ -987,12 +1044,15 @@ void KDTreeData::loadFile(const char* filename)
     std::swap(_nodes, newData._nodes);
     std::swap(_triangleCount, newData._triangleCount);
     std::swap(_triangles, newData._triangles);
+    std::swap(_referenceCount, newData._referenceCount);
+    std::swap(_references, newData._references);
 }
 
 KDTreeData::Validity KDTreeData::checkValidity() const
 {
     size_t nodeCount = getNodeCount();
     size_t triangleCount = getTriangleCount();
+    size_t referenceCount = getReferenceCount();
 
     std::tr1::unordered_set<size_t> visited;
 
@@ -1000,19 +1060,13 @@ KDTreeData::Validity KDTreeData::checkValidity() const
         visited.insert(i);
         const KDTreeNode& node = getNode(i);
         if (node.splitAxis == SPLIT_LEAF) {
-            if (node.triangles + node.triangleCount > triangleCount) {
-                assert(false);
+            if (node.triangles + node.triangleCount > referenceCount)
                 return INVALID_INDEX;
-            }
         } else {
-            if (node.left >= nodeCount) {
-                assert(false);
+            if (node.left >= nodeCount)
                 return INVALID_INDEX;
-            }
-            if (node.right >= nodeCount) {
-                assert(false);
+            if (node.right >= nodeCount)
                 return INVALID_INDEX;
-            }
             if (visited.find(node.left) != visited.end())
                 return INVALID_STRUCTURE;
             if (visited.find(node.right) != visited.end())
