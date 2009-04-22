@@ -80,6 +80,9 @@ class SplitPlane {
         bool operator<(const SplitPlane& that) const;
         Side whichSide(const SplitPlane& that) const;
 
+        const SplitPlane& getOppositeSide() const;
+        float getOppositePosition() const;
+
         const Triangle* getTriangle() const;
         void recalculateCosts();
         bool isFlat() const;
@@ -152,9 +155,10 @@ class UpdateBase {
         SplitAxis _axis;
         float _position;
 
-        std::vector<SplitPlane*> countPending;
-        float prevPos;
-        SplitAxis prevAxis;
+        std::vector<SplitPlane*> _countPending;
+        SplitAxis _prevAxis;
+        float _prevPos;
+        bool _prevFlat;
 };
 
 
@@ -447,6 +451,21 @@ SplitPlane::Side SplitPlane::whichSide(const SplitPlane& that) const
     return BOTH;
 }
 
+inline const SplitPlane& SplitPlane::getOppositeSide() const
+{
+    return (_minBound ? *_others[2*_axis+1] : *_others[2*_axis]);
+}
+
+inline float SplitPlane::getOppositePosition() const
+{
+    return getOppositeSide().getPosition();
+}
+
+inline const Triangle* SplitPlane::getTriangle() const
+{
+    return _tri;
+}
+
 void SplitPlane::recalculateCosts()
 {
     _costL = getVolumeL() * float(getCountL());
@@ -458,11 +477,6 @@ void SplitPlane::recalculateCosts()
 
     if (getVolumeR() <= std::numeric_limits<float>::min())
         _cost = std::numeric_limits<float>::max();
-}
-
-inline const Triangle* SplitPlane::getTriangle() const
-{
-    return _tri;
 }
 
 inline bool SplitPlane::isFlat() const
@@ -570,7 +584,9 @@ inline float SplitPlane::getCost() const
 ////////// UpdateBase //////////
 
 UpdateBase::UpdateBase(int count, float volumeL, float volumeR, SplitAxis axis, float pos) :
-    _volumeL(volumeL), _volumeR(volumeR), _axis(axis), _position(pos)
+    _volumeL(volumeL), _volumeR(volumeR), _axis(axis), _position(pos),
+    _prevPos(std::numeric_limits<float>::quiet_NaN()),
+    _prevAxis(SPLIT_LEAF), _prevFlat(false)
 {
     for (int i = 0; i < 3; i++) 
         _countL[i] = 0, _countR[i] = count;
@@ -578,20 +594,20 @@ UpdateBase::UpdateBase(int count, float volumeL, float volumeR, SplitAxis axis, 
 
 UpdateBase::~UpdateBase()
 {
-    if (countPending.empty()) 
+    if (_countPending.empty()) 
         return;
 
-    int peakCountR = _countR[countPending.back()->getAxis()];
-    if (!countPending.back()->getMinBound() && (countPending.size() == 1))
+    int peakCountR = _countR[_countPending.back()->getAxis()];
+    if (!_countPending.back()->getMinBound() && (_countPending.size() == 1))
         peakCountR--;
 
-    foreach (SplitPlane* p, countPending)
+    foreach (SplitPlane* p, _countPending)
         setCount(p, getCountL(p), peakCountR);
 }
 
 void UpdateBase::setCount(SplitPlane* plane, int& countL, int& countR)
 {
-    if (!plane->getMinBound()) 
+    if (!plane->getMinBound())
         _countR[plane->getAxis()]--;
 
     plane->setCountL(countL);
@@ -601,27 +617,25 @@ void UpdateBase::setCount(SplitPlane* plane, int& countL, int& countR)
 
 void UpdateBase::handlePending(bool moveZeroDist)
 {
-    if (!countPending.empty()) {
+    if (!_countPending.empty()) {
         if (!moveZeroDist) {
-            int peakCountR = _countR[countPending.back()->getAxis()];
-            if (!countPending.back()->getMinBound() && (countPending.size() == 1))
+            int peakCountR = _countR[_countPending.back()->getAxis()];
+            if (!_countPending.back()->getMinBound() && (_countPending.size() == 1))
                 peakCountR--;
 
-            typedef std::vector<SplitPlane*>::iterator Iter;
-            Iter iterNonFlat = std::stable_partition(countPending.begin(), countPending.end(), IsFlat());
+            int peakCountL = _countL[_countPending.back()->getAxis()];
+            if (_countPending.back()->getMinBound() && (_countPending.size() != 1))
+                peakCountL++;
 
-            for (Iter i = countPending.begin(); i != iterNonFlat; ++i)
-                setCount(*i, getCountL(*i), peakCountR);
-
-            for (Iter i = iterNonFlat; i != countPending.end(); ++i)
-                setCount(*i, getCountL(*i), getCountR(*i));
+            foreach (SplitPlane* plane, _countPending)
+                setCount(plane, peakCountL, peakCountR);
         }
 
-        if (countPending.back()->getMinBound())
-            _countL[countPending.back()->getAxis()]++;
+        if (_countPending.back()->getMinBound())
+            _countL[_countPending.back()->getAxis()]++;
 
         if (!moveZeroDist)
-            countPending.clear();
+            _countPending.clear();
     }
 }
 
@@ -630,15 +644,17 @@ void UpdateBase::operator()(SplitPlane* plane)
     maybeClampPosition(plane);
     maybeUpdateVolume(plane);
 
-    bool samePos = (prevPos == plane->getPosition());
-    bool sameAxis = (prevAxis == plane->getAxis());
+    bool samePos = (_prevPos == plane->getPosition());
+    bool sameAxis = (_prevAxis == plane->getAxis());
+    bool sameFlat = (_prevFlat == plane->isFlat());
 
-    handlePending(samePos && sameAxis);
+    handlePending(samePos && sameAxis && sameFlat);
 
-    prevPos = plane->getPosition();
-    prevAxis = plane->getAxis();
+    _prevPos = plane->getPosition();
+    _prevAxis = plane->getAxis();
+    _prevFlat = plane->isFlat();
 
-    countPending.push_back(plane);
+    _countPending.push_back(plane);
 }
 
 int& UpdateBase::getCountL(SplitPlane* plane)
@@ -789,8 +805,16 @@ inline TriangleMap::value_type AssignIndex::operator()(TriangleMap::key_type key
 
 bool LessThanPtrs::operator()(const SplitPlane* a, const SplitPlane* b)
 {
-    float d = fabs(a->getPosition() - b->getPosition());
-    return (d == 0.0f ? a->getAxis() < b->getAxis() : a->getPosition() < b->getPosition());
+    if (a->getPosition() != b->getPosition()) 
+        return (a->getPosition() < b->getPosition());
+
+    if (a->getAxis() != b->getAxis()) 
+        return (a->getAxis() < b->getAxis());
+
+    if (a->getMinBound() != b->getMinBound()) 
+        return (!a->getMinBound() && b->getMinBound());
+
+    return (a->getOppositePosition() < b->getOppositePosition());
 }
 
 
