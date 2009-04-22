@@ -594,15 +594,7 @@ UpdateBase::UpdateBase(int count, float volumeL, float volumeR, SplitAxis axis, 
 
 UpdateBase::~UpdateBase()
 {
-    if (_countPending.empty()) 
-        return;
-
-    int peakCountR = _countR[_countPending.back()->getAxis()];
-    if (!_countPending.back()->getMinBound() && (_countPending.size() == 1))
-        peakCountR--;
-
-    foreach (SplitPlane* p, _countPending)
-        setCount(p, getCountL(p), peakCountR);
+    handlePending(false);
 }
 
 void UpdateBase::setCount(SplitPlane* plane, int& countL, int& countR)
