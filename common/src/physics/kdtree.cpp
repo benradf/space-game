@@ -453,8 +453,11 @@ void SplitPlane::recalculateCosts()
     _costR = getVolumeR() * float(getCountR());
     _cost = 1.0f * (_costL + _costR);
 
-    if ((getVolumeL() < 0.0001f) || (getVolumeR() < 0.00001f)) 
-        _cost = 100.0f;
+    if (getVolumeL() <= std::numeric_limits<float>::min())
+        _cost = std::numeric_limits<float>::max();
+
+    if (getVolumeR() <= std::numeric_limits<float>::min())
+        _cost = std::numeric_limits<float>::max();
 }
 
 inline const Triangle* SplitPlane::getTriangle() const
@@ -811,7 +814,7 @@ bool IsFlat::operator()(const SplitPlane* plane) const
 
 inline bool shouldStopSplitting(float splitCost, float currentCost, int depth)
 {
-    return ((splitCost + 0.0001f >= currentCost) || (depth > KDTree::MAX_DEPTH));
+    return ((splitCost  >= currentCost) || (depth > KDTree::MAX_DEPTH));
 }
 
 std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, int depth, float cost)

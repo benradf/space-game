@@ -115,9 +115,9 @@ void checkIntersection(KDTree::Ptr& tree, const vol::AABB& bounds)
 
 struct DisplayKDTrees {
     DisplayKDTrees(const char* filename, const vol::AABB& bounds) :
-        _canvasX(bounds, 5, SpatialCanvas::X_AXIS),
-        _canvasY(bounds, 5, SpatialCanvas::Y_AXIS),
-        _canvasZ(bounds, 5, SpatialCanvas::Z_AXIS),
+        _canvasX(bounds, 50, SpatialCanvas::X_AXIS),
+        _canvasY(bounds, 50, SpatialCanvas::Y_AXIS),
+        _canvasZ(bounds, 50, SpatialCanvas::Z_AXIS),
         _filename(filename)
     {
         _splits.push(bounds);
@@ -195,7 +195,7 @@ void createKDTree()
 
 void displayKDTree()
 {
-    vol::AABB bounds(Vector3(-100.0f, -100.0f, -100.0f), Vector3(100.0f, 100.0f, 100.0f));
+    vol::AABB bounds(Vector3(-10.0f, -10.0f, -10.0f), Vector3(10.0f, 10.0f, 10.0f));
     KDTree::Ptr tree(KDTree::load("/tmp/collision.dat"));
     DisplayKDTrees("collision_kdtree", bounds).display(*tree);
     checkIntersection(tree, bounds);
