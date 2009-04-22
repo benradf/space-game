@@ -871,7 +871,7 @@ std::auto_ptr<TemporaryNode> constructKDTree(const std::vector<Triangle>& triang
 
     std::for_each(list.begin(), list.end(), UpdateInitial(triangles.size()));
 
-    return createTemporaryNode(list, 1, 100.0f);
+    return createTemporaryNode(list, 1, std::numeric_limits<float>::max());
 }
 
 std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
