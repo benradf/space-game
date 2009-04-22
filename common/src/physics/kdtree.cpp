@@ -434,7 +434,7 @@ void SplitPlane::recalculateCosts()
 {
     _costL = getVolumeL() * float(getCountL());
     _costR = getVolumeR() * float(getCountR());
-    _cost = _costL + _costR;
+    _cost = 1.0f * (_costL + _costR);
 
     if ((getVolumeL() < 0.0001f) || (getVolumeR() < 0.00001f)) 
         _cost = 100.0f;

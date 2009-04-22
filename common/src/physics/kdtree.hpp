@@ -99,6 +99,9 @@ class KDTree {
         void save(const char* filename) const;
 
         template<typename T>
+        void walkEntireTree(T& walker) const;
+
+        template<typename T>
         void process(T& visitor, const vol::AABB& aabb) const;
 
         template<typename T>
@@ -110,6 +113,9 @@ class KDTree {
     private:
         KDTree(const KDTree&);
         KDTree& operator=(const KDTree&);
+
+        template<typename T>
+        void walkEntireTree(const KDTreeNode& node, T& walker) const;
 
         template<typename T>
         void process(const KDTreeNode& node, T& visitor, const vol::AABB& aabb) const;
@@ -165,6 +171,12 @@ inline size_t KDTreeData::getTriangleCount() const
 ////////// KDTree //////////
 
 template<typename T>
+void KDTree::walkEntireTree(T& walker) const
+{
+    walkEntireTree(_data->getNode(0), walker);
+}
+
+template<typename T>
 inline void KDTree::process(T& visitor, const vol::AABB& aabb) const
 {
     process(_data->getNode(0), visitor, aabb);
@@ -174,6 +186,25 @@ template<typename T>
 inline void KDTree::process(T& visitor, const vol::Ray& ray) const
 {
     process(_data->getNode(0), visitor, ray);
+}
+
+template<typename T>
+void KDTree::walkEntireTree(const KDTreeNode& node, T& walker) const
+{
+    if (node.splitAxis == SPLIT_LEAF) {
+        for (size_t i = 0; i < node.triangleCount; i++) 
+            walker.triangle(_data->getTriangle(node.triangles + i));
+
+        return;
+    }
+
+    walker.left(SplitAxis(node.splitAxis), node.splitPosition);
+    walkEntireTree(_data->getNode(node.left), walker);
+    walker.up();
+
+    walker.right(SplitAxis(node.splitAxis), node.splitPosition);
+    walkEntireTree(_data->getNode(node.right), walker);
+    walker.up();
 }
 
 template<typename T>
