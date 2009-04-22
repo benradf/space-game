@@ -113,19 +113,6 @@ void checkIntersection(KDTree::Ptr& tree, const vol::AABB& bounds)
     canvasZ.getBitmap().saveFile("intersection_z.bmp");
 }
 
-void createKDTree()
-{
-    std::vector<Triangle> triangles;
-    makeTestTriangles(triangles);
-
-    vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
-
-    KDTree::Ptr tree(KDTree::create(triangles, bounds));
-    tree->save("kdtree.dat");
-
-    checkIntersection(tree, bounds);
-}
-
 struct DisplayKDTrees {
     DisplayKDTrees(const char* filename, const vol::AABB& bounds) :
         _canvasX(bounds, 5, SpatialCanvas::X_AXIS),
@@ -194,6 +181,17 @@ struct DisplayKDTrees {
     SpatialCanvas _canvasY;
     SpatialCanvas _canvasZ;
 };
+
+void createKDTree()
+{
+    std::vector<Triangle> triangles;
+    makeTestTriangles(triangles);
+
+    vol::AABB bounds(Vector3(-5.0f, -5.0f, -5.0f), Vector3(5.0f, 5.0f, 5.0f));
+
+    KDTree::Ptr tree(KDTree::create(triangles, bounds));
+    tree->save("kdtree.dat");
+}
 
 void displayKDTree()
 {

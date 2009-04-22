@@ -787,7 +787,7 @@ inline TriangleMap::value_type AssignIndex::operator()(TriangleMap::key_type key
 bool LessThanPtrs::operator()(const SplitPlane* a, const SplitPlane* b)
 {
     float d = fabs(a->getPosition() - b->getPosition());
-    return (d < 0.00001f ? a->getAxis() < b->getAxis() : a->getPosition() < b->getPosition());
+    return (d == 0.0f ? a->getAxis() < b->getAxis() : a->getPosition() < b->getPosition());
 }
 
 
