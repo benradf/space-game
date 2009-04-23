@@ -24,7 +24,7 @@ class Triangle {
         vol::AABB determineBounds() const;
 
         const Vector3& getVertex(int index) const;
-
+        const Vector3& getNormal() const;
         const Vector3& getV0() const;
         const Vector3& getV1() const;
         const Vector3& getV2() const;
@@ -33,19 +33,20 @@ class Triangle {
         Vector3 _v0;
         Vector3 _v1;
         Vector3 _v2;
+        Vector3 _n;
 };
 
 
 ////////// Triangle //////////
 
 inline Triangle::Triangle() :
-    _v0(Vector3::ZERO), _v1(Vector3::ZERO), _v2(Vector3::ZERO)
+    _v0(Vector3::ZERO), _v1(Vector3::ZERO), _v2(Vector3::ZERO), _n(Vector3::ZERO)
 {
 
 }
 
 inline Triangle::Triangle(const Vector3& v0, const Vector3& v1, const Vector3& v2) :
-    _v0(v0), _v1(v1), _v2(v2)
+    _v0(v0), _v1(v1), _v2(v2), _n(crossProduct(v1 - v0, v2 - v0).normalise())
 {
 
 }
@@ -58,6 +59,11 @@ inline const Vector3& Triangle::getVertex(int index) const
         case 2: return _v2;
         default: assert(false);
     }
+}
+
+inline const Vector3& Triangle::getNormal() const
+{
+    return _n;
 }
 
 inline const Vector3& Triangle::getV0() const
