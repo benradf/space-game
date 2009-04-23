@@ -80,13 +80,11 @@ class TemporaryNode {
 
 class SplitPlane {
     public:
+        friend class SplitPlaneFactory;
+
         enum Side { LEFT, BOTH, RIGHT };
 
         SplitPlane(SplitAxis axis, float pos, const vol::AABB& global, bool minBound);
-
-        static SplitInsertIter createFromTriangle(const Triangle& triangle, const vol::AABB& global, SplitInsertIter iter);
-        static SplitInsertIter createFromBounds(const vol::AABB& local, const vol::AABB& global, SplitInsertIter iter);
-        static SplitInsertIter duplicatePlanes(const SplitPlane& plane, SplitInsertIter iter);
 
         bool operator<(const SplitPlane& that) const;
         Side whichSide(const SplitPlane& that) const;
@@ -139,6 +137,18 @@ class SplitPlane {
         float _costL;
         float _costR;
         float _cost;
+};
+
+
+class SplitPlaneFactory {
+    public:
+        ~SplitPlaneFactory();
+
+        SplitInsertIter createFromTriangle(const Triangle& triangle, const vol::AABB& global, SplitInsertIter iter);
+        SplitInsertIter duplicatePlanes(const SplitPlane& plane, SplitInsertIter iter);
+
+    private:
+        std::vector<SplitPlane*> _planes;
 };
 
 
@@ -197,8 +207,9 @@ struct UpdateInitial : public UpdateBase {
 
 
 struct DuplicateOverlapping {
-    DuplicateOverlapping(SplitList& list, SplitIter iter);
+    DuplicateOverlapping(SplitList& list, SplitIter iter, SplitPlaneFactory& fac);
     void operator()(const SplitPlane* plane);
+    SplitPlaneFactory& factory;
     SplitInsertIter insertIter;
 };
 
@@ -382,82 +393,6 @@ SplitPlane::SplitPlane(SplitAxis axis, float pos, const vol::AABB& global, bool 
     recalculateCosts();
 }
 
-SplitInsertIter SplitPlane::createFromTriangle(const Triangle& triangle, const vol::AABB& global, SplitInsertIter iter)
-{
-    vol::AABB local(triangle.determineBounds());
-
-    const Vector3& min = local.getMin();
-    const Vector3& max = local.getMax();
-
-    SplitPlane* planes[6] = {
-        new SplitPlane(SPLIT_AXIS_X, min.x, global, true),
-        new SplitPlane(SPLIT_AXIS_X, max.x, global, false),
-        new SplitPlane(SPLIT_AXIS_Y, min.y, global, true),
-        new SplitPlane(SPLIT_AXIS_Y, max.y, global, false),
-        new SplitPlane(SPLIT_AXIS_Z, min.z, global, true),
-        new SplitPlane(SPLIT_AXIS_Z, max.z, global, false)
-    };
-
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 6; j++)
-            planes[i]->_others[j] = planes[j];
-
-        planes[i]->_tri = &triangle;
-    }
-
-    std::copy(planes, planes + 6, iter);
-
-    return iter;
-}
-
-SplitInsertIter SplitPlane::createFromBounds(const vol::AABB& local, const vol::AABB& global, SplitInsertIter iter)
-{
-    const Vector3& min = local.getMin();
-    const Vector3& max = local.getMax();
-
-    SplitPlane* planes[6] = {
-        new SplitPlane(SPLIT_AXIS_X, min.x, global, true),
-        new SplitPlane(SPLIT_AXIS_X, max.x, global, false),
-        new SplitPlane(SPLIT_AXIS_Y, min.y, global, true),
-        new SplitPlane(SPLIT_AXIS_Y, max.y, global, false),
-        new SplitPlane(SPLIT_AXIS_Z, min.z, global, true),
-        new SplitPlane(SPLIT_AXIS_Z, max.z, global, false)
-    };
-
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 6; j++)
-            planes[i]->_others[j] = planes[j];
-    }
-
-    std::copy(planes, planes + 6, iter);
-
-    return iter;
-}
-
-SplitInsertIter SplitPlane::duplicatePlanes(const SplitPlane& plane, SplitInsertIter iter)
-{
-    if ((plane._axis != SPLIT_AXIS_X) || !plane._minBound) 
-        return iter;
-
-    SplitPlane* planes[6] = {
-        new SplitPlane(*plane._others[0]),
-        new SplitPlane(*plane._others[1]),
-        new SplitPlane(*plane._others[2]),
-        new SplitPlane(*plane._others[3]),
-        new SplitPlane(*plane._others[4]),
-        new SplitPlane(*plane._others[5])
-    };
-
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 6; j++)
-            planes[i]->_others[j] = planes[j];
-    }
-
-    std::copy(planes, planes + 6, iter);
-
-    return iter;
-}
-
 inline bool SplitPlane::operator<(const SplitPlane& that) const
 {
     return (_position < that._position);
@@ -625,6 +560,58 @@ inline float SplitPlane::getCostR() const
 inline float SplitPlane::getCost() const
 {
     return _cost;
+}
+
+
+////////// SplitPlaneFactory //////////
+
+SplitPlaneFactory::~SplitPlaneFactory()
+{
+    foreach (SplitPlane* plane, _planes) 
+        delete plane;
+}
+
+SplitInsertIter SplitPlaneFactory::createFromTriangle(const Triangle& triangle, const vol::AABB& global, SplitInsertIter iter)
+{
+    vol::AABB local(triangle.determineBounds());
+
+    const Vector3& min = local.getMin();
+    const Vector3& max = local.getMax();
+
+    _planes.push_back(new SplitPlane(SPLIT_AXIS_X, min.x, global, true));
+    _planes.push_back(new SplitPlane(SPLIT_AXIS_X, max.x, global, false));
+    _planes.push_back(new SplitPlane(SPLIT_AXIS_Y, min.y, global, true));
+    _planes.push_back(new SplitPlane(SPLIT_AXIS_Y, max.y, global, false));
+    _planes.push_back(new SplitPlane(SPLIT_AXIS_Z, min.z, global, true));
+    _planes.push_back(new SplitPlane(SPLIT_AXIS_Z, max.z, global, false));
+
+    for (int i = _planes.size() - 6; i < _planes.size(); i++) {
+        _planes[i]->_tri = &triangle;
+        for (int j = 0; j < 6; j++)
+            _planes[i]->_others[j] = _planes[_planes.size() + j - 6];
+    }
+
+    std::copy(_planes.end() - 6, _planes.end(), iter);
+
+    return iter;
+}
+
+SplitInsertIter SplitPlaneFactory::duplicatePlanes(const SplitPlane& plane, SplitInsertIter iter)
+{
+    if ((plane._axis != SPLIT_AXIS_X) || !plane._minBound) 
+        return iter;
+
+    for (int i = 0; i < 6; i++) 
+        _planes.push_back(new SplitPlane(*plane._others[i]));
+
+    for (int i = _planes.size() - 6; i < _planes.size(); i++) {
+        for (int j = 0; j < 6; j++)
+            _planes[i]->_others[j] = _planes[_planes.size() + j - 6];
+    }
+
+    std::copy(_planes.end() - 6, _planes.end(), iter);
+
+    return iter;
 }
 
 
@@ -802,15 +789,15 @@ void UpdateInitial::maybeUpdateVolume(SplitPlane* plane)
 
 ////////// DuplicateOverlapping //////////
 
-DuplicateOverlapping::DuplicateOverlapping(SplitList& list, SplitIter iter) :
-    insertIter(inserter(list, iter))
+DuplicateOverlapping::DuplicateOverlapping(SplitList& list, SplitIter iter, SplitPlaneFactory& fac) :
+    factory(fac), insertIter(inserter(list, iter))
 {
 
 }
 
 void DuplicateOverlapping::operator()(const SplitPlane* plane)
 {
-    insertIter = SplitPlane::duplicatePlanes(*plane, insertIter);
+    insertIter = factory.duplicatePlanes(*plane, insertIter);
 };
 
 
@@ -884,7 +871,7 @@ inline bool shouldStopSplitting(float splitCost, float currentCost, int depth)
     return ((splitCost  >= currentCost) || (depth > KDTree::MAX_DEPTH));
 }
 
-std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, int depth, float cost)
+std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, SplitPlaneFactory& factory, int depth, float cost)
 {
     if (list.empty())
         return std::auto_ptr<TemporaryNode>(new TemporaryNode);
@@ -912,7 +899,7 @@ std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, int depth, flo
 
     SplitIter beginBoth = std::stable_partition(list.begin(), list.end(), OnSide(split, SplitPlane::LEFT));
     SplitIter endBoth = std::stable_partition(beginBoth, list.end(), OnSide(split, SplitPlane::BOTH));
-    std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, beginBoth));
+    std::for_each(beginBoth, endBoth, DuplicateOverlapping(list, beginBoth, factory));
 
     SplitList listL;
     listL.splice(listL.begin(), list, list.begin(), beginBoth);
@@ -926,22 +913,24 @@ std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, int depth, flo
     std::for_each(listR.begin(), listR.end(), updaterR);
 
     return std::auto_ptr<TemporaryNode>(new TemporaryNode(
-        createTemporaryNode(listL, depth + 1, costL),
-        createTemporaryNode(listR, depth + 1, costR),
+        createTemporaryNode(listL, factory, depth + 1, costL),
+        createTemporaryNode(listR, factory, depth + 1, costR),
         splitAxis, splitPos));
 }
 
 std::auto_ptr<TemporaryNode> constructKDTree(const std::vector<Triangle>& triangles, const vol::AABB& bounds)
 {
     SplitList list;
+    SplitPlaneFactory factory;
+
     foreach (const Triangle& triangle, triangles) 
-        SplitPlane::createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
+        factory.createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
 
     list.sort(LessThanPtrs());
 
     std::for_each(list.begin(), list.end(), UpdateInitial(triangles.size()));
 
-    return createTemporaryNode(list, 1, std::numeric_limits<float>::max());
+    return createTemporaryNode(list, factory, 1, std::numeric_limits<float>::max());
 }
 
 std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
