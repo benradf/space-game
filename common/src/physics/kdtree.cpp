@@ -724,7 +724,8 @@ UpdateLeft::UpdateLeft(int count, float volumeL, float volumeR, SplitAxis axis, 
 void UpdateLeft::maybeClampPosition(SplitPlane* plane)
 {
     if (!plane->getMinBound() && (plane->getPosition() > _position) && (_axis == plane->getAxis())) {
-        plane->setVolumeL(plane->getVolumeL() + plane->getVolumeR() - _volumeR);
+        float newVolumeL = plane->getVolumeL() + plane->getVolumeR() - _volumeR;
+        plane->setVolumeL(std::max(newVolumeL, 0.0f));
         plane->setVolumeR(_volumeR);
         plane->setPosition(_position);
     }
@@ -733,7 +734,8 @@ void UpdateLeft::maybeClampPosition(SplitPlane* plane)
 void UpdateLeft::maybeUpdateVolume(SplitPlane* plane)
 {
     if (plane->getAxis() == _axis) {
-        plane->setVolumeR(plane->getVolumeR() - _volumeR);
+        float newVolumeR = plane->getVolumeR() - _volumeR;
+        plane->setVolumeR(std::max(newVolumeR, 0.0f));
     } else {
         float s = _volumeL / (_volumeL + _volumeR);
         plane->setVolumeL(plane->getVolumeL() * s);
@@ -759,7 +761,8 @@ UpdateRight::UpdateRight(int count, float volumeL, float volumeR, SplitAxis axis
 void UpdateRight::maybeClampPosition(SplitPlane* plane)
 {
     if (plane->getMinBound() && (plane->getPosition() < _position) && (_axis == plane->getAxis())) {
-        plane->setVolumeR(plane->getVolumeR() + plane->getVolumeL() - _volumeL);
+        float newVolumeR = plane->getVolumeR() + plane->getVolumeL() - _volumeL;
+        plane->setVolumeR(std::max(newVolumeR, 0.0f));
         plane->setVolumeL(_volumeL);
         plane->setPosition(_position);
     }
@@ -768,7 +771,8 @@ void UpdateRight::maybeClampPosition(SplitPlane* plane)
 void UpdateRight::maybeUpdateVolume(SplitPlane* plane)
 {
     if (plane->getAxis() == _axis) {
-        plane->setVolumeL(plane->getVolumeL() - _volumeL);
+        float newVolumeL = plane->getVolumeL() - _volumeL;
+        plane->setVolumeL(std::max(newVolumeL, 0.0f));
     } else {
         float s = _volumeR / (_volumeL + _volumeR);
         plane->setVolumeL(plane->getVolumeL() * s);
