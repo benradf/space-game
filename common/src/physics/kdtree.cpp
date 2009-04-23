@@ -19,15 +19,26 @@
 #include <queue>
 #include <list>
 #include <set>
+#include <map>
 #include <tr1/unordered_set>
 #include <tr1/unordered_map>
+
+
+
+struct TriangleLessThan {
+    bool operator()(const Triangle* a, const Triangle* b);
+};
 
 
 typedef std::list<class SplitPlane*> SplitList;
 typedef SplitList::iterator SplitIter;
 typedef std::insert_iterator<SplitList> SplitInsertIter;
-typedef std::tr1::unordered_set<const Triangle*> TriangleSet;
-typedef std::tr1::unordered_map<const Triangle*, size_t> TriangleMap;
+
+typedef std::set<const Triangle*, TriangleLessThan> TriangleSet;
+typedef std::map<const Triangle*, size_t, TriangleLessThan> TriangleMap;
+
+//typedef std::tr1::unordered_set<const Triangle*> TriangleSet;
+//typedef std::tr1::unordered_map<const Triangle*, size_t> TriangleMap;
 
 
 class TemporaryNode {
@@ -219,6 +230,42 @@ struct MinCost {
 struct IsFlat {
     bool operator()(const SplitPlane* plane) const;
 };
+
+
+////////// TriangleLessThan //////////
+
+bool TriangleLessThan::operator()(const Triangle* a, const Triangle* b)
+{
+    const Vector3& a_v0 = a->getV0();
+    const Vector3& a_v1 = a->getV1();
+    const Vector3& a_v2 = a->getV2();
+    const Vector3& b_v0 = b->getV0();
+    const Vector3& b_v1 = b->getV1();
+    const Vector3& b_v2 = b->getV2();
+
+    if (a_v0.x != b_v0.x) 
+        return a_v0.x < b_v0.x;
+    if (a_v0.y != b_v0.y) 
+        return a_v0.y < b_v0.y;
+    if (a_v0.z != b_v0.z) 
+        return a_v0.z < b_v0.z;
+    if (a_v1.x != b_v1.x) 
+        return a_v1.x < b_v1.x;
+    if (a_v1.y != b_v1.y) 
+        return a_v1.y < b_v1.y;
+    if (a_v1.z != b_v1.z) 
+        return a_v1.z < b_v1.z;
+    if (a_v2.x != b_v2.x) 
+        return a_v2.x < b_v2.x;
+    if (a_v2.y != b_v2.y) 
+        return a_v2.y < b_v2.y;
+    if (a_v2.z != b_v2.z) 
+        return a_v2.z < b_v2.z;
+
+    assert(a == b);
+
+    return false;
+}
 
 
 ////////// TemporaryNode //////////
@@ -978,6 +1025,10 @@ KDTreeData::KDTreeData(size_t nodes, size_t triangles, size_t references) :
     _nodes = nodeArray.release();
     _triangles = triangleArray.release();
     _references = referenceArray.release();
+
+    memset(_nodes, 0, sizeof(KDTreeNode) * _nodeCount);
+    memset(_triangles, 0, sizeof(Triangle) * _triangleCount);
+    memset(_references, 0, sizeof(Reference) * _referenceCount);
 }
 
 KDTreeData::~KDTreeData()
