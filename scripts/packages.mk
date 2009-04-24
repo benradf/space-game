@@ -14,6 +14,7 @@ PACKAGES= \
 	libpng \
 	libmng \
 	lua \
+	ogre \
 	ois \
 	pcre \
 	tiff \
