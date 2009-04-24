@@ -54,6 +54,20 @@ class Circle {
 };
 
 
+class Sphere {
+    public:
+        Sphere(const Vector3& centre, float radius);
+        const Vector3& getCentre() const;
+        float getSurfaceArea() const;
+        float getRadius() const;
+        float getVolume() const;
+
+    private:
+        Vector3 _centre;
+        float _radius;
+};
+
+
 class AABB {
     public:
         AABB(const Vector3& min, const Vector3& max);
@@ -147,6 +161,35 @@ inline float Circle::getRadius() const
 inline float Circle::getArea() const
 {
     return (M_PI * _radius * _radius);
+}
+
+
+////////// Sphere //////////
+
+Sphere::Sphere(const Vector3& centre, float radius) :
+    _centre(centre), _radius(radius)
+{
+
+}
+
+const Vector3& Sphere::getCentre() const
+{
+    return _centre;
+}
+
+float Sphere::getSurfaceArea() const
+{
+    return (4.0f * M_PI * _radius * _radius);
+}
+
+float Sphere::getRadius() const
+{
+    return _radius;
+}
+
+float Sphere::getVolume() const
+{
+    return (4.0f * M_PI * _radius * _radius * _radius / 3.0f);
 }
 
 

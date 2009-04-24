@@ -37,6 +37,13 @@ class Triangle {
 };
 
 
+bool intersects3d(const Triangle& a, const vol::Sphere& b);
+bool intersects3d(const vol::Sphere& a, const Triangle& b);
+
+bool intersects2d(const Triangle& a, const vol::Circle& b);
+bool intersects2d(const vol::Circle& a, const Triangle& b);
+
+
 ////////// Triangle //////////
 
 inline Triangle::Triangle() :
