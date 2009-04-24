@@ -166,28 +166,28 @@ inline float Circle::getArea() const
 
 ////////// Sphere //////////
 
-Sphere::Sphere(const Vector3& centre, float radius) :
+inline Sphere::Sphere(const Vector3& centre, float radius) :
     _centre(centre), _radius(radius)
 {
 
 }
 
-const Vector3& Sphere::getCentre() const
+inline const Vector3& Sphere::getCentre() const
 {
     return _centre;
 }
 
-float Sphere::getSurfaceArea() const
+inline float Sphere::getSurfaceArea() const
 {
     return (4.0f * M_PI * _radius * _radius);
 }
 
-float Sphere::getRadius() const
+inline float Sphere::getRadius() const
 {
     return _radius;
 }
 
-float Sphere::getVolume() const
+inline float Sphere::getVolume() const
 {
     return (4.0f * M_PI * _radius * _radius * _radius / 3.0f);
 }

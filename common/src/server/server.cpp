@@ -85,9 +85,8 @@ extern void displayKDTree();
 
 int main(int argc, char* argv[])
 {
-    displayKDTree();
-
-    return 0;
+    //displayKDTree();
+    //return 0;
 
     // Initialise logging.
     Log::Console consoleLog;

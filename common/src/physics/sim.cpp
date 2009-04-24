@@ -8,9 +8,14 @@
 
 
 #include "sim.hpp"
+#include "collision.hpp"
+
 #include <unistd.h>
 #include <core/timer.hpp>
 #include <core/core.hpp>
+
+
+CollisionGeometry collision("collision.dat");
 
 
 ////////// sim::Object //////////
@@ -121,7 +126,13 @@ void sim::Object::integrateLinearMotion(float dt)
     if (_forceApplied) 
         _vel += _acc * dt;
 
-    _pos += _vel * dt;
+    Vector3 normal = Vector3::ZERO;
+    Vector3 newPos = _pos + _vel * dt;
+    if (!collision.checkCollision(vol::Sphere(newPos, 8.0f), normal)) {
+        _pos = newPos;
+    } else {
+        _vel = Vector3::ZERO;
+    }
 
     ClearForce();
 }
