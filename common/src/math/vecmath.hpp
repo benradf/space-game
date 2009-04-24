@@ -191,6 +191,12 @@ inline Vector3<T> normalise(const Vector3<T>& v)
 }
 
 template<typename T>
+inline Vector3<T> reflect(const Vector3<T>& v, const Vector3<T>& n)
+{
+    return (v - 2 * dotProduct(v, n) * n);
+}
+
+template<typename T>
 const Vector3<T> Vector3<T>::ZERO(T(0), T(0), T(0));
 
 template<typename T>
