@@ -262,6 +262,9 @@ inline QuadTree<T>::Node::Node(Node* parent, int index) :
 template<typename T>
 inline QuadTree<T>::Node::~Node()
 {
+    if (leaf)
+        return;
+
     for (int i = 0; i < 4; i++) 
         delete children[i];
 }
