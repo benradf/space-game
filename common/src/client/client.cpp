@@ -21,6 +21,7 @@
 #include <physics/sim.hpp>
 #include <stdio.h>
 #include <physics/object.hpp>
+#include <string>
 
 
 using namespace std;
@@ -28,6 +29,7 @@ using namespace gfx;
 
 
 bool clientRunning = true;
+std::string serverHostname("localhost");
 
 
 void signalHandler(int signum)
@@ -80,7 +82,7 @@ void clientMain()
 
     NetworkInterface network;
 
-    network.setServer("localhost");
+    network.setServer(serverHostname.c_str());
     network.maintainServerConnection(true);
 
     Timer simTimer;
@@ -136,6 +138,9 @@ int main(int argc, char* argv[])
     int rval = chdir("linux/share/client");
 #endif
     assert(rval == 0);
+
+    if (argc > 1) 
+        serverHostname = argv[1];
     
     try {
         clientMain();
