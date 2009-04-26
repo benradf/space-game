@@ -7,7 +7,7 @@ PROTOCOLDESC="Network protocol."
 TMPFILE="/tmp/netgen_temp"
 ARGFILE="/tmp/netgen_argfile"
 SERIALISEFILE="/tmp/netgen_serialise"
-SEDFMT='^\([[:alnum:]]*\) \([[:alnum:]]*\)\(\[.\+\]\)\?$'
+SEDFMT='^\([[:alnum:]_]*\) \([[:alnum:]_]*\)\(\[.\+\]\)\?$'
 
 . scripts/code-gen.inc
 
@@ -304,7 +304,7 @@ echo
 exec 5<>$PROTOCOLSRC 1>&5
 file-comments "$PROTOCOLSRC" "$PROTOCOLDESC"
 echo "#include \"$PROTOCOLHDR\""
-echo "#include <core.hpp>"
+echo "#include <core/core.hpp>"
 echo "#include <memory.h>"
 echo
 echo
