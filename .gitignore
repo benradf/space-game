@@ -1,1 +1,5 @@
-.*.swp
+.*.sw?
+.sw?
+Ogre.log
+client.log
+server.log
