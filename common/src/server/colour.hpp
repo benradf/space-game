@@ -34,7 +34,7 @@ namespace clr {
 #define COL3_NAME_CONCAT_D(X, Y, Z) X##Y##Z
 #define COL3_NAME_CONCAT(X, Y, Z) COL3_NAME_CONCAT_D(X, Y, Z)
 #define COL3_NAME(X1, X2, X3) COL3_NAME_CONCAT(COL_SIZE(X1), COL_SIZE(X2), COL_SIZE(X3))
-#define COL3_INIT_D(X1, x1, X2, x2, X3, x3) COL_VAR(X1)(x1), COL_VAR(X2)(x2), COL_VAR(X3)(x3)
+#define COL3_INIT_D(X1, x1, X2, x2, X3, x3) COL_VAR(X3)(x3), COL_VAR(X2)(x2), COL_VAR(X1)(x1)
 #define COL3_INIT(F, X1, X2, X3) COL3_INIT_D(X1, F(X1), X2, F(X2), X3, F(X3))
 #define COL3_ARGLIST(X1, X2, X3) uint8_t COL_ARG(X1), uint8_t COL_ARG(X2), uint8_t COL_ARG(X3)
 
@@ -63,7 +63,7 @@ namespace clr {
 #define COL4_NAME_CONCAT_D(W, X, Y, Z) W##X##Y##Z
 #define COL4_NAME_CONCAT(W, X, Y, Z) COL4_NAME_CONCAT_D(W, X, Y, Z)
 #define COL4_NAME(X1, X2, X3, X4) COL4_NAME_CONCAT(COL_SIZE(X1), COL_SIZE(X2), COL_SIZE(X3), COL_SIZE(X4))
-#define COL4_INIT_D(X1, x1, X2, x2, X3, x3, X4, x4) COL_VAR(X1)(x1), COL_VAR(X2)(x2), COL_VAR(X3)(x3), COL_VAR(X4)(x4)
+#define COL4_INIT_D(X1, x1, X2, x2, X3, x3, X4, x4) COL_VAR(X4)(x4), COL_VAR(X3)(x3), COL_VAR(X2)(x2), COL_VAR(X1)(x1)
 #define COL4_INIT(F, X1, X2, X3, X4) COL4_INIT_D(X1, F(X1), X2, F(X2), X3, F(X3), X4, F(X4))
 #define COL4_ARGLIST(X1, X2, X3, X4) uint8_t COL_ARG(X1), uint8_t COL_ARG(X2), uint8_t COL_ARG(X3), uint8_t COL_ARG(X4)
 
