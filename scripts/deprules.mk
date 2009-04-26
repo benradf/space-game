@@ -26,6 +26,7 @@ $(call PKG_DEP,DevIL,zlib)
 $(call PKG_DEP,zziplib,zlib)
 
 # CEGUI
+$(call PKG_DEP,CEGUI,DevIL)
 $(call PKG_DEP,CEGUI,freetype)
 $(call PKG_DEP,CEGUI,lua)
 $(call PKG_DEP,CEGUI,pcre)
