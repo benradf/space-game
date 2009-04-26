@@ -92,8 +92,10 @@ $(1)-$(2)-build:
 		-n "`sed -n s/$2\://p .linkname 2>/dev/null`" \
 		-f "`sed -n s/$2\://p .cxxflags 2>/dev/null`" \
 		-h "`sed -n s/$2\://p .install 2>/dev/null`" \
-		-r $(PWD) >Makefile && \
-	$(MAKE) PLATFORM="$(2)" $(call GET_BUILD_TOOLS,$(2))
+		-r $(PWD) >Makefile.$(2) && \
+	rm Makefile && ln -s Makefile.$(2) Makefile && \
+	$(MAKE) -f Makefile.$(2) PLATFORM="$(2)" \
+	$(call GET_BUILD_TOOLS,$(2))
 $(1)-$(2)-install:
 	@echo -e "\033[01;36m$$@\033[00m"; \
 	cd common/src/$(1) && $(MAKE) PLATFORM="$(2)" install
