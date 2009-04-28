@@ -34,6 +34,8 @@ void ObjectCache::updateCachedObjects()
 {
     foreach (ObjectMap::value_type& objPair, _objects) 
         objPair.second->update();
+
+    updateAttachedObject();
 }
 
 void ObjectCache::setControlState(sim::ControlState state)
@@ -43,16 +45,11 @@ void ObjectCache::setControlState(sim::ControlState state)
 
     VisibleObject& object = getObject(_attachedObject);
 
-    Vec2<int16_t> pos(packPos(object.getPosition()));
-    Vec2<int16_t> vel(packVel(object.getVelocity()));
-    uint8_t rot = packRot(object.getRotation());
-
-    sendObjectUpdateFull(_attachedObject, 
-        pos.x, pos.y, vel.x, vel.y, rot, state);
-
     object.setControlState(state);
+    sendFullObjectUpdate(object);
 
-    _updateAttachedTimer.reset();
+    _partialUpdateTimer.reset();
+    _fullUpdateTimer.reset();
     _lastState = state;
 }
 
@@ -102,6 +99,7 @@ void ObjectCache::handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t
     VisibleObject& object = getObject(objectid);
     object.setPosition(unpackPos(makeVec2(s_x, s_y)));
     object.setVelocity(unpackVel(makeVec2(v_x, v_y)));
+    object.setRotation(unpackRot(rot));
     object.setControlState(ctrl);
 }
 
@@ -126,17 +124,39 @@ VisibleObject& ObjectCache::getObject(ObjectID objectID)
     return *object.release();
 }
 
+void ObjectCache::sendPartialObjectUpdate(const VisibleObject& object)
+{
+    Vec2<int16_t> pos(packPos(object.getPosition()));
+
+    sendObjectUpdatePartial(_attachedObject, pos.x, pos.y);
+}
+
+void ObjectCache::sendFullObjectUpdate(const VisibleObject& object)
+{
+    Vec2<int16_t> pos(packPos(object.getPosition()));
+    Vec2<int16_t> vel(packVel(object.getVelocity()));
+    uint8_t rot = packRot(object.getRotation());
+
+    sendObjectUpdateFull(_attachedObject, pos.x, pos.y, 
+        vel.x, vel.y, rot, object.getControlState());
+}
+
 void ObjectCache::updateAttachedObject()
 {
     if (!hasAttachedObject()) 
         return;
 
-    if (_updateAttachedTimer.elapsed() < UPDATE_PERIOD) 
-        return;
-
     VisibleObject& object = getObject(_attachedObject);
 
-    Vec2<int16_t> pos(packPos(object.getPosition()));
-    sendObjectUpdatePartial(_attachedObject, pos.x, pos.y);
+    if (_fullUpdateTimer.elapsed() >= FULL_UPDATE_PERIOD) {
+        sendFullObjectUpdate(object);
+        _partialUpdateTimer.reset();
+        _fullUpdateTimer.reset();
+    }
+
+    if (_partialUpdateTimer.elapsed() >= PARTIAL_UPDATE_PERIOD) {
+        sendPartialObjectUpdate(object);
+        _partialUpdateTimer.reset();
+    }
 }
 

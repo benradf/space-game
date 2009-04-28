@@ -77,6 +77,11 @@ const Quaternion& VisibleObject::getRotation() const
     return _objectSim->getRotation();
 }
 
+sim::ControlState VisibleObject::getControlState() const
+{
+    return _objectSim->getControlState();
+}
+
 void VisibleObject::setPosition(const Vector3& pos)
 {
     _objectSim->setPosition(pos);

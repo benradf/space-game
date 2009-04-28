@@ -66,7 +66,7 @@ inline Vector3 unpackVel(int16_t x, int16_t y)
 
 inline uint8_t packRot(const Quaternion& rot)
 {
-    return uint8_t(80.0f * acos(rot.w));
+    return uint8_t(80.0f * acos(rot.z < 0.0f ? -rot.w : rot.w));
 }
 
 inline Quaternion unpackRot(uint8_t rot)

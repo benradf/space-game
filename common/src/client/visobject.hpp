@@ -28,6 +28,7 @@ class VisibleObject {
         const Vector3& getPosition() const;
         const Vector3& getVelocity() const;
         const Quaternion& getRotation() const;
+        sim::ControlState getControlState() const;
 
         void setPosition(const Vector3& pos);
         void setVelocity(const Vector3& vel);

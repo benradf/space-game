@@ -142,8 +142,6 @@ Job::RetType NetworkInterface::main()
     return YIELD;
 }
 
-#include <iostream>
-using namespace std;
 void NetworkInterface::tellPlayerObjectPos(PlayerID player, const CachedObjectInfo& object)
 {
     RemoteClient* client = getClientByPlayer(player);
