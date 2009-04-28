@@ -4,6 +4,7 @@
 #include <string.h>
 #include <core/exception.hpp>
 #include <core/core.hpp>
+#include <math/util.hpp>
 #include <fstream>
 
 
@@ -74,7 +75,27 @@ BuildCollisionKDTree::BuildCollisionKDTree(const char* filename) :
 
 KDTree::Ptr BuildCollisionKDTree::createKDTree() const
 {
-    return KDTree::create(_triangles, vol::AABB(Vector3(-100.0f, -100.0f, -100.0f), Vector3(100.0f, 100.0f, 100.0f)));
+    float min = 0.0f, max = 0.0f;
+
+    foreach (const Triangle& triangle, _triangles) {
+        min = std::min(min, triangle.getV0().x);
+        max = std::max(max, triangle.getV0().x);
+        min = std::min(min, triangle.getV1().y);
+        max = std::max(max, triangle.getV1().y);
+        min = std::min(min, triangle.getV2().z);
+        max = std::max(max, triangle.getV2().z);
+    }
+
+    KDTree::Ptr ptr(KDTree::create(_triangles, vol::AABB(Vector3(min, min, min), Vector3(max, max, max))));
+
+    cout << "kdtree stats:" << endl;
+    cout << "  memory usage = " << (ptr->getMemoryUsage() / 1024) << "kb" << endl;
+    cout << "  triangle count = " << _triangles.size() << endl;
+    cout << "  min bound = (" << min << ", " << min << ", " << min << ")" << endl;
+    cout << "  max bound = (" << max << ", " << max << ", " << max << ")" << endl;
+
+    return ptr;
+
 }
 
 BuildCollisionKDTree::BuildCollisionKDTree(const BuildCollisionKDTree&)
