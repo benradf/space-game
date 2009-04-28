@@ -55,6 +55,9 @@ bool CollisionGeometry::checkCollision(const Sphere& sphere, Vector3& normal) co
     CheckTriangles checkTriangles(sphere);
     _kdtree->process(checkTriangles, vol::AABB(min, max));
 
+    if (!checkTriangles.triangles.empty()) 
+        normal = checkTriangles.triangles.front()->getNormal();
+
     return (!checkTriangles.triangles.empty());
 }
 

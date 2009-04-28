@@ -131,7 +131,7 @@ void sim::Object::integrateLinearMotion(float dt)
     if (!collision.checkCollision(vol::Sphere(newPos, 8.0f), normal)) {
         _pos = newPos;
     } else {
-        _vel = Vector3::ZERO;
+        _vel = 0.5f * reflect(_vel, normal);
     }
 
     ClearForce();
