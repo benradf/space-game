@@ -22,7 +22,11 @@ class VisibleObject {
 
         void update();
 
+        const Vector3& getApparentPosition() const;
+        const Quaternion& getApparentRotation() const;
+
         const Vector3& getPosition() const;
+        const Vector3& getVelocity() const;
         const Quaternion& getRotation() const;
 
         void setPosition(const Vector3& pos);

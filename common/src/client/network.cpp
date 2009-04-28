@@ -112,6 +112,16 @@ void NetworkInterface::maintainServerConnection(bool yes)
     _maintainConnection = yes;
 }
 
+RemoteServer& NetworkInterface::getServer()
+{
+    return *_server;
+}
+
+bool NetworkInterface::hasServer() const
+{
+    return (_server.get() != 0);
+}
+
 net::Peer* NetworkInterface::handleConnect(void* data)
 {
     Log::log->info("connected to server");

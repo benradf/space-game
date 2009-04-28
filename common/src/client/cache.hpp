@@ -25,24 +25,33 @@ class ObjectCache : public virtual net::ProtocolUser {
 
         void updateCachedObjects();
 
+        void setControlState(sim::ControlState state);
+        const Vector3& getAttachedObjectPosition() const;
+        bool hasAttachedObject() const;
+
     private:
-        virtual void handleObjectEnter(uint32_t objectid);
-        virtual void handleObjectLeave(uint32_t objectid);
-        virtual void handleObjectPos(uint32_t objectid, float x, float y, float z);
-        virtual void handleObjectVel(uint32_t objectid, float x, float y, float z);
-        virtual void handleObjectRot(uint32_t objectid, float w, float x, float y, float z);
-        virtual void handleObjectState(uint32_t objectid, uint8_t ctrl);
-        virtual void handleObjectControl(uint32_t objectid, uint8_t ctrl);
-        virtual void handleAttachCamera(uint32_t objectid);
+        static const int UPDATE_PERIOD = 1000000;
+
+        virtual void handleObjectEnter(uint16_t objectid);
+        virtual void handleObjectLeave(uint16_t objectid);
+        virtual void handleObjectAttach(uint16_t objectid);
+        virtual void handleObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y);
+        virtual void handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y,
+            int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl);
 
         typedef std::tr1::unordered_map<sim::ObjectID, VisibleObject*> ObjectMap;
 
+        const VisibleObject* getObject(sim::ObjectID objectID) const;
         VisibleObject& getObject(sim::ObjectID objectID);
 
-        ObjectMap _objects;
+        void updateAttachedObject();
 
-        VisibleObject* _camAttach;
+        Timer _updateAttachedTimer;
         sim::ControlState _lastState;
+        sim::ObjectID _attachedObject;
+        bool _haveAttachedObject;
+
+        ObjectMap _objects;
 };
 
 

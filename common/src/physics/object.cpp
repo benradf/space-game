@@ -22,8 +22,8 @@ sim::MovableObject::~MovableObject()
 
 ////////// Ship //////////
 
-sim::Ship::Ship() :
-    _simObject(10.0f), _control(0)
+sim::Ship::Ship(ObjectID id) :
+    _simObject(10.0f), _control(0), _id(id)
 {
     _stats[STAT_THRUST] = 150.0f;
     _stats[STAT_BOOST] = 500.0f;
@@ -56,6 +56,11 @@ void sim::Ship::update()
     float elapsed = _timer.elapsed();
     _simObject.integrate(elapsed / 1000000);
     _timer.reset();
+}
+
+sim::ObjectID sim::Ship::getID() const
+{
+    return _id;
 }
 
 const Vector3& sim::Ship::getPosition() const

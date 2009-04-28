@@ -20,10 +20,10 @@ function net2cpp() {
         uint16) CPPTYPE="uint16_t";;
         uint32) CPPTYPE="uint32_t";;
         uint64) CPPTYPE="uint64_t";;
-        sint8) CPPTYPE="int8_t";;
-        sint16) CPPTYPE="int16_t";;
-        sint32) CPPTYPE="int32_t";;
-        sint64) CPPTYPE="int64_t";;
+        int8) CPPTYPE="int8_t";;
+        int16) CPPTYPE="int16_t";;
+        int32) CPPTYPE="int32_t";;
+        int64) CPPTYPE="int64_t";;
         string) CPPTYPE="const char*";;
         real32) CPPTYPE="float";;
         real64) CPPTYPE="double";;

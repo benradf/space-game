@@ -43,6 +43,9 @@ class NetworkInterface : public net::Interface {
         void setServer(const std::string& hostname);
         void maintainServerConnection(bool yes = true);
 
+        RemoteServer& getServer();
+        bool hasServer() const;
+
     private:
         virtual net::Peer* handleConnect(void* data);
         virtual void handleDisconnect(net::Peer* peer);

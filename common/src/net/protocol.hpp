@@ -1,7 +1,7 @@
 /// \file protocol.hpp
 /// \brief Network protocol.
 /// \author 
-/// \date 4th April 2009
+/// \date 28th April 2009
 ///
 /// Copyright (c) 2009 . All rights reserved.
 ///
@@ -54,29 +54,20 @@ class ProtocolUser {
         void sendBroadcastMsg(const char* text);
         virtual void handleBroadcastMsg(const char* text) = 0;
 
-        void sendObjectEnter(uint32_t objectid);
-        virtual void handleObjectEnter(uint32_t objectid) = 0;
+        void sendObjectEnter(uint16_t objectid);
+        virtual void handleObjectEnter(uint16_t objectid) = 0;
 
-        void sendObjectLeave(uint32_t objectid);
-        virtual void handleObjectLeave(uint32_t objectid) = 0;
+        void sendObjectLeave(uint16_t objectid);
+        virtual void handleObjectLeave(uint16_t objectid) = 0;
 
-        void sendObjectPos(uint32_t objectid, float x, float y, float z);
-        virtual void handleObjectPos(uint32_t objectid, float x, float y, float z) = 0;
+        void sendObjectAttach(uint16_t objectid);
+        virtual void handleObjectAttach(uint16_t objectid) = 0;
 
-        void sendObjectVel(uint32_t objectid, float x, float y, float z);
-        virtual void handleObjectVel(uint32_t objectid, float x, float y, float z) = 0;
+        void sendObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y);
+        virtual void handleObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y) = 0;
 
-        void sendObjectRot(uint32_t objectid, float w, float x, float y, float z);
-        virtual void handleObjectRot(uint32_t objectid, float w, float x, float y, float z) = 0;
-
-        void sendObjectState(uint32_t objectid, uint8_t ctrl);
-        virtual void handleObjectState(uint32_t objectid, uint8_t ctrl) = 0;
-
-        void sendObjectControl(uint32_t objectid, uint8_t ctrl);
-        virtual void handleObjectControl(uint32_t objectid, uint8_t ctrl) = 0;
-
-        void sendAttachCamera(uint32_t objectid);
-        virtual void handleAttachCamera(uint32_t objectid) = 0;
+        void sendObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y, int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl);
+        virtual void handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y, int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl) = 0;
 
 };
 

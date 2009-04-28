@@ -44,13 +44,16 @@ class Zone : public MessagableJob {
 
         virtual RetType main();
 
-        virtual void handleZoneEnter(PlayerID player, ZoneID zone);
-        virtual void handleZoneLeave(PlayerID player, ZoneID zone);
-        virtual void handlePlayerInput(PlayerID player, ControlState state);
-
     private:
         typedef std::tr1::unordered_map<ObjectID, sim::MovableObject*> ObjectMap;
         typedef std::tr1::unordered_map<PlayerID, ObjectID> PlayerMap;
+
+        virtual void handlePlayerEnterZone(PlayerID player, ZoneID zone);
+        virtual void handlePlayerLeaveZone(PlayerID player, ZoneID zone);
+
+        virtual void handleZoneTellObjectPos(PlayerID player, ObjectID object, Vector3 pos);
+        virtual void handleZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, 
+            Vector3 vel, Quaternion rot, ControlState state);
 
         QuadTree<sim::MovableObject> _quadTree;
 

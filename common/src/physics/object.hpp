@@ -44,6 +44,7 @@ enum Control {
 struct MovableObject {
     virtual ~MovableObject();
     virtual void update() = 0;
+    virtual ObjectID getID() const = 0;
     virtual const Vector3& getPosition() const = 0;
     virtual const Vector3& getVelocity() const = 0;
     virtual const Vector3& getAcceleration() const = 0;
@@ -58,10 +59,12 @@ struct MovableObject {
 
 class Ship : public MovableObject {
     public:
-        Ship();
+        Ship(ObjectID id);
         virtual ~Ship();
 
         virtual void update();
+
+        virtual ObjectID getID() const;
 
         virtual const Vector3& getPosition() const;
         virtual const Vector3& getVelocity() const;
@@ -78,6 +81,8 @@ class Ship : public MovableObject {
         sim::Object _simObject;
         ControlState _control;
         Timer _timer;
+
+        ObjectID _id;
 
         float _stats[STAT_COUNT];
 };

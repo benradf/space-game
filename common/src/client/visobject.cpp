@@ -52,14 +52,29 @@ void VisibleObject::update()
     _objectGfx->setOrientation(Ogre::Quaternion(_rotation.w, _rotation.x, _rotation.y, _rotation.z));
 }
 
-const Vector3& VisibleObject::getPosition() const
+const Vector3& VisibleObject::getApparentPosition() const
 {
     return _position;
 }
 
-const Quaternion& VisibleObject::getRotation() const
+const Quaternion& VisibleObject::getApparentRotation() const
 {
     return _rotation;
+}
+
+const Vector3& VisibleObject::getPosition() const
+{
+    return _objectSim->getPosition();
+}
+
+const Vector3& VisibleObject::getVelocity() const
+{
+    return _objectSim->getVelocity();
+}
+
+const Quaternion& VisibleObject::getRotation() const
+{
+    return _objectSim->getRotation();
 }
 
 void VisibleObject::setPosition(const Vector3& pos)

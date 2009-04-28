@@ -1,7 +1,7 @@
 /// \file messages.cpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 4th April 2009
+/// \date 28th April 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -19,235 +19,264 @@ msg::Message::~Message()
 }
 
 
-////////// msg::ZoneEnter //////////
+////////// msg::ZoneTellObjectPos //////////
 
-msg::ZoneEnter::ZoneEnter(PlayerID player, ZoneID zone) :
-    _player(player), _zone(zone)
+msg::ZoneTellObjectPos::ZoneTellObjectPos(PlayerID player, ObjectID object, Vector3 pos) :
+    _player(player), _object(object), _pos(pos)
 {
 
 }
 
-msg::ZoneEnter::~ZoneEnter()
+msg::ZoneTellObjectPos::~ZoneTellObjectPos()
 {
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneEnter::clone() const
+std::auto_ptr<msg::Message> msg::ZoneTellObjectPos::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneEnter(*this));
+    return std::auto_ptr<Message>(new ZoneTellObjectPos(*this));
 }
 
-void msg::ZoneEnter::dispatch(MessageHandler& handler)
+void msg::ZoneTellObjectPos::dispatch(MessageHandler& handler)
 {
-    handler.handleZoneEnter(_player, _zone);
+    handler.handleZoneTellObjectPos(_player, _object, _pos);
 }
 
-bool msg::ZoneEnter::matches(int subscription)
+bool msg::ZoneTellObjectPos::matches(int subscription)
 {
-    return ((subscription & MSG_ZONE) != 0);
+    return ((subscription & MSG_ZONETELL) != 0);
 }
 
 
-////////// msg::ZoneLeave //////////
+////////// msg::ZoneTellObjectAll //////////
 
-msg::ZoneLeave::ZoneLeave(PlayerID player, ZoneID zone) :
-    _player(player), _zone(zone)
-{
-
-}
-
-msg::ZoneLeave::~ZoneLeave()
+msg::ZoneTellObjectAll::ZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state) :
+    _player(player), _object(object), _pos(pos), _vel(vel), _rot(rot), _state(state)
 {
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneLeave::clone() const
-{
-    return std::auto_ptr<Message>(new ZoneLeave(*this));
-}
-
-void msg::ZoneLeave::dispatch(MessageHandler& handler)
-{
-    handler.handleZoneLeave(_player, _zone);
-}
-
-bool msg::ZoneLeave::matches(int subscription)
-{
-    return ((subscription & MSG_ZONE) != 0);
-}
-
-
-////////// msg::ObjectState //////////
-
-msg::ObjectState::ObjectState(ObjectID object, int flags) :
-    _object(object), _flags(flags)
+msg::ZoneTellObjectAll::~ZoneTellObjectAll()
 {
 
 }
 
-msg::ObjectState::~ObjectState()
+std::auto_ptr<msg::Message> msg::ZoneTellObjectAll::clone() const
+{
+    return std::auto_ptr<Message>(new ZoneTellObjectAll(*this));
+}
+
+void msg::ZoneTellObjectAll::dispatch(MessageHandler& handler)
+{
+    handler.handleZoneTellObjectAll(_player, _object, _pos, _vel, _rot, _state);
+}
+
+bool msg::ZoneTellObjectAll::matches(int subscription)
+{
+    return ((subscription & MSG_ZONETELL) != 0);
+}
+
+
+////////// msg::ZoneSaysObjectEnter //////////
+
+msg::ZoneSaysObjectEnter::ZoneSaysObjectEnter(ObjectID object) :
+    _object(object)
 {
 
 }
 
-std::auto_ptr<msg::Message> msg::ObjectState::clone() const
-{
-    return std::auto_ptr<Message>(new ObjectState(*this));
-}
-
-void msg::ObjectState::dispatch(MessageHandler& handler)
-{
-    handler.handleObjectState(_object, _flags);
-}
-
-bool msg::ObjectState::matches(int subscription)
-{
-    return ((subscription & MSG_OBJECT) != 0);
-}
-
-
-////////// msg::ObjectPos //////////
-
-msg::ObjectPos::ObjectPos(ObjectID object, Vector3 pos) :
-    _object(object), _pos(pos)
+msg::ZoneSaysObjectEnter::~ZoneSaysObjectEnter()
 {
 
 }
 
-msg::ObjectPos::~ObjectPos()
+std::auto_ptr<msg::Message> msg::ZoneSaysObjectEnter::clone() const
+{
+    return std::auto_ptr<Message>(new ZoneSaysObjectEnter(*this));
+}
+
+void msg::ZoneSaysObjectEnter::dispatch(MessageHandler& handler)
+{
+    handler.handleZoneSaysObjectEnter(_object);
+}
+
+bool msg::ZoneSaysObjectEnter::matches(int subscription)
+{
+    return ((subscription & MSG_ZONESAYS) != 0);
+}
+
+
+////////// msg::ZoneSaysObjectLeave //////////
+
+msg::ZoneSaysObjectLeave::ZoneSaysObjectLeave(ObjectID object) :
+    _object(object)
 {
 
 }
 
-std::auto_ptr<msg::Message> msg::ObjectPos::clone() const
-{
-    return std::auto_ptr<Message>(new ObjectPos(*this));
-}
-
-void msg::ObjectPos::dispatch(MessageHandler& handler)
-{
-    handler.handleObjectPos(_object, _pos);
-}
-
-bool msg::ObjectPos::matches(int subscription)
-{
-    return ((subscription & MSG_OBJECT) != 0);
-}
-
-
-////////// msg::ObjectVel //////////
-
-msg::ObjectVel::ObjectVel(ObjectID object, Vector3 vel) :
-    _object(object), _vel(vel)
+msg::ZoneSaysObjectLeave::~ZoneSaysObjectLeave()
 {
 
 }
 
-msg::ObjectVel::~ObjectVel()
+std::auto_ptr<msg::Message> msg::ZoneSaysObjectLeave::clone() const
+{
+    return std::auto_ptr<Message>(new ZoneSaysObjectLeave(*this));
+}
+
+void msg::ZoneSaysObjectLeave::dispatch(MessageHandler& handler)
+{
+    handler.handleZoneSaysObjectLeave(_object);
+}
+
+bool msg::ZoneSaysObjectLeave::matches(int subscription)
+{
+    return ((subscription & MSG_ZONESAYS) != 0);
+}
+
+
+////////// msg::ZoneSaysObjectClearClose //////////
+
+msg::ZoneSaysObjectClearClose::ZoneSaysObjectClearClose(ObjectID object) :
+    _object(object)
 {
 
 }
 
-std::auto_ptr<msg::Message> msg::ObjectVel::clone() const
-{
-    return std::auto_ptr<Message>(new ObjectVel(*this));
-}
-
-void msg::ObjectVel::dispatch(MessageHandler& handler)
-{
-    handler.handleObjectVel(_object, _vel);
-}
-
-bool msg::ObjectVel::matches(int subscription)
-{
-    return ((subscription & MSG_OBJECT) != 0);
-}
-
-
-////////// msg::ObjectRot //////////
-
-msg::ObjectRot::ObjectRot(ObjectID object, Quaternion rot) :
-    _object(object), _rot(rot)
+msg::ZoneSaysObjectClearClose::~ZoneSaysObjectClearClose()
 {
 
 }
 
-msg::ObjectRot::~ObjectRot()
+std::auto_ptr<msg::Message> msg::ZoneSaysObjectClearClose::clone() const
+{
+    return std::auto_ptr<Message>(new ZoneSaysObjectClearClose(*this));
+}
+
+void msg::ZoneSaysObjectClearClose::dispatch(MessageHandler& handler)
+{
+    handler.handleZoneSaysObjectClearClose(_object);
+}
+
+bool msg::ZoneSaysObjectClearClose::matches(int subscription)
+{
+    return ((subscription & MSG_ZONESAYS) != 0);
+}
+
+
+////////// msg::ZoneSaysObjectsClose //////////
+
+msg::ZoneSaysObjectsClose::ZoneSaysObjectsClose(ObjectID a, ObjectID b) :
+    _a(a), _b(b)
 {
 
 }
 
-std::auto_ptr<msg::Message> msg::ObjectRot::clone() const
+msg::ZoneSaysObjectsClose::~ZoneSaysObjectsClose()
 {
-    return std::auto_ptr<Message>(new ObjectRot(*this));
+
 }
 
-void msg::ObjectRot::dispatch(MessageHandler& handler)
+std::auto_ptr<msg::Message> msg::ZoneSaysObjectsClose::clone() const
 {
-    handler.handleObjectRot(_object, _rot);
+    return std::auto_ptr<Message>(new ZoneSaysObjectsClose(*this));
 }
 
-bool msg::ObjectRot::matches(int subscription)
+void msg::ZoneSaysObjectsClose::dispatch(MessageHandler& handler)
 {
-    return ((subscription & MSG_OBJECT) != 0);
+    handler.handleZoneSaysObjectsClose(_a, _b);
+}
+
+bool msg::ZoneSaysObjectsClose::matches(int subscription)
+{
+    return ((subscription & MSG_ZONESAYS) != 0);
 }
 
 
-////////// msg::ObjectAssoc //////////
+////////// msg::ZoneSaysObjectAttach //////////
 
-msg::ObjectAssoc::ObjectAssoc(ObjectID object, PlayerID player) :
+msg::ZoneSaysObjectAttach::ZoneSaysObjectAttach(ObjectID object, PlayerID player) :
     _object(object), _player(player)
 {
 
 }
 
-msg::ObjectAssoc::~ObjectAssoc()
+msg::ZoneSaysObjectAttach::~ZoneSaysObjectAttach()
 {
 
 }
 
-std::auto_ptr<msg::Message> msg::ObjectAssoc::clone() const
+std::auto_ptr<msg::Message> msg::ZoneSaysObjectAttach::clone() const
 {
-    return std::auto_ptr<Message>(new ObjectAssoc(*this));
+    return std::auto_ptr<Message>(new ZoneSaysObjectAttach(*this));
 }
 
-void msg::ObjectAssoc::dispatch(MessageHandler& handler)
+void msg::ZoneSaysObjectAttach::dispatch(MessageHandler& handler)
 {
-    handler.handleObjectAssoc(_object, _player);
+    handler.handleZoneSaysObjectAttach(_object, _player);
 }
 
-bool msg::ObjectAssoc::matches(int subscription)
+bool msg::ZoneSaysObjectAttach::matches(int subscription)
 {
-    return ((subscription & MSG_OBJECT) != 0);
+    return ((subscription & MSG_ZONESAYS) != 0);
 }
 
 
-////////// msg::PlayerInput //////////
+////////// msg::ZoneSaysObjectPos //////////
 
-msg::PlayerInput::PlayerInput(PlayerID player, ControlState state) :
-    _player(player), _state(state)
-{
-
-}
-
-msg::PlayerInput::~PlayerInput()
+msg::ZoneSaysObjectPos::ZoneSaysObjectPos(ObjectID object, Vector3 pos) :
+    _object(object), _pos(pos)
 {
 
 }
 
-std::auto_ptr<msg::Message> msg::PlayerInput::clone() const
+msg::ZoneSaysObjectPos::~ZoneSaysObjectPos()
 {
-    return std::auto_ptr<Message>(new PlayerInput(*this));
+
 }
 
-void msg::PlayerInput::dispatch(MessageHandler& handler)
+std::auto_ptr<msg::Message> msg::ZoneSaysObjectPos::clone() const
 {
-    handler.handlePlayerInput(_player, _state);
+    return std::auto_ptr<Message>(new ZoneSaysObjectPos(*this));
 }
 
-bool msg::PlayerInput::matches(int subscription)
+void msg::ZoneSaysObjectPos::dispatch(MessageHandler& handler)
 {
-    return ((subscription & MSG_PLAYER) != 0);
+    handler.handleZoneSaysObjectPos(_object, _pos);
+}
+
+bool msg::ZoneSaysObjectPos::matches(int subscription)
+{
+    return ((subscription & MSG_ZONESAYS) != 0);
+}
+
+
+////////// msg::ZoneSaysObjectAll //////////
+
+msg::ZoneSaysObjectAll::ZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state) :
+    _object(object), _pos(pos), _vel(vel), _rot(rot), _state(state)
+{
+
+}
+
+msg::ZoneSaysObjectAll::~ZoneSaysObjectAll()
+{
+
+}
+
+std::auto_ptr<msg::Message> msg::ZoneSaysObjectAll::clone() const
+{
+    return std::auto_ptr<Message>(new ZoneSaysObjectAll(*this));
+}
+
+void msg::ZoneSaysObjectAll::dispatch(MessageHandler& handler)
+{
+    handler.handleZoneSaysObjectAll(_object, _pos, _vel, _rot, _state);
+}
+
+bool msg::ZoneSaysObjectAll::matches(int subscription)
+{
+    return ((subscription & MSG_ZONESAYS) != 0);
 }
 
 
@@ -275,6 +304,64 @@ void msg::PlayerRequestZoneSwitch::dispatch(MessageHandler& handler)
 }
 
 bool msg::PlayerRequestZoneSwitch::matches(int subscription)
+{
+    return ((subscription & MSG_PLAYER) != 0);
+}
+
+
+////////// msg::PlayerEnterZone //////////
+
+msg::PlayerEnterZone::PlayerEnterZone(PlayerID player, ZoneID zone) :
+    _player(player), _zone(zone)
+{
+
+}
+
+msg::PlayerEnterZone::~PlayerEnterZone()
+{
+
+}
+
+std::auto_ptr<msg::Message> msg::PlayerEnterZone::clone() const
+{
+    return std::auto_ptr<Message>(new PlayerEnterZone(*this));
+}
+
+void msg::PlayerEnterZone::dispatch(MessageHandler& handler)
+{
+    handler.handlePlayerEnterZone(_player, _zone);
+}
+
+bool msg::PlayerEnterZone::matches(int subscription)
+{
+    return ((subscription & MSG_PLAYER) != 0);
+}
+
+
+////////// msg::PlayerLeaveZone //////////
+
+msg::PlayerLeaveZone::PlayerLeaveZone(PlayerID player, ZoneID zone) :
+    _player(player), _zone(zone)
+{
+
+}
+
+msg::PlayerLeaveZone::~PlayerLeaveZone()
+{
+
+}
+
+std::auto_ptr<msg::Message> msg::PlayerLeaveZone::clone() const
+{
+    return std::auto_ptr<Message>(new PlayerLeaveZone(*this));
+}
+
+void msg::PlayerLeaveZone::dispatch(MessageHandler& handler)
+{
+    handler.handlePlayerLeaveZone(_player, _zone);
+}
+
+bool msg::PlayerLeaveZone::matches(int subscription)
 {
     return ((subscription & MSG_PLAYER) != 0);
 }

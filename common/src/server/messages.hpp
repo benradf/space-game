@@ -1,7 +1,7 @@
 /// \file messages.hpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 4th April 2009
+/// \date 28th April 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -22,10 +22,10 @@ class MessageHandler;
 
 
 enum MsgType {
-    MSG_OBJECT = 0x0001,
-    MSG_PEER   = 0x0002,
-    MSG_PLAYER = 0x0004,
-    MSG_ZONE   = 0x0008,
+    MSG_PEER     = 0x0001,
+    MSG_PLAYER   = 0x0002,
+    MSG_ZONESAYS = 0x0004,
+    MSG_ZONETELL = 0x0008,
 };
 
 
@@ -41,52 +41,110 @@ class Message {
 };
 
 
-class ZoneEnter : public Message {
+class ZoneTellObjectPos : public Message {
     public:
-        ZoneEnter(PlayerID player, ZoneID zone);
-        virtual ~ZoneEnter();
+        ZoneTellObjectPos(PlayerID player, ObjectID object, Vector3 pos);
+        virtual ~ZoneTellObjectPos();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
         PlayerID _player;
-        ZoneID _zone;
+        ObjectID _object;
+        Vector3 _pos;
 };
 
 
-class ZoneLeave : public Message {
+class ZoneTellObjectAll : public Message {
     public:
-        ZoneLeave(PlayerID player, ZoneID zone);
-        virtual ~ZoneLeave();
+        ZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state);
+        virtual ~ZoneTellObjectAll();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
         PlayerID _player;
-        ZoneID _zone;
+        ObjectID _object;
+        Vector3 _pos;
+        Vector3 _vel;
+        Quaternion _rot;
+        ControlState _state;
 };
 
 
-class ObjectState : public Message {
+class ZoneSaysObjectEnter : public Message {
     public:
-        ObjectState(ObjectID object, int flags);
-        virtual ~ObjectState();
+        ZoneSaysObjectEnter(ObjectID object);
+        virtual ~ZoneSaysObjectEnter();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
         ObjectID _object;
-        int _flags;
 };
 
 
-class ObjectPos : public Message {
+class ZoneSaysObjectLeave : public Message {
     public:
-        ObjectPos(ObjectID object, Vector3 pos);
-        virtual ~ObjectPos();
+        ZoneSaysObjectLeave(ObjectID object);
+        virtual ~ZoneSaysObjectLeave();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        ObjectID _object;
+};
+
+
+class ZoneSaysObjectClearClose : public Message {
+    public:
+        ZoneSaysObjectClearClose(ObjectID object);
+        virtual ~ZoneSaysObjectClearClose();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        ObjectID _object;
+};
+
+
+class ZoneSaysObjectsClose : public Message {
+    public:
+        ZoneSaysObjectsClose(ObjectID a, ObjectID b);
+        virtual ~ZoneSaysObjectsClose();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        ObjectID _a;
+        ObjectID _b;
+};
+
+
+class ZoneSaysObjectAttach : public Message {
+    public:
+        ZoneSaysObjectAttach(ObjectID object, PlayerID player);
+        virtual ~ZoneSaysObjectAttach();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        ObjectID _object;
+        PlayerID _player;
+};
+
+
+class ZoneSaysObjectPos : public Message {
+    public:
+        ZoneSaysObjectPos(ObjectID object, Vector3 pos);
+        virtual ~ZoneSaysObjectPos();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
@@ -97,58 +155,19 @@ class ObjectPos : public Message {
 };
 
 
-class ObjectVel : public Message {
+class ZoneSaysObjectAll : public Message {
     public:
-        ObjectVel(ObjectID object, Vector3 vel);
-        virtual ~ObjectVel();
+        ZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state);
+        virtual ~ZoneSaysObjectAll();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
     private:
         ObjectID _object;
+        Vector3 _pos;
         Vector3 _vel;
-};
-
-
-class ObjectRot : public Message {
-    public:
-        ObjectRot(ObjectID object, Quaternion rot);
-        virtual ~ObjectRot();
-        virtual std::auto_ptr<Message> clone() const;
-        virtual void dispatch(MessageHandler& handler);
-        virtual bool matches(int subscription);
-
-    private:
-        ObjectID _object;
         Quaternion _rot;
-};
-
-
-class ObjectAssoc : public Message {
-    public:
-        ObjectAssoc(ObjectID object, PlayerID player);
-        virtual ~ObjectAssoc();
-        virtual std::auto_ptr<Message> clone() const;
-        virtual void dispatch(MessageHandler& handler);
-        virtual bool matches(int subscription);
-
-    private:
-        ObjectID _object;
-        PlayerID _player;
-};
-
-
-class PlayerInput : public Message {
-    public:
-        PlayerInput(PlayerID player, ControlState state);
-        virtual ~PlayerInput();
-        virtual std::auto_ptr<Message> clone() const;
-        virtual void dispatch(MessageHandler& handler);
-        virtual bool matches(int subscription);
-
-    private:
-        PlayerID _player;
         ControlState _state;
 };
 
@@ -157,6 +176,34 @@ class PlayerRequestZoneSwitch : public Message {
     public:
         PlayerRequestZoneSwitch(PlayerID player, ZoneID zone);
         virtual ~PlayerRequestZoneSwitch();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PlayerID _player;
+        ZoneID _zone;
+};
+
+
+class PlayerEnterZone : public Message {
+    public:
+        PlayerEnterZone(PlayerID player, ZoneID zone);
+        virtual ~PlayerEnterZone();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PlayerID _player;
+        ZoneID _zone;
+};
+
+
+class PlayerLeaveZone : public Message {
+    public:
+        PlayerLeaveZone(PlayerID player, ZoneID zone);
+        virtual ~PlayerLeaveZone();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);

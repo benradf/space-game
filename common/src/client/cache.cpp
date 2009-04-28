@@ -9,15 +9,17 @@
 
 #include "cache.hpp"
 #include <core/core.hpp>
+#include <net/compress.hpp>
 
 
 using namespace sim;
+using namespace net;
 
 
 ////////// ObjectCache //////////
 
 ObjectCache::ObjectCache() :
-    _camAttach(0), _lastState(0)
+    _lastState(0), _attachedObject(0), _haveAttachedObject(false)
 {
 
 }
@@ -32,62 +34,84 @@ void ObjectCache::updateCachedObjects()
 {
     foreach (ObjectMap::value_type& objPair, _objects) 
         objPair.second->update();
-
-    extern Vector3 cameraPos;
-    if (_camAttach != 0) {
-        cameraPos = _camAttach->getPosition();
-        extern LocalController* localController;
-        if (localController != 0) {
-            ControlState localState = localController->getControlState();
-            if (localState != _lastState) {
-                _camAttach->setControlState(localState);
-                sendPlayerInput(localState);
-                _lastState = localState;
-            }
-        }
-    }
 }
 
-void ObjectCache::handleObjectEnter(uint32_t objectid)
+void ObjectCache::setControlState(sim::ControlState state)
 {
-    Log::log->debug("protocol message 'ObjectEnter' is unhandled");
+    if (!_haveAttachedObject || (state == _lastState))
+        return;
+
+    VisibleObject& object = getObject(_attachedObject);
+
+    Vec2<int16_t> pos(packPos(object.getPosition()));
+    Vec2<int16_t> vel(packVel(object.getVelocity()));
+    uint8_t rot = packRot(object.getRotation());
+
+    sendObjectUpdateFull(_attachedObject, 
+        pos.x, pos.y, vel.x, vel.y, rot, state);
+
+    object.setControlState(state);
+
+    _updateAttachedTimer.reset();
+    _lastState = state;
 }
 
-void ObjectCache::handleObjectLeave(uint32_t objectid)
+const Vector3& ObjectCache::getAttachedObjectPosition() const
 {
-    Log::log->debug("protocol message 'ObjectLeave' is unhandled");
+    assert(hasAttachedObject());
+
+    const VisibleObject* object = getObject(_attachedObject);
+
+    if (object == 0) 
+        return Vector3::ZERO;
+
+    return object->getApparentPosition();
 }
 
-void ObjectCache::handleObjectPos(uint32_t objectid, float x, float y, float z)
+bool ObjectCache::hasAttachedObject() const
 {
-    getObject(objectid).setPosition(Vector3(x, y, z));
+    return _haveAttachedObject;
 }
 
-void ObjectCache::handleObjectVel(uint32_t objectid, float x, float y, float z)
+void ObjectCache::handleObjectEnter(uint16_t objectid)
 {
-    getObject(objectid).setVelocity(Vector3(x, y, z));
+    Log::log->warn("unhandled message: ObjectEnter");
 }
 
-void ObjectCache::handleObjectRot(uint32_t objectid, float w, float x, float y, float z)
+void ObjectCache::handleObjectLeave(uint16_t objectid)
 {
-    getObject(objectid).setRotation(Quaternion(w, x, y, z));
+    Log::log->warn("unhandled message: ObjectLeave");
 }
 
-void ObjectCache::handleObjectState(uint32_t objectid, uint8_t ctrl)
+void ObjectCache::handleObjectAttach(uint16_t objectid)
 {
+    _attachedObject = objectid;
+    _haveAttachedObject = true;
+    getObject(_attachedObject);
+}
+
+void ObjectCache::handleObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y)
+{
+    getObject(objectid).setPosition(unpackPos(makeVec2(s_x, s_y)));
+}
+
+void ObjectCache::handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y, 
+    int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl)
+{
+    assert((objectid != _attachedObject) || !_haveAttachedObject); // temporary assert
     VisibleObject& object = getObject(objectid);
-    if (&object != _camAttach)
-        object.setControlState(ctrl);
+    object.setPosition(unpackPos(makeVec2(s_x, s_y)));
+    object.setVelocity(unpackVel(makeVec2(v_x, v_y)));
+    object.setControlState(ctrl);
 }
 
-void ObjectCache::handleObjectControl(uint32_t objectid, uint8_t ctrl)
+const VisibleObject* ObjectCache::getObject(sim::ObjectID objectID) const
 {
-    Log::log->debug("protocol message 'ObjectControl' is unhandled");
-}
+    ObjectMap::const_iterator iter = _objects.find(objectID);
+    if (iter == _objects.end()) 
+        return 0;
 
-void ObjectCache::handleAttachCamera(uint32_t objectid)
-{
-    _camAttach = &getObject(objectid);
+    return iter->second;
 }
 
 VisibleObject& ObjectCache::getObject(ObjectID objectID)
@@ -100,5 +124,19 @@ VisibleObject& ObjectCache::getObject(ObjectID objectID)
     _objects.insert(std::make_pair(objectID, object.get()));
 
     return *object.release();
+}
+
+void ObjectCache::updateAttachedObject()
+{
+    if (!hasAttachedObject()) 
+        return;
+
+    if (_updateAttachedTimer.elapsed() < UPDATE_PERIOD) 
+        return;
+
+    VisibleObject& object = getObject(_attachedObject);
+
+    Vec2<int16_t> pos(packPos(object.getPosition()));
+    sendObjectUpdatePartial(_attachedObject, pos.x, pos.y);
 }
 

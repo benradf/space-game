@@ -33,7 +33,7 @@ LoginManager::RetType LoginManager::main()
 void LoginManager::handlePeerRequestLogin(PeerID peer, const std::string& username, const MD5Hash& password)
 {
     sendMessage(msg::PeerLoginGranted(peer, _nextPlayerID));
-    sendMessage(msg::ZoneEnter(_nextPlayerID, 1));
+    sendMessage(msg::PlayerEnterZone(_nextPlayerID, 1));
     _nextPlayerID++;
 
     Log::log->debug("handlePeerRequestLogin");
@@ -41,6 +41,6 @@ void LoginManager::handlePeerRequestLogin(PeerID peer, const std::string& userna
 
 void LoginManager::handlePeerRequestLogout(PeerID peer, PlayerID player)
 {
-    sendMessage(msg::ZoneLeave(player, 1));
+    sendMessage(msg::PlayerLeaveZone(player, 1));
 }
 

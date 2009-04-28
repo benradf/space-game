@@ -1,7 +1,7 @@
 /// \file protocol.cpp
 /// \brief Network protocol.
 /// \author 
-/// \date 4th April 2009
+/// \date 28th April 2009
 ///
 /// Copyright (c) 2009 . All rights reserved.
 ///
@@ -149,100 +149,65 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         handleBroadcastMsg((text));
         } break;
     case 0x09: {
-        if (offset + 0x04 > packet->data + packet->dataLength) {
+        if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise ObjectEnter: malformed packet");
             return;
         }
-        uint32_t objectid = *reinterpret_cast<uint32_t*>(offset);
-        offset += sizeof(uint32_t);
-        handleObjectEnter(ntohl(objectid));
+        uint16_t objectid = *reinterpret_cast<uint16_t*>(offset);
+        offset += sizeof(uint16_t);
+        handleObjectEnter(ntohs(objectid));
         } break;
     case 0x0a: {
-        if (offset + 0x04 > packet->data + packet->dataLength) {
+        if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise ObjectLeave: malformed packet");
             return;
         }
-        uint32_t objectid = *reinterpret_cast<uint32_t*>(offset);
-        offset += sizeof(uint32_t);
-        handleObjectLeave(ntohl(objectid));
+        uint16_t objectid = *reinterpret_cast<uint16_t*>(offset);
+        offset += sizeof(uint16_t);
+        handleObjectLeave(ntohs(objectid));
         } break;
     case 0x0b: {
-        if (offset + 0x10 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise ObjectPos: malformed packet");
+        if (offset + 0x02 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise ObjectAttach: malformed packet");
             return;
         }
-        uint32_t objectid = *reinterpret_cast<uint32_t*>(offset);
-        offset += sizeof(uint32_t);
-        float x = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        float y = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        float z = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        handleObjectPos(ntohl(objectid), (x), (y), (z));
+        uint16_t objectid = *reinterpret_cast<uint16_t*>(offset);
+        offset += sizeof(uint16_t);
+        handleObjectAttach(ntohs(objectid));
         } break;
     case 0x0c: {
-        if (offset + 0x10 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise ObjectVel: malformed packet");
+        if (offset + 0x02 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise ObjectUpdatePartial: malformed packet");
             return;
         }
-        uint32_t objectid = *reinterpret_cast<uint32_t*>(offset);
-        offset += sizeof(uint32_t);
-        float x = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        float y = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        float z = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        handleObjectVel(ntohl(objectid), (x), (y), (z));
+        uint16_t objectid = *reinterpret_cast<uint16_t*>(offset);
+        offset += sizeof(uint16_t);
+        int16_t s_x = *reinterpret_cast<int16_t*>(offset);
+        offset += sizeof(int16_t);
+        int16_t s_y = *reinterpret_cast<int16_t*>(offset);
+        offset += sizeof(int16_t);
+        handleObjectUpdatePartial(ntohs(objectid), ntohs(s_x), ntohs(s_y));
         } break;
     case 0x0d: {
-        if (offset + 0x14 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise ObjectRot: malformed packet");
-            return;
-        }
-        uint32_t objectid = *reinterpret_cast<uint32_t*>(offset);
-        offset += sizeof(uint32_t);
-        float w = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        float x = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        float y = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        float z = *reinterpret_cast<float*>(offset);
-        offset += sizeof(float);
-        handleObjectRot(ntohl(objectid), (w), (x), (y), (z));
-        } break;
-    case 0x0e: {
-        if (offset + 0x05 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise ObjectState: malformed packet");
-            return;
-        }
-        uint32_t objectid = *reinterpret_cast<uint32_t*>(offset);
-        offset += sizeof(uint32_t);
-        uint8_t ctrl = *reinterpret_cast<uint8_t*>(offset);
-        offset += sizeof(uint8_t);
-        handleObjectState(ntohl(objectid), (ctrl));
-        } break;
-    case 0x0f: {
-        if (offset + 0x05 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise ObjectControl: malformed packet");
-            return;
-        }
-        uint32_t objectid = *reinterpret_cast<uint32_t*>(offset);
-        offset += sizeof(uint32_t);
-        uint8_t ctrl = *reinterpret_cast<uint8_t*>(offset);
-        offset += sizeof(uint8_t);
-        handleObjectControl(ntohl(objectid), (ctrl));
-        } break;
-    case 0x10: {
         if (offset + 0x04 > packet->data + packet->dataLength) {
-            Log::log->warn("Network: deserialise AttachCamera: malformed packet");
+            Log::log->warn("Network: deserialise ObjectUpdateFull: malformed packet");
             return;
         }
-        uint32_t objectid = *reinterpret_cast<uint32_t*>(offset);
-        offset += sizeof(uint32_t);
-        handleAttachCamera(ntohl(objectid));
+        uint16_t objectid = *reinterpret_cast<uint16_t*>(offset);
+        offset += sizeof(uint16_t);
+        int16_t s_x = *reinterpret_cast<int16_t*>(offset);
+        offset += sizeof(int16_t);
+        int16_t s_y = *reinterpret_cast<int16_t*>(offset);
+        offset += sizeof(int16_t);
+        int16_t v_x = *reinterpret_cast<int16_t*>(offset);
+        offset += sizeof(int16_t);
+        int16_t v_y = *reinterpret_cast<int16_t*>(offset);
+        offset += sizeof(int16_t);
+        uint8_t rot = *reinterpret_cast<uint8_t*>(offset);
+        offset += sizeof(uint8_t);
+        uint8_t ctrl = *reinterpret_cast<uint8_t*>(offset);
+        offset += sizeof(uint8_t);
+        handleObjectUpdateFull(ntohs(objectid), ntohs(s_x), ntohs(s_y), ntohs(v_x), ntohs(v_y), (rot), (ctrl));
         } break;
     }
 }
@@ -384,130 +349,83 @@ void net::ProtocolUser::sendBroadcastMsg(const char* text)
     sendPacket(packet);
 }
 
-void net::ProtocolUser::sendObjectEnter(uint32_t objectid)
+void net::ProtocolUser::sendObjectEnter(uint16_t objectid)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
     *reinterpret_cast<uint8_t*>(offset) = 0x09;
     uint16_t len = 0;
     offset += 0x01;
-    *reinterpret_cast<uint32_t*>(offset) = htonl(objectid);
-    offset += sizeof(uint32_t);
+    *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
+    offset += sizeof(uint16_t);
     enet_packet_resize(packet, offset - packet->data);
     sendPacket(packet);
 }
 
-void net::ProtocolUser::sendObjectLeave(uint32_t objectid)
+void net::ProtocolUser::sendObjectLeave(uint16_t objectid)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
     *reinterpret_cast<uint8_t*>(offset) = 0x0a;
     uint16_t len = 0;
     offset += 0x01;
-    *reinterpret_cast<uint32_t*>(offset) = htonl(objectid);
-    offset += sizeof(uint32_t);
+    *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
+    offset += sizeof(uint16_t);
     enet_packet_resize(packet, offset - packet->data);
     sendPacket(packet);
 }
 
-void net::ProtocolUser::sendObjectPos(uint32_t objectid, float x, float y, float z)
+void net::ProtocolUser::sendObjectAttach(uint16_t objectid)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
     *reinterpret_cast<uint8_t*>(offset) = 0x0b;
     uint16_t len = 0;
     offset += 0x01;
-    *reinterpret_cast<uint32_t*>(offset) = htonl(objectid);
-    offset += sizeof(uint32_t);
-    *reinterpret_cast<float*>(offset) = (x);
-    offset += sizeof(float);
-    *reinterpret_cast<float*>(offset) = (y);
-    offset += sizeof(float);
-    *reinterpret_cast<float*>(offset) = (z);
-    offset += sizeof(float);
+    *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
+    offset += sizeof(uint16_t);
     enet_packet_resize(packet, offset - packet->data);
     sendPacket(packet);
 }
 
-void net::ProtocolUser::sendObjectVel(uint32_t objectid, float x, float y, float z)
+void net::ProtocolUser::sendObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
     *reinterpret_cast<uint8_t*>(offset) = 0x0c;
     uint16_t len = 0;
     offset += 0x01;
-    *reinterpret_cast<uint32_t*>(offset) = htonl(objectid);
-    offset += sizeof(uint32_t);
-    *reinterpret_cast<float*>(offset) = (x);
-    offset += sizeof(float);
-    *reinterpret_cast<float*>(offset) = (y);
-    offset += sizeof(float);
-    *reinterpret_cast<float*>(offset) = (z);
-    offset += sizeof(float);
+    *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
+    offset += sizeof(uint16_t);
+    *reinterpret_cast<int16_t*>(offset) = htons(s_x);
+    offset += sizeof(int16_t);
+    *reinterpret_cast<int16_t*>(offset) = htons(s_y);
+    offset += sizeof(int16_t);
     enet_packet_resize(packet, offset - packet->data);
     sendPacket(packet);
 }
 
-void net::ProtocolUser::sendObjectRot(uint32_t objectid, float w, float x, float y, float z)
+void net::ProtocolUser::sendObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y, int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
     *reinterpret_cast<uint8_t*>(offset) = 0x0d;
     uint16_t len = 0;
     offset += 0x01;
-    *reinterpret_cast<uint32_t*>(offset) = htonl(objectid);
-    offset += sizeof(uint32_t);
-    *reinterpret_cast<float*>(offset) = (w);
-    offset += sizeof(float);
-    *reinterpret_cast<float*>(offset) = (x);
-    offset += sizeof(float);
-    *reinterpret_cast<float*>(offset) = (y);
-    offset += sizeof(float);
-    *reinterpret_cast<float*>(offset) = (z);
-    offset += sizeof(float);
-    enet_packet_resize(packet, offset - packet->data);
-    sendPacket(packet);
-}
-
-void net::ProtocolUser::sendObjectState(uint32_t objectid, uint8_t ctrl)
-{
-    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
-    enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x0e;
-    uint16_t len = 0;
-    offset += 0x01;
-    *reinterpret_cast<uint32_t*>(offset) = htonl(objectid);
-    offset += sizeof(uint32_t);
+    *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
+    offset += sizeof(uint16_t);
+    *reinterpret_cast<int16_t*>(offset) = htons(s_x);
+    offset += sizeof(int16_t);
+    *reinterpret_cast<int16_t*>(offset) = htons(s_y);
+    offset += sizeof(int16_t);
+    *reinterpret_cast<int16_t*>(offset) = htons(v_x);
+    offset += sizeof(int16_t);
+    *reinterpret_cast<int16_t*>(offset) = htons(v_y);
+    offset += sizeof(int16_t);
+    *reinterpret_cast<uint8_t*>(offset) = (rot);
+    offset += sizeof(uint8_t);
     *reinterpret_cast<uint8_t*>(offset) = (ctrl);
     offset += sizeof(uint8_t);
-    enet_packet_resize(packet, offset - packet->data);
-    sendPacket(packet);
-}
-
-void net::ProtocolUser::sendObjectControl(uint32_t objectid, uint8_t ctrl)
-{
-    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
-    enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x0f;
-    uint16_t len = 0;
-    offset += 0x01;
-    *reinterpret_cast<uint32_t*>(offset) = htonl(objectid);
-    offset += sizeof(uint32_t);
-    *reinterpret_cast<uint8_t*>(offset) = (ctrl);
-    offset += sizeof(uint8_t);
-    enet_packet_resize(packet, offset - packet->data);
-    sendPacket(packet);
-}
-
-void net::ProtocolUser::sendAttachCamera(uint32_t objectid)
-{
-    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
-    enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x10;
-    uint16_t len = 0;
-    offset += 0x01;
-    *reinterpret_cast<uint32_t*>(offset) = htonl(objectid);
-    offset += sizeof(uint32_t);
     enet_packet_resize(packet, offset - packet->data);
     sendPacket(packet);
 }

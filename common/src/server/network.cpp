@@ -10,10 +10,12 @@
 #include "network.hpp"
 #include "messages.hpp"
 #include <core/core.hpp>
+#include <net/compress.hpp>
 #include <memory>
 
 
 using namespace msg;
+using namespace net;
 
 
 ////////// RemoteClient //////////
@@ -41,7 +43,7 @@ PlayerID RemoteClient::getAttachedPlayer() const
 
 void RemoteClient::handleKeyExchange(uint64_t key)
 {
-
+    Log::log->warn("unexpected message: KeyExchange");
 }
 
 void RemoteClient::handleLogin(const char* username, uint8_t (&password)[16])
@@ -54,81 +56,73 @@ void RemoteClient::handleLogin(const char* username, uint8_t (&password)[16])
 void RemoteClient::handleDisconnect()
 {
 
+    Log::log->warn("unexpected message: Disconnect");
 }
 
 void RemoteClient::handleWhoIsPlayer(uint32_t playerid)
 {
 
+    Log::log->warn("unexpected message: WhoIsPlayer");
 }
 
 void RemoteClient::handlePlayerInfo(uint32_t playerid, const char* username)
 {
 
+    Log::log->warn("unexpected message: PlayerInfo");
 }
 
 void RemoteClient::handlePlayerInput(uint32_t flags)
 {
-    if (_player == 0) 
-        return;
 
-    _sendMsg(msg::PlayerInput(_player, flags));
+    Log::log->warn("unexpected message: PlayerInput");
 }
 
 void RemoteClient::handlePrivateMsg(uint32_t playerid, const char* text)
 {
 
+    Log::log->warn("unexpected message: PrivateMsg");
 }
 
 void RemoteClient::handleBroadcastMsg(const char* text)
 {
 
+    Log::log->warn("unexpected message: BroadcastMsg");
 }
 
-void RemoteClient::handleObjectEnter(uint32_t objectid)
+
+void RemoteClient::handleObjectEnter(uint16_t objectid)
 {
 
+    Log::log->warn("unexpected message: ObjectEnter");
 }
 
-void RemoteClient::handleObjectLeave(uint32_t objectid)
+void RemoteClient::handleObjectLeave(uint16_t objectid)
 {
-
+    Log::log->warn("unexpected message: ObjectLeave");
 }
 
-void RemoteClient::handleObjectPos(uint32_t objectid, float x, float y, float z)
+void RemoteClient::handleObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y)
 {
-
+    _sendMsg(msg::ZoneTellObjectPos(_player, objectid, unpackPos(s_x, s_y)));
 }
 
-void RemoteClient::handleObjectVel(uint32_t objectid, float x, float y, float z)
+void RemoteClient::handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y, 
+    int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl)
 {
-
+    _sendMsg(msg::ZoneTellObjectAll(_player, objectid, unpackPos(s_x, s_y), 
+        unpackVel(v_x, v_y), unpackRot(rot), ctrl));
 }
 
-void RemoteClient::handleObjectRot(uint32_t objectid, float w, float x, float y, float z)
+void RemoteClient::handleObjectAttach(uint16_t objectid)
 {
-
-}
-
-void RemoteClient::handleObjectState(uint32_t objectid, uint8_t ctrl)
-{
-
-}
-
-void RemoteClient::handleObjectControl(uint32_t objectid, uint8_t ctrl)
-{
-
-}
-
-void RemoteClient::handleAttachCamera(uint32_t objectid)
-{
-
+    Log::log->warn("unexpected message: ObjectAttach");
 }
 
 
 ////////// NetworkInterface //////////
 
 NetworkInterface::NetworkInterface(PostOffice& po) :
-    MessagableJob(po, MSG_OBJECT | MSG_PEER), net::Interface(GAMEPORT)
+    MessagableJob(po, MSG_ZONESAYS | MSG_PEER), net::Interface(GAMEPORT)
 {
     Log::log->info("NetworkInterface: startup");
 }
@@ -137,7 +131,7 @@ NetworkInterface::~NetworkInterface()
 {
     Log::log->info("NetworkInterface: shutdown");
 
-    foreach (ClientPair& client, _clients) 
+    foreach (Clients::value_type& client, _clients) 
         std::auto_ptr<net::Peer>(client.second);
 }
 
@@ -146,6 +140,65 @@ Job::RetType NetworkInterface::main()
     doNetworkTasks();
 
     return YIELD;
+}
+
+#include <iostream>
+using namespace std;
+void NetworkInterface::tellPlayerObjectPos(PlayerID player, const CachedObjectInfo& object)
+{
+    RemoteClient* client = getClientByPlayer(player);
+
+    if (client == 0) 
+        return;
+
+    Vec2<int16_t> pos(packPos(object.getPosition()));
+
+    client->sendObjectUpdatePartial(object.getID(), pos.x, pos.y);
+}
+
+void NetworkInterface::tellPlayerObjectAll(PlayerID player, const CachedObjectInfo& object)
+{
+    RemoteClient* client = getClientByPlayer(player);
+
+    if (client == 0) 
+        return;
+
+    Vec2<int16_t> pos(packPos(object.getPosition()));
+    Vec2<int16_t> vel(packVel(object.getVelocity()));
+    uint8_t rot = packRot(object.getRotation());
+    sim::ControlState state = object.getControlState();
+
+    client->sendObjectUpdateFull(object.getID(), 
+        pos.x, pos.y, vel.x, vel.y, rot, state);
+}
+
+void NetworkInterface::tellPlayerObjectAttach(PlayerID player, ObjectID object)
+{
+    RemoteClient* client = getClientByPlayer(player);
+
+    if (client == 0) 
+        return;
+
+    client->sendObjectAttach(object);
+}
+
+void NetworkInterface::handlePeerLoginGranted(PeerID peer, PlayerID player)
+{
+    Clients::iterator iter = _clients.find(peer);
+    if (iter == _clients.end()) 
+        return;
+
+    _players.insert(std::make_pair(player, peer));
+    iter->second->attachPlayer(player);
+}
+
+void NetworkInterface::handlePeerLoginDenied(PeerID peer)
+{
+    Clients::iterator iter = _clients.find(peer);
+    if (iter == _clients.end()) 
+        return;
+
+    iter->second->disconnect();
 }
 
 net::Peer* NetworkInterface::handleConnect(void* data)
@@ -169,64 +222,15 @@ void NetworkInterface::handleDisconnect(net::Peer* peer)
     delete peer;
 }
 
-void NetworkInterface::handleObjectState(ObjectID object, int flags)
-{
-    foreach (ClientPair& client, _clients) 
-        client.second->sendObjectState(object, flags);
-}
-
-void NetworkInterface::handleObjectPos(ObjectID object, Vector3 pos)
-{
-    foreach (ClientPair& client, _clients) 
-        client.second->sendObjectPos(object, pos.x, pos.y, pos.z);
-}
-
-void NetworkInterface::handleObjectVel(ObjectID object, Vector3 vel)
-{
-    foreach (ClientPair& client, _clients) 
-        client.second->sendObjectVel(object, vel.x, vel.y, vel.z);
-}
-
-void NetworkInterface::handleObjectRot(ObjectID object, Quaternion rot)
-{
-    foreach (ClientPair& client, _clients) 
-        client.second->sendObjectRot(object, rot.w, rot.x, rot.y, rot.z);
-}
-
-void NetworkInterface::handleObjectAssoc(ObjectID object, PlayerID player)
+RemoteClient* NetworkInterface::getClientByPlayer(PlayerID player)
 {
     PlayerToPeer::iterator iterPlayer = _players.find(player);
     if (iterPlayer == _players.end()) 
-        return;
+        return 0;
 
     Clients::iterator iterClient = _clients.find(iterPlayer->second);
     assert(iterClient != _clients.end());
 
-    iterClient->second->sendAttachCamera(object);
-}
-
-void NetworkInterface::handlePeerLoginGranted(PeerID peer, PlayerID player)
-{
-    Clients::iterator iter = _clients.find(peer);
-    if (iter == _clients.end()) 
-        return;
-
-    _players.insert(std::make_pair(player, peer));
-    iter->second->attachPlayer(player);
-}
-
-void NetworkInterface::handlePeerLoginDenied(PeerID peer)
-{
-    Clients::iterator iter = _clients.find(peer);
-    if (iter == _clients.end()) 
-        return;
-
-    iter->second->disconnect();
-}
-
-void NetworkInterface::forEachClient(void (NetworkInterface::*f)(PeerID,RemoteClient*))
-{
-    foreach (ClientPair& client, _clients) 
-        (this->*f)(client.first, client.second);
+    return iterClient->second;
 }
 

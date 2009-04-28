@@ -46,13 +46,13 @@ std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
     char nameBuffer[256];
     snprintf(nameBuffer, sizeof(nameBuffer), "object_%d", objectID);
     std::auto_ptr<Entity> entity = theScene->createEntity(nameBuffer, "spider.mesh");
-    std::auto_ptr<sim::MovableObject> object(new sim::Ship);
+    std::auto_ptr<sim::MovableObject> object(new sim::Ship(objectID));
 
     return std::auto_ptr<VisibleObject>(new VisibleObject(entity, object));
 }
 
-Vector3 cameraPos = Vector3::ZERO;
-LocalController* localController = 0;
+//Vector3 cameraPos = Vector3::ZERO;
+//LocalController* localController = 0;
 
 void clientMain()
 {
@@ -76,7 +76,7 @@ void clientMain()
     //Ship ship(*scene, "username", "spider.mesh");
     Input input(gfx.getViewport().getRenderWindow());
     std::auto_ptr<LocalController> ctrl = input.createKeyboardListener<LocalController>();
-    localController = ctrl.get();
+    //localController = ctrl.get();
     //ctrl->setObject(&ship);
     theScene = scene.get();
 
@@ -107,9 +107,18 @@ void clientMain()
 
         //const Vector3& shipPos = ship.getApparentPosition();
         //camera->setPosition(Ogre::Vector3(shipPos.x, shipPos.y, shipPos.z + 200.0f));
-        camera->setPosition(Ogre::Vector3(cameraPos.x, cameraPos.y, cameraPos.z + 200.0f));
+        //camera->setPosition(Ogre::Vector3(cameraPos.x, cameraPos.y, cameraPos.z + 200.0f));
+
+        if (network.hasServer() && network.getServer().hasAttachedObject()) {
+            const Vector3 cameraPos = network.getServer().getAttachedObjectPosition();
+            camera->setPosition(Ogre::Vector3(cameraPos.x, cameraPos.y, cameraPos.z + 200.0f));
+        }
 
         input.capture();
+
+        if (network.hasServer())
+            network.getServer().setControlState(ctrl->getControlState());
+
         network.main();
         //ship.update();
         gfx.render();

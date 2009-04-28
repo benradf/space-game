@@ -10,7 +10,9 @@ HANDLERHDR="msghandler.hpp"
 HANDLERSRC="msghandler.cpp"
 MSGDESC="Auto-generated message definitions."
 HANDLERDESC="Auto-generated message handler."
-
+SEDMSGTYPE="s/^\(.*\)(.*)$/\1/;s/^\([[:alnum:]]*\)_.*$/\1/"
+SEDMSGNAME="s/^\(.*\)(.*)$/\1/;s/_//g"
+SEDARGLIST="s/^.*(\(.*\))$/\1/"
 . scripts/code-gen.inc
 
 # Write message types.
@@ -19,8 +21,8 @@ function write-message-types() {
     echo "enum MsgType {"
     MAXWIDTH="1"
     while read MSG <&3; do
-        MSGNAME=`echo $MSG | sed 's/^\(.*\)(.*)$/\1/'`
-        MSGTYPE=`echo $MSGNAME | sed 's/^\([A-Z][a-z]*\).*$/\1/' | tr [a-z] [A-Z]`
+        MSGNAME=`echo $MSG | sed "$SEDMSGNAME"`
+        MSGTYPE=`echo $MSG | sed "$SEDMSGTYPE" | tr [a-z] [A-Z]`
         if [ ${#MSGTYPE} -gt $MAXWIDTH ]; then
             MAXWIDTH=${#MSGTYPE}
         fi
@@ -28,8 +30,8 @@ function write-message-types() {
     FLAGVALUE="1"
     exec 3<&- 3<>$SPEC
     while read MSG <&3; do
-        MSGNAME=`echo $MSG | sed 's/^\(.*\)(.*)$/\1/'`
-        echo $MSGNAME | sed 's/^\([A-Z][a-z]*\).*$/\1/' | tr [a-z] [A-Z]
+        MSGNAME=`echo $MSG | sed "$SEDMSGNAME"`
+        echo $MSG | sed "$SEDMSGTYPE" | tr [a-z] [A-Z]
     done | sort -u |
     while read MSGTYPE; do
         printf "    MSG_%-${MAXWIDTH}s = 0x%04x,\n" $MSGTYPE $FLAGVALUE
@@ -121,10 +123,11 @@ echo
 # Write message defs.
 exec 3<&- 3<>$SPEC
 while read MSG <&3; do
-    MSGNAME=`echo $MSG | sed 's/^\(.*\)(.*)$/\1/'`
-    ARGLIST=`echo $MSG | sed 's/^.*(\(.*\))$/\1/'`
+    MSGNAME=`echo $MSG | sed "$SEDMSGNAME"`
+    ARGLIST=`echo $MSG | sed "$SEDARGLIST"`
     ARGS=`echo $ARGLIST | sed 's/, /\n/g;s/&//g'`
-    MSGTYPE=`echo $MSGNAME | sed 's/^\([A-Z][a-z]*\).*$/\1/' | tr [a-z] [A-Z]`
+    MSGTYPE=`echo $MSG | sed "$SEDMSGTYPE" | tr [a-z] [A-Z]`
+    MSG="$MSGNAME($ARGLIST)"
 
     # Message header.
     exec 1>&4

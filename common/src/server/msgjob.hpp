@@ -29,7 +29,8 @@ class MessageSender {
 };
 
 
-class MessagableJob : public Job, public msg::MessageHandler {
+class MessagableJob : public Job, public virtual msg::MessageHandler {
+
     public:
         friend class MessageSender;
 
