@@ -67,6 +67,7 @@ class NetworkInterface : public ObjectCache,
         virtual void tellPlayerObjectPos(PlayerID player, const CachedObjectInfo& object);
         virtual void tellPlayerObjectAll(PlayerID player, const CachedObjectInfo& object);
         virtual void tellPlayerObjectAttach(PlayerID player, ObjectID object);
+        virtual void tellPlayerObjectLeave(PlayerID player, ObjectID object);
 
         virtual void handlePeerLoginGranted(PeerID peer, PlayerID player);
         virtual void handlePeerLoginDenied(PeerID peer);

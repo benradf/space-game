@@ -42,5 +42,7 @@ void LoginManager::handlePeerRequestLogin(PeerID peer, const std::string& userna
 void LoginManager::handlePeerRequestLogout(PeerID peer, PlayerID player)
 {
     sendMessage(msg::PlayerLeaveZone(player, 1));
+
+    Log::log->debug("handlePeerRequestLogout");
 }
 

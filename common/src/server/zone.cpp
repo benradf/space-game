@@ -109,8 +109,11 @@ void Zone::handlePlayerLeaveZone(PlayerID player, ZoneID zone)
 
         if (objectIter != _objectIdMap.end()) {
             _quadTree.remove(objectIter->second);
-            delete objectIter->second;
+            std::auto_ptr<sim::MovableObject>(objectIter->second);
+            _objectIdMap.erase(objectIter);
         }
+
+        sendMessage(msg::ZoneSaysObjectLeave(playerIter->second));
     }
 
     _playerIdMap.erase(playerIter);

@@ -67,6 +67,7 @@ class ObjectCache : public virtual msg::MessageHandler {
         virtual void tellPlayerObjectPos(PlayerID player, const CachedObjectInfo& object) = 0;
         virtual void tellPlayerObjectAll(PlayerID player, const CachedObjectInfo& object) = 0;
         virtual void tellPlayerObjectAttach(PlayerID player, ObjectID object) = 0;
+        virtual void tellPlayerObjectLeave(PlayerID player, ObjectID object) = 0;
 
         virtual void handleZoneSaysObjectEnter(ObjectID object);
         virtual void handleZoneSaysObjectLeave(ObjectID object);

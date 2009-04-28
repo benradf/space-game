@@ -30,8 +30,8 @@ class ObjectCache : public virtual net::ProtocolUser {
         bool hasAttachedObject() const;
 
     private:
-        static const int FULL_UPDATE_PERIOD = 2000000;
-        static const int PARTIAL_UPDATE_PERIOD = 250000;
+        static const int FULL_UPDATE_PERIOD = 5000000;
+        static const int PARTIAL_UPDATE_PERIOD = 1000000;
 
         virtual void handleObjectEnter(uint16_t objectid);
         virtual void handleObjectLeave(uint16_t objectid);
@@ -44,6 +44,7 @@ class ObjectCache : public virtual net::ProtocolUser {
 
         const VisibleObject* getObject(sim::ObjectID objectID) const;
         VisibleObject& getObject(sim::ObjectID objectID);
+        void removeObject(sim::ObjectID objectID);
 
         void sendPartialObjectUpdate(const VisibleObject& object);
         void sendFullObjectUpdate(const VisibleObject& object);

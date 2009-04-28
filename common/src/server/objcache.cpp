@@ -27,6 +27,13 @@ void ObjectCache::handleZoneSaysObjectEnter(ObjectID object)
 
 void ObjectCache::handleZoneSaysObjectLeave(ObjectID object)
 {
+    CachedObjectInfo& info = getObjectInfo(object);
+
+    foreach (ObjectID id, info.getCloseObjects()) {
+        CachedObjectInfo& obj = getObjectInfo(id);
+        tellPlayerObjectLeave(obj.getAttachedPlayer(), object);
+    }
+
     removeObjectInfo(object);
 }
 

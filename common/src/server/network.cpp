@@ -180,6 +180,16 @@ void NetworkInterface::tellPlayerObjectAttach(PlayerID player, ObjectID object)
     client->sendObjectAttach(object);
 }
 
+void NetworkInterface::tellPlayerObjectLeave(PlayerID player, ObjectID object)
+{
+    RemoteClient* client = getClientByPlayer(player);
+
+    if (client == 0) 
+        return;
+
+    client->sendObjectLeave(object);
+}
+
 void NetworkInterface::handlePeerLoginGranted(PeerID peer, PlayerID player)
 {
     Clients::iterator iter = _clients.find(peer);
@@ -212,7 +222,7 @@ void NetworkInterface::handleDisconnect(net::Peer* peer)
 
     PlayerID player = client->getAttachedPlayer();
     if (player != 0) 
-        sendMessage(msg::PeerRequestLogout(player, 1));
+        sendMessage(msg::PeerRequestLogout(peer->getID(), player));
 
     _players.erase(client->getAttachedPlayer());
     _clients.erase(client->getID());

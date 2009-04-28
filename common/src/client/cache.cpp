@@ -72,12 +72,12 @@ bool ObjectCache::hasAttachedObject() const
 
 void ObjectCache::handleObjectEnter(uint16_t objectid)
 {
-    Log::log->warn("unhandled message: ObjectEnter");
+    getObject(objectid);
 }
 
 void ObjectCache::handleObjectLeave(uint16_t objectid)
 {
-    Log::log->warn("unhandled message: ObjectLeave");
+    removeObject(objectid);
 }
 
 void ObjectCache::handleObjectAttach(uint16_t objectid)
@@ -122,6 +122,17 @@ VisibleObject& ObjectCache::getObject(ObjectID objectID)
     _objects.insert(std::make_pair(objectID, object.get()));
 
     return *object.release();
+}
+
+void ObjectCache::removeObject(sim::ObjectID objectID)
+{
+    ObjectMap::iterator iter = _objects.find(objectID);
+    if (iter == _objects.end()) 
+        return;
+
+    std::auto_ptr<VisibleObject>(iter->second);
+
+    _objects.erase(iter);
 }
 
 void ObjectCache::sendPartialObjectUpdate(const VisibleObject& object)
