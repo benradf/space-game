@@ -50,10 +50,10 @@ Zone::RetType Zone::main()
 
         sendMessage(msg::ZoneSaysObjectClearClose(objectID));
 
-        Vector3 offset(50.0f, 50.0f, 0.0f);
+        Vector3 offset(150.0f, 150.0f, 0.0f);
         const Vector3& pos = object->getPosition();
         SendCloseMsg visitor(objectID, newMessageSender());
-        _quadTree.process(visitor/*, vol::AABB(pos - offset, pos + offset)*/);
+        _quadTree.process(visitor, vol::AABB(pos - offset, pos + offset));
     }
 
     foreach (ObjectMap::value_type& pair, _objectIdMap) {
