@@ -78,6 +78,7 @@ class KDTreeData {
         void loadFile(const char* filename);
 
         Validity checkValidity() const;
+        size_t getMemoryUsage() const;
 
     private:
         KDTreeData(const KDTreeData&);
@@ -119,6 +120,8 @@ class KDTree {
 
         static Ptr create(const Triangles& triangles, const vol::AABB& bounds);
         static Ptr load(const char* filename);
+
+        size_t getMemoryUsage() const;
 
     private:
         KDTree(const KDTree&);

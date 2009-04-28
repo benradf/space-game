@@ -918,8 +918,21 @@ std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, SplitPlaneFact
         splitAxis, splitPos));
 }
 
+bool boundsAreValid(const vol::AABB& bounds)
+{
+    const Vector3& min = bounds.getMin();
+    const Vector3& max = bounds.getMax();
+
+    bool minValid = ((min.x == min.y) && (min.y == min.z));
+    bool maxValid = ((max.x == max.y) && (max.y == max.z));
+
+    return (minValid && maxValid);
+}
+
 std::auto_ptr<TemporaryNode> constructKDTree(const std::vector<Triangle>& triangles, const vol::AABB& bounds)
 {
+    assert(boundsAreValid(bounds));
+
     SplitList list;
     SplitPlaneFactory factory;
 
@@ -1143,6 +1156,15 @@ KDTreeData::Validity KDTreeData::checkValidity() const
     return VALID;
 }
 
+size_t KDTreeData::getMemoryUsage() const
+{
+    size_t nodeUsage = sizeof(KDTreeNode) * _nodeCount;
+    size_t triangleUsage = sizeof(Triangle) * _triangleCount;
+    size_t referenceUsage = sizeof(Reference) * _referenceCount;
+
+    return (nodeUsage + triangleUsage + referenceUsage);
+}
+
 
 ////////// KDTree //////////
 
@@ -1168,5 +1190,10 @@ KDTree::Ptr KDTree::load(const char* filename)
 {
     std::auto_ptr<KDTreeData> data(new KDTreeData(filename));
     return std::auto_ptr<KDTree>(new KDTree(data));
+}
+
+size_t KDTree::getMemoryUsage() const
+{
+    return _data->getMemoryUsage();
 }
 
