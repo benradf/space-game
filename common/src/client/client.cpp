@@ -68,9 +68,15 @@ void clientMain()
     //warbird->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
     camera->setPosition(Ogre::Vector3(-0.1f, -0.1f, 200.0f));
     camera->lookAt(Ogre::Vector3(0.0f, 0.0f, 0.0f));
-    scene->setSkyPlane("Sky/OrbitEarth", Ogre::Vector3::UNIT_Z, -1000.0f);
+    //scene->setSkyPlane("Sky/Orion", Ogre::Vector3::UNIT_Z, -500.0f);
+    scene->addBackdrop("Backdrop/StarFieldBackdrop", 0.0f, -1000.0f, 1250.0f);
+    scene->addBackdrop("Backdrop/StarFieldOverlay1", 0.05f, -900.0f, 1000.0f);
+    scene->addBackdrop("Backdrop/StarFieldOverlay2", 0.15f, -800.0f, 900.0f);
+    scene->addBackdrop("Backdrop/StarFieldOverlay3", 0.25f, -850.0f, 1000.0f);
 
-    std::auto_ptr<Entity> map = scene->createEntity("map", "base01.mesh");
+    Ogre::Vector3 cameraPos = Ogre::Vector3::ZERO;
+
+    std::auto_ptr<Entity> map = scene->createEntity("map", "base03.mesh");
     map->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
 
     //Ship ship(*scene, "username", "spider.mesh");
@@ -110,8 +116,9 @@ void clientMain()
         //camera->setPosition(Ogre::Vector3(cameraPos.x, cameraPos.y, cameraPos.z + 200.0f));
 
         if (network.hasServer() && network.getServer().hasAttachedObject()) {
-            const Vector3 cameraPos = network.getServer().getAttachedObjectPosition();
-            camera->setPosition(Ogre::Vector3(cameraPos.x, cameraPos.y, cameraPos.z + 200.0f));
+            const Vector3& pos = network.getServer().getAttachedObjectPosition();
+            cameraPos.x = pos.x, cameraPos.y = pos.y, cameraPos.z = pos.z + 300.0f;
+            camera->setPosition(cameraPos);
         }
 
         input.capture();
@@ -121,6 +128,8 @@ void clientMain()
 
         network.main();
         //ship.update();
+
+        scene->updateBackdropPositions(cameraPos);
         gfx.render();
         gfx.getViewport().update();
 
@@ -146,7 +155,7 @@ int main(int argc, char* argv[])
 #else
     int rval = chdir("linux/share/client");
 #endif
-    assert(rval == 0);
+    //assert(rval == 0);
 
     if (argc > 1) 
         serverHostname = argv[1];

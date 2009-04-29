@@ -30,6 +30,8 @@ class Entity {
         void setOrientation(const Ogre::Quaternion& rot);
         const Ogre::Quaternion& getOrientation() const;
 
+        void setMaterial(const char* material) const;
+
     private:
         Entity(const Entity&);
         Entity& operator=(const Entity&);
@@ -63,6 +65,24 @@ class Camera {
 
 };
 
+class Backdrop {
+    public:
+        Backdrop(const char* name, const char* material, float scroll, 
+            float depth, float size, Ogre::SceneManager* sceneManager);
+        ~Backdrop();
+
+        void update(const Ogre::Vector3& centre);
+
+    private:
+        float _scroll;
+        float _depth;
+        float _size;
+
+        std::string _name;
+        Ogre::MeshPtr _mesh;
+        std::auto_ptr<Entity> _entity;
+};
+
 class Scene {
     public:
         Scene(boost::shared_ptr<Ogre::Root> root);
@@ -72,6 +92,8 @@ class Scene {
         std::auto_ptr<Entity> createEntity(const char* name, const char* mesh);
 
         void setSkyPlane(const char* material, const Ogre::Vector3& normal, float dist);
+        void addBackdrop(const char* material, float scroll, float depth, float size);
+        void updateBackdropPositions(const Ogre::Vector3& centre);
 
     private:
         Scene(const Scene&);
@@ -80,6 +102,7 @@ class Scene {
         boost::shared_ptr<Ogre::Root> _root;
         Ogre::SceneManager* _sceneManager;
 
+        std::vector<Backdrop*> _backdrops;
 };
 
 class Viewport {

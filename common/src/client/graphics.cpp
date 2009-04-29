@@ -56,6 +56,11 @@ const Ogre::Quaternion& gfx::Entity::getOrientation() const
     return _node->getOrientation();
 }
 
+void gfx::Entity::setMaterial(const char* material) const
+{
+    _entity->setMaterialName(material);
+}
+
 
 ////////// Camera //////////
 
@@ -88,6 +93,64 @@ void gfx::Camera::lookAt(const Ogre::Vector3& pos)
 }
 
 
+////////// Backdrop //////////
+
+gfx::Backdrop::Backdrop(const char* name, const char* material, float scroll, 
+        float depth, float size, Ogre::SceneManager* sceneManager) :
+    _scroll(scroll), _depth(depth), _size(size)
+{
+    _mesh = Ogre::MeshManager::getSingleton().createPlane(name,
+        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+        Ogre::Plane(Ogre::Vector3::UNIT_Z, Ogre::Real(depth)),
+        Ogre::Real(3.0f * size), Ogre::Real(3.0f * size), 3, 3, 
+        false, 1, Ogre::Real(3.0f), Ogre::Real(3.0f));
+
+    if (_mesh.isNull()) 
+        throw MemoryException("failed to create backdrop mesh");
+
+    try {
+        _entity.reset(new Entity(name, name, sceneManager));
+        _entity->setMaterial(material);
+        update(Ogre::Vector3::ZERO);
+    } catch (...) {
+        Ogre::MeshManager::getSingleton().remove(_mesh->getHandle());
+        throw;
+    }
+}
+
+gfx::Backdrop::~Backdrop()
+{
+    Ogre::MeshManager::getSingleton().remove(_mesh->getHandle());
+}
+
+void gfx::Backdrop::update(const Ogre::Vector3& centre)
+{
+    float halfSize = 0.5f * _size;
+
+    Ogre::Vector3 offset = -_scroll * centre;
+    Ogre::Vector3 pos = centre + offset;
+    pos.z = _depth;
+
+    offset.x -= halfSize;
+    offset.x = fmod(offset.x, _size);
+    if (offset.x < -halfSize) 
+        offset.x += _size;
+    if (offset.x > halfSize) 
+        offset.x -= _size;
+    offset.x += halfSize;
+
+    offset.y -= halfSize;
+    offset.y = fmod(offset.y, _size);
+    if (offset.y < -halfSize) 
+        offset.y += _size;
+    if (offset.y > halfSize) 
+        offset.y -= _size;
+    offset.y += halfSize;
+
+    _entity->setPosition(centre + offset);
+}
+
+
 ////////// Scene //////////
 
 gfx::Scene::Scene(boost::shared_ptr<Ogre::Root> root) :
@@ -116,6 +179,24 @@ void gfx::Scene::setSkyPlane(const char* material, const Ogre::Vector3& normal, 
 {
     _sceneManager->setSkyPlane(true, Ogre::Plane(normal, Ogre::Real(dist)), material,
         Ogre::Real(500.0f), Ogre::Real(100.0f));
+}
+
+void gfx::Scene::addBackdrop(const char* material, float scroll, float depth, float size)
+{
+    char name[16];
+    snprintf(name, sizeof(name), "_backdrop%02d", int(_backdrops.size() + 1));
+    printf("backdrop name = '%s'\n", name);
+
+    std::auto_ptr<Backdrop> backdrop(new Backdrop(name, 
+        material, scroll, depth, size, _sceneManager));
+    _backdrops.push_back(backdrop.get());
+    backdrop.release();
+}
+
+void gfx::Scene::updateBackdropPositions(const Ogre::Vector3& centre)
+{
+    foreach (Backdrop* backdrop, _backdrops) 
+        backdrop->update(centre);
 }
 
 
