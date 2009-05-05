@@ -33,3 +33,11 @@ COMPONENTS= \
 	server \
 	zonebuild
 
+DATA= \
+	config \
+	maps \
+	materials \
+	objects \
+	ships \
+	textures
+

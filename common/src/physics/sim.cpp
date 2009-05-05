@@ -15,7 +15,12 @@
 #include <core/core.hpp>
 
 
-CollisionGeometry collision("collision.dat");
+std::auto_ptr<CollisionGeometry> collision;
+
+void loadCollisionGeom(const char* filename)
+{
+    collision.reset(new CollisionGeometry(filename));
+}
 
 
 ////////// sim::Object //////////
@@ -123,12 +128,14 @@ void sim::Object::ClearSpin()
 
 void sim::Object::integrateLinearMotion(float dt)
 {
+    assert(collision.get() != 0);
+
     if (_forceApplied) 
         _vel += _acc * dt;
 
     Vector3 normal = Vector3::ZERO;
     Vector3 newPos = _pos + _vel * dt;
-    if (!collision.checkCollision(vol::Sphere(newPos, 8.0f), normal)) {
+    if (!collision->checkCollision(vol::Sphere(newPos, 8.0f), normal)) {
         _pos = newPos;
     } else {
         _vel = 0.75f * reflect(_vel, normal);

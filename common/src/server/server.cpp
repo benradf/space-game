@@ -41,6 +41,7 @@ void catchSignals(bool yes)
     }
 }
 
+void loadCollisionGeom(const char* filename);
 
 void serverMain()
 {
@@ -65,6 +66,9 @@ void serverMain()
     pool.add(Job::Ptr(jobNetwork));
     pool.add(Job::Ptr(jobLogin));
     pool.add(Job::Ptr(testZone));
+    
+    // Temporary hack:
+    loadCollisionGeom("maps/base03.dat");
 
     // Create worker threads.
     std::vector<boost::shared_ptr<Worker> > workers;

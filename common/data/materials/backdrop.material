@@ -1,0 +1,74 @@
+material Backdrop/StarFieldBackdrop
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            depth_write off
+            fog_override true none
+
+            texture_unit
+            {
+                texture starfield_backdrop.tga
+            }
+        }
+    }
+}
+material Backdrop/StarFieldOverlay1
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            depth_write off
+            fog_override true none
+            scene_blend alpha_blend
+
+            texture_unit
+            {
+                texture starfield_overlay1.tga
+                color_ap modulate
+            }
+        }
+    }
+}
+material Backdrop/StarFieldOverlay2
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            depth_write off
+            fog_override true none
+            scene_blend alpha_blend
+
+            texture_unit
+            {
+                texture starfield_overlay2.tga
+                color_ap modulate
+            }
+        }
+    }
+}
+material Backdrop/StarFieldOverlay3
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            depth_write off
+            fog_override true none
+            scene_blend alpha_blend
+
+            texture_unit
+            {
+                texture starfield_overlay3.tga
+                color_ap modulate
+            }
+        }
+    }
+}

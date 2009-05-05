@@ -12,15 +12,18 @@ ifneq "$(origin PACKAGES)" "undefined"
 else 
 ifneq "$(origin COMPONENTS)" "undefined"
 else
+ifneq "$(origin DATA)" "undefined"
+else
 include scripts/packages.mk
+endif
 endif
 endif
 
 # Do not build these combinations.
 include scripts/blacklist.mk
 
-# Packages and components in one list.
-COMBINED=$(PACKAGES) $(COMPONENTS)
+# Packages, components and in one list.
+COMBINED=$(PACKAGES) $(COMPONENTS) $(DATA)
 
 # GET_HOST(platform)
 GET_HOST=$(subst mingw,i386-mingw32msvc,$(subst linux,$(shell uname -m)-linux,$(1)))
@@ -116,6 +119,34 @@ $(1)-$(2)-all:
 	$(1)-$(2)-all
 endef
 
+# DATA_RULES(data,platform)
+define DATA_RULES
+$(1)-$(2)-extract:
+$(1)-$(2)-build:
+	@echo -e "\033[01;31m$$@\033[00m"; \
+	cd common/data/$(1) && $(MAKE) PLATFORM="$(2)"
+$(1)-$(2)-install:
+	@echo -e "\033[01;31m$$@\033[00m"; \
+	cd common/data/$(1) && $(MAKE) PLATFORM="$(2)" install && \
+	cd - && scripts/enum-resources.sh $(2)/share/client/ \
+	>$(2)/share/client/resources.cfg
+$(1)-$(2)-distrib:
+$(1)-$(2)-clean:
+	@echo -e "\033[01;34m$$@\033[00m"; \
+	cd common/data/$(1) && $(MAKE) PLATFORM="$(2)" clean
+$(1)-$(2)-all:
+	$(MAKE) $(1)-$(2)-build && \
+	$(MAKE) $(1)-$(2)-install
+.PHONY: \
+	$(1)-$(2)-extract \
+	$(1)-$(2)-build \
+	$(1)-$(2)-install \
+	$(1)-$(2)-distrib \
+	$(1)-$(2)-clean \
+	$(1)-$(2)-all
+endef
+
+
 # Update environment path variable.
 PATH+=:$(PWD)/mingw/usr/bin
 
@@ -165,6 +196,16 @@ $(foreach CPT,$(COMPONENTS), \
 	) \
 )
 
+# Specific data rules.
+$(foreach DAT,$(DATA), \
+	$(if $(shell ls scripts/$(DAT).mk 2>/dev/null), \
+		$(eval include scripts/$(DAT).mk) \
+	, \
+		$(foreach PLT,$(PLATFORMS), \
+			$(eval $(call DATA_RULES,$(DAT),$(PLT))) \
+		) \
+	) \
+)
 total:
 	$(MAKE) clean
 	$(MAKE) extract

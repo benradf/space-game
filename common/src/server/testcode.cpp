@@ -84,13 +84,14 @@ struct DoNothing { void operator()(const Triangle&) const {}; };
 
 void checkIntersection(KDTree::Ptr& tree, const vol::AABB& bounds)
 {
+    float x = 3435.0f, y = 3145.0f, sz = 5.0f;
     vol::AABB intersection(
-        Vector3(20.0f, -5.0f, -1.0f),
-        Vector3(25.0f, -1.0f, 1.0f));
+        Vector3(x - 2100.0f - sz, 2100.0f - y - sz, -sz),
+        Vector3(x - 2100.0f + sz, 2100.0f - y + sz, sz));
 
-    SpatialCanvas canvasX(bounds, 5, SpatialCanvas::X_AXIS);
-    SpatialCanvas canvasY(bounds, 5, SpatialCanvas::Y_AXIS);
-    SpatialCanvas canvasZ(bounds, 5, SpatialCanvas::Z_AXIS);
+    SpatialCanvas canvasX(bounds, 1, SpatialCanvas::X_AXIS);
+    SpatialCanvas canvasY(bounds, 1, SpatialCanvas::Y_AXIS);
+    SpatialCanvas canvasZ(bounds, 1, SpatialCanvas::Z_AXIS);
 
     DrawTriangles drawTrianglesX(canvasX);
     DrawTriangles drawTrianglesY(canvasY);
@@ -99,7 +100,7 @@ void checkIntersection(KDTree::Ptr& tree, const vol::AABB& bounds)
     Timer timer;
     DoNothing doNothing;
     timer.reset();
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 210000; i++)
         tree->process(doNothing, intersection);
     uint64_t elapsed = timer.elapsed();
     cout << "elapsed = " << elapsed << "us" << endl;
@@ -115,9 +116,9 @@ void checkIntersection(KDTree::Ptr& tree, const vol::AABB& bounds)
 
 struct DisplayKDTrees {
     DisplayKDTrees(const char* filename, const vol::AABB& bounds) :
-        _canvasX(bounds, 50, SpatialCanvas::X_AXIS),
-        _canvasY(bounds, 50, SpatialCanvas::Y_AXIS),
-        _canvasZ(bounds, 50, SpatialCanvas::Z_AXIS),
+        _canvasX(bounds, 1, SpatialCanvas::X_AXIS),
+        _canvasY(bounds, 1, SpatialCanvas::Y_AXIS),
+        _canvasZ(bounds, 1, SpatialCanvas::Z_AXIS),
         _filename(filename)
     {
         _splits.push(bounds);
@@ -195,7 +196,7 @@ void createKDTree()
 
 void displayKDTree()
 {
-    vol::AABB bounds(Vector3(-10.0f, -10.0f, -10.0f), Vector3(10.0f, 10.0f, 10.0f));
+    vol::AABB bounds(Vector3(-2100.0f, -2100.0f, -2100.0f), Vector3(2100.0f, 2100.0f, 2100.0f));
     KDTree::Ptr tree(KDTree::load("/tmp/collision.dat"));
     DisplayKDTrees("collision_kdtree", bounds).display(*tree);
     checkIntersection(tree, bounds);

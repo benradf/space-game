@@ -4,7 +4,6 @@
 #include <string.h>
 #include <core/exception.hpp>
 #include <core/core.hpp>
-#include <math/util.hpp>
 #include <fstream>
 
 
@@ -174,11 +173,19 @@ void BuildCollisionKDTree::endVertex()
 
 int main(int argc, char* argv[])
 {
+    if (argc != 3) {
+        cerr << "usage: zonebuild INFILE OUTFILE" << endl;
+        return 1;
+    }
+
+    const char* srcFile = argv[1];
+    const char* dstFile = argv[2];
+
     try {
-        KDTree::Ptr tree = BuildCollisionKDTree("/tmp/collision.xml").createKDTree();
-        tree->save("/tmp/collision.dat");
+        BuildCollisionKDTree(srcFile).createKDTree()->save(dstFile);
     } catch (std::exception& e) {
-        cout << e.what() << endl;
+        cerr << e.what() << endl;
+        return 1;
     }
 
     return 0;

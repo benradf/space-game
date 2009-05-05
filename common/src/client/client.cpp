@@ -54,6 +54,8 @@ std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
 //Vector3 cameraPos = Vector3::ZERO;
 //LocalController* localController = 0;
 
+void loadCollisionGeom(const char* filename);
+
 void clientMain()
 {
     signal(SIGINT, signalHandler);
@@ -78,6 +80,7 @@ void clientMain()
 
     std::auto_ptr<Entity> map = scene->createEntity("map", "base03.mesh");
     map->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
+    loadCollisionGeom("maps/base03.dat");
 
     //Ship ship(*scene, "username", "spider.mesh");
     Input input(gfx.getViewport().getRenderWindow());
