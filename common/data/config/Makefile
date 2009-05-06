@@ -17,7 +17,7 @@ all:
 
 install:
 	mkdir -p $(INSTALLPATH)/client/
-	cp -uv *.{cfg,zip} $(INSTALLPATH)/client/
+	cp -uv *.cfg *.zip $(INSTALLPATH)/client/
 
 clean:
 
