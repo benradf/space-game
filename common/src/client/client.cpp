@@ -162,12 +162,16 @@ int main(int argc, char* argv[])
 
     if (argc > 1) 
         serverHostname = argv[1];
+
+    net::initialise();
     
     try {
         clientMain();
     } catch (std::exception& e) {
         Log::log->error(e.what());
     }
+
+    net::cleanup();
     
     Log::log->info("Client stops");
     

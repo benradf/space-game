@@ -106,12 +106,16 @@ int main(int argc, char* argv[])
     
     Log::log->info("Server starts");
     Log::log->info("Built " __DATE__ " " __TIME__);
+
+    net::initialise();
     
     try {
         serverMain();
     } catch (std::exception& e) {
         Log::log->error(e.what());
     }
+
+    net::cleanup();
     
     Log::log->info("Server stops");
     
