@@ -7,11 +7,11 @@ BEGIN
   BEGIN
     BLOCK "080904E4"
     BEGIN
-      VALUE "CompanyName", "Ben Radford"
-      VALUE "FileDescription", "mmoclient"
+      VALUE "AuthorName", "Ben Radford"
+      VALUE "FileDescription", "Client for mmoengine project."
       VALUE "FileVersion", "1.0"
       VALUE "InternalName", "mmoclient"
-      VALUE "LegalCopyright", "Copyright 2007-2009, Ben Radford. All Rights Reserved."
+      VALUE "LegalCopyright", "2007-2009, Ben Radford. All Rights Reserved."
       VALUE "OriginalFilename", "client.exe"
       VALUE "ProductName", "mmoclient"
       VALUE "ProductVersion", "1.0"

@@ -1,0 +1,2 @@
+linux: 
+mingw: -Wl,--subsystem,windows
