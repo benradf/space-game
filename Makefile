@@ -94,19 +94,20 @@ $(1)-$(2)-build:
 		-l "`sed -n s/$2\://p .linklibs 2>/dev/null`" \
 		-n "`sed -n s/$2\://p .linkname 2>/dev/null`" \
 		-f "`sed -n s/$2\://p .cxxflags 2>/dev/null`" \
+		-d "`sed -n s/$2\://p .ldflags 2>/dev/null`" \
 		-h "`sed -n s/$2\://p .install 2>/dev/null`" \
 		-r $(PWD) >Makefile.$(2) && \
 	rm -f Makefile && ln -s Makefile.$(2) Makefile && \
 	$(MAKE) -f Makefile.$(2) PLATFORM="$(2)" \
 	$(call GET_BUILD_TOOLS,$(2))
 $(1)-$(2)-install:
-	@echo -e "\033[01;36m$$@\033[00m"; \
-	cd common/src/$(1) && $(MAKE) PLATFORM="$(2)" install
+	@echo -e "\033[01;36m$$@\033[00m"; cd common/src/$(1) && \
+	$(MAKE) -f Makefile.$(2) PLATFORM="$(2)" install
 $(1)-$(2)-distrib:
 	@echo -e "\033[01;35m$$@\033[00m";
 $(1)-$(2)-clean:
-	@echo -e "\033[01;34m$$@\033[00m"; \
-	cd common/src/$(1) && $(MAKE) PLATFORM="$(2)" clean
+	@echo -e "\033[01;34m$$@\033[00m"; cd common/src/$(1) && \
+	$(MAKE) -f Makefile.$(2) PLATFORM="$(2)" clean
 $(1)-$(2)-all:
 	$(MAKE) $(1)-$(2)-build && \
 	$(MAKE) $(1)-$(2)-install

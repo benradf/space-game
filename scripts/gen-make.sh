@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Process args.
-while getopts "p:n:i:j:l:h:r:f:" arg; do
+while getopts "p:n:i:j:l:h:r:f:d:" arg; do
     case $arg in
         p) path="$OPTARG" ;;
         n) linkname="$OPTARG" ;;
@@ -10,7 +10,8 @@ while getopts "p:n:i:j:l:h:r:f:" arg; do
         l) libs=`echo "$OPTARG" | sed 's/\([^ \t]\+\)[ \t]*/-l\1 /g'` ;;
         h) headers="$OPTARG" ;;
         r) root="$OPTARG" ;;
-        f) flags="$OPTARG" ;;
+        f) cxxflags="$OPTARG" ;;
+        d) ldflags="$OPTARG" ;;
     esac
 done
 
@@ -40,7 +41,7 @@ for file in `ls *.cpp`; do
 done
 
 # Get list of resource files.
-for file in `ls *.rc`; do
+for file in `ls *.rc 2>/dev/null`; do
     resources="$resources $file"
 done
 
@@ -74,9 +75,9 @@ echo 'PLATFORM?=linux'
 echo 'PREFIX=$(ROOT)/$(PLATFORM)'
 echo 'BUILDPATH=$(BUILDROOT)/$(PLATFORM)/tmp/$(NAME)'
 echo -e "OBJS=$objs"
-echo 'CFLAGS:=$(CFLAGS) '"$flags $incpath"
-echo 'CXXFLAGS:=$(CXXFLAGS) '"$flags $incpath"
-echo 'LDFLAGS:=$(LDFLAGS) '"$libpath"
+echo 'CFLAGS:=$(CFLAGS) '"$cxxflags $incpath"
+echo 'CXXFLAGS:=$(CXXFLAGS) '"$cxxflags $incpath"
+echo 'LDFLAGS:=$(LDFLAGS) '"$ldflags $libpath"
 echo 'RANLIB=ranlib'
 echo 'WINDRES=windres'
 
