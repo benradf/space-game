@@ -44,7 +44,7 @@ endef
 
 # GET_BUILD_TOOLS(platform)
 GET_BUILD_TOOLS=$(call BUILD_TOOLS,$(subst mingw,i386-mingw32msvc-,$(subst linux,,$(1))))
-BUILD_TOOLS=CC="$(1)gcc" CXX="$(1)g++" AR="$(1)ar" RANLIB="$(1)ranlib" STRIP="$(1)strip" AS="$(1)as" DLLTOOL="$(1)dlltool"
+BUILD_TOOLS=CC="$(1)gcc" CXX="$(1)g++" AR="$(1)ar" RANLIB="$(1)ranlib" STRIP="$(1)strip" AS="$(1)as" DLLTOOL="$(1)dlltool" WINDRES="$(1)windres"
 
 # CHECK_CONFIG_EXEC(package,platform)
 CHECK_CONFIG_EXEC=$(call FIX_CONFIG_EXEC,$(2)/src/$(1)*/configure)

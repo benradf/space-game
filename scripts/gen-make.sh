@@ -23,6 +23,7 @@ linkname=`echo $linkname`
 phony=".PHONY: all clean dist"
 islibs=`echo $linkname | sed '/^lib.*\.a$/!d'`
 islibd=`echo $linkname | sed '/^lib.*\.so$/!d'`
+isexe=`echo $linkname | sed '/^.*\.exe$/!d'`
 if [ $islibd ]; then
     picflag="-fPIC "
 fi
@@ -37,6 +38,19 @@ fi
 for file in `ls *.cpp`; do
     sources="$sources $file"
 done
+
+# Get list of resource files.
+for file in `ls *.rc`; do
+    resources="$resources $file"
+done
+
+# Generate list of object files.
+objs=`echo " $sources" | sed 's/ \(\w*\)\.cpp/ \\\\\n\t\$(BUILDPATH)\/\1\.o/g'`
+
+# Maybe add resource objects.
+if [ $isexe ]; then
+    objs="$objs `echo " $resources" | sed 's/ \(\w*\)\.rc/ \\\\\n\t\$(BUILDPATH)\/\1\_res.o/g'`"
+fi
 
 # Generate header.
 echo "# --- Makefile for $linkname ---"
@@ -59,11 +73,12 @@ echo 'BUILDROOT?=$(ROOT)'
 echo 'PLATFORM?=linux'
 echo 'PREFIX=$(ROOT)/$(PLATFORM)'
 echo 'BUILDPATH=$(BUILDROOT)/$(PLATFORM)/tmp/$(NAME)'
-echo "OBJS=$sources" | sed 's/ \(\w*\)\.cpp/ \\\n\t\$(BUILDPATH)\/\1\.o/g'
+echo -e "OBJS=$objs"
 echo 'CFLAGS:=$(CFLAGS) '"$flags $incpath"
 echo 'CXXFLAGS:=$(CXXFLAGS) '"$flags $incpath"
 echo 'LDFLAGS:=$(LDFLAGS) '"$libpath"
-echo 'RANLIB?=ranlib'
+echo 'RANLIB=ranlib'
+echo 'WINDRES=windres'
 
 # Generate library dependencies.
 echo -n 'LIBDEPS='
@@ -102,7 +117,7 @@ else
 fi
 echo
 
-# Generate Link target.
+# Generate link target.
 echo '# Link object files.'
 if [ $islibs ]; then
     echo '$(BUILDPATH)/$(LIB): $(OBJS) $(LIBDEPS)'
@@ -129,6 +144,21 @@ for file in $sources; do
 	echo '	$(CXX) '"$picflag"'-c $(CXXFLAGS)'" -o $obj $file"
 done
 echo
+
+function res-name() {
+    echo $1 | sed 's/^\(.*\)\.rc$/\$(BUILDPATH)\/\1_res\.o/'
+}
+
+# Generate resource targets.
+if [ $isexe ]; then
+    echo "# Compile resource files."
+    for file in $resources; do
+        obj=`res-name $file`
+        echo "$obj: $file"
+        echo '	$(WINDRES) -O coff -o $@ $<'
+    done
+    echo
+fi
 
 # Generate header dependencies.
 echo "# Header dependencies."
