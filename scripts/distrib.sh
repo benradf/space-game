@@ -20,6 +20,8 @@ function distrib-client-mingw() {
     mkdir -p mingw/distrib/client/plugins
     cp -v mingw/lib/OGRE/RenderSystem_GL.dll mingw/distrib/client/plugins
     cp -v mingw/lib/OGRE/Plugin_OctreeSceneManager.dll mingw/distrib/client/plugins
+    cp -v mingw/lib/OGRE/Plugin_CgProgramManager.dll mingw/distrib/client/plugins
+    cp -v mingw/lib/OGRE/Plugin_ParticleFX.dll mingw/distrib/client/plugins
     mv mingw/distrib/client/plugins.cfg mingw/distrib/client/plugins.cfg.in
     sed 's/^PluginFolder=.*$/PluginFolder=plugins/;s/^Plugin=\(.*\)\.so$/Plugin=\1\.dll/' \
         mingw/distrib/client/plugins.cfg.in >mingw/distrib/client/plugins.cfg
