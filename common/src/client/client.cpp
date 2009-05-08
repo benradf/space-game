@@ -45,8 +45,10 @@ std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
 
     char nameBuffer[256];
     snprintf(nameBuffer, sizeof(nameBuffer), "object_%d", objectID);
-    std::auto_ptr<Entity> entity = theScene->createEntity(nameBuffer, "spider.mesh");
     std::auto_ptr<sim::MovableObject> object(new sim::Ship(objectID));
+    std::auto_ptr<Entity> entity = theScene->createEntity(nameBuffer, "spider.mesh");
+    entity->attachParticleSystem("Effects/EngineExhaust", Ogre::Vector3(-2.0f, -7.0f, 0.0f));
+    entity->attachParticleSystem("Effects/EngineExhaust", Ogre::Vector3(2.0f, -7.0f, 0.0f));
 
     return std::auto_ptr<VisibleObject>(new VisibleObject(entity, object));
 }

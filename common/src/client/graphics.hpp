@@ -12,11 +12,31 @@
 
 
 #include <memory>
+#include <vector>
 #include <Ogre.h>
 #include <boost/shared_ptr.hpp>
 
 
 namespace gfx {
+
+
+class MovableParticleSystem {
+    public:
+        MovableParticleSystem(const char* name, const char* system, 
+            const Ogre::Vector3& offset, Ogre::SceneNode* node, 
+            Ogre::SceneManager* sceneManager);
+        ~MovableParticleSystem();
+
+        void update(const Ogre::Vector3& velocity);
+
+    private:
+        Ogre::SceneManager* _sceneManager;
+        Ogre::ParticleSystem* _system;
+        Ogre::SceneNode* _node;
+
+        std::vector<Ogre::Vector3> _dir;
+        Ogre::Vector3 _offset;
+};
 
 
 class Entity {
@@ -32,7 +52,8 @@ class Entity {
 
         void setMaterial(const char* material) const;
 
-        void updateParticleSystem(const Ogre::Vector3& vel);
+        void attachParticleSystem(const char* system, const Ogre::Vector3& offset);
+        void updateParticleSystems(const Ogre::Vector3& velocity);
 
     private:
         Entity(const Entity&);
@@ -43,8 +64,7 @@ class Entity {
         Ogre::Entity* _entity;
         std::string _name;
 
-        Ogre::ParticleSystem* _particleSystem;
-        Ogre::SceneNode* _particleNode;
+        std::vector<MovableParticleSystem*> _particleSystems;
 };
 
 

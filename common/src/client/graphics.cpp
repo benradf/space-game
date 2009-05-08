@@ -11,6 +11,48 @@
 #include <core/core.hpp>
 
 
+////////// MovableParticleSystem //////////
+
+gfx::MovableParticleSystem::MovableParticleSystem(const char* name, const char* system, 
+        const Ogre::Vector3& offset, Ogre::SceneNode* node, Ogre::SceneManager* sceneManager) :
+    _sceneManager(sceneManager), _system(0), _node(0), _offset(offset)
+{
+    _system = _sceneManager->createParticleSystem(name, system);
+    _node = node->createChildSceneNode();
+
+    _node->attachObject(_system);
+    _node->setPosition(_offset);
+    _node->setInheritOrientation(false);
+
+    for (int i = 0; i < _system->getNumEmitters(); i++) {
+        Ogre::ParticleEmitter* emitter = _system->getEmitter(i);
+        _dir.push_back(emitter->getDirection() * emitter->getParticleVelocity());
+    }
+}
+
+gfx::MovableParticleSystem::~MovableParticleSystem()
+{
+    _sceneManager->destroyParticleSystem(_system);
+}
+
+void gfx::MovableParticleSystem::update(const Ogre::Vector3& velocity)
+{
+    for (int i = 0; i < _system->getNumEmitters(); i++) {
+        Ogre::SceneNode* parent = _node->getParentSceneNode();
+        Ogre::Vector3 dir = parent->getOrientation() * _dir[i];
+
+        dir += velocity;
+        Ogre::Real mag = dir.length();
+        dir /= mag;
+
+        _system->getEmitter(i)->setParticleVelocity(mag);
+        _system->getEmitter(i)->setDirection(dir);
+    }
+
+    _node->setPosition(_offset + velocity * _system->getIterationInterval());
+}
+
+
 ////////// Entity //////////
 
 gfx::Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* sceneManager) :
@@ -27,19 +69,13 @@ gfx::Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* scen
 
     _node->attachObject(_entity);
     _node->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
-
-    Ogre::ParticleSystem* sunParticle = 
-        _sceneManager->createParticleSystem(std::string(name) + "_particle_sys", "Effects/EngineExhaust");
-    Ogre::SceneNode* particleNode = _node->createChildSceneNode(std::string(name) + "_particle_node");
-    particleNode->attachObject(sunParticle);
-    particleNode->setPosition(Ogre::Vector3(0.0f, -7.0f, 0.0f));
-    particleNode->setInheritOrientation(false);
-    _particleNode = particleNode;
-    _particleSystem = sunParticle;
 }
 
 gfx::Entity::~Entity()
 {
+    foreach (MovableParticleSystem* system, _particleSystems) 
+        std::auto_ptr<MovableParticleSystem>(system);
+
     _node->detachObject(_entity);
     _sceneManager->destroyEntity(_entity);
     _sceneManager->getRootSceneNode()->removeAndDestroyChild(_name);
@@ -70,33 +106,25 @@ void gfx::Entity::setMaterial(const char* material) const
     _entity->setMaterialName(material);
 }
 
-void gfx::Entity::updateParticleSystem(const Ogre::Vector3& vel)
+void gfx::Entity::attachParticleSystem(const char* system, const Ogre::Vector3& offset)
 {
-    Ogre::Vector3 dir = _node->getOrientation() * Ogre::Vector3(0.0f, -30.0f, 0.0f);
+    char name[64];
+    snprintf(name, sizeof(name), "_particlesystem_%s_%s_%d", 
+        _name.c_str(), system, int(_particleSystems.size() + 1));
 
-    Ogre::Vector3 axis;
-    Ogre::Degree angle;
-    _node->getOrientation().ToAngleAxis(angle, axis);
-    //printf("rotation = %.2f\n", angle.valueDegrees());
-    Ogre::Vector3 up = _node->getOrientation() * Ogre::Vector3::UNIT_Y;
-    //printf("up = (%.2f, %.2f, %.2f)\n", up.x, up.y, up.z);
+    std::auto_ptr<MovableParticleSystem> particleSystem(
+        new MovableParticleSystem( name, system, 
+        offset, _node, _sceneManager));
 
-    dir += vel;
+    _particleSystems.push_back(particleSystem.get());
 
-    Ogre::Real mag = dir.length();
-    //printf("vel = (%.2f, %.2f, %.2f), |vel| = %.2f\n", vel.x, vel.y, vel.z, vel.length());
-    dir /= mag;
-    //printf("dir = (%.2f, %.2f, %.2f), mag = %.2f\n", dir.x, dir.y, dir.z, mag);
-    //printf("\n");
+    particleSystem.release();
+}
 
-    Ogre::ParticleEmitter* emitter = _particleSystem->getEmitter(0);
-    emitter->setDirection(dir);
-    emitter->setParticleVelocity(mag);
-
-    Ogre::Vector3 offset = vel;
-    offset *= _particleSystem->getIterationInterval();
-    _particleNode->setPosition(Ogre::Vector3(0.0f, -7.0f, 0.0f) + offset);
-
+void gfx::Entity::updateParticleSystems(const Ogre::Vector3& velocity)
+{
+    foreach (MovableParticleSystem* system, _particleSystems) 
+        system->update(velocity);
 }
 
 

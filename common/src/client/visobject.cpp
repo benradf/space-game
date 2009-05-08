@@ -52,7 +52,7 @@ void VisibleObject::update()
     _objectGfx->setOrientation(Ogre::Quaternion(_rotation.w, _rotation.x, _rotation.y, _rotation.z));
 
     const Vector3& vel = _objectSim->getVelocity();
-    _objectGfx->updateParticleSystem(Ogre::Vector3(vel.x, vel.y, vel.z));
+    _objectGfx->updateParticleSystems(Ogre::Vector3(vel.x, vel.y, vel.z));
 }
 
 const Vector3& VisibleObject::getApparentPosition() const
