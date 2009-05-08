@@ -1,4 +1,4 @@
-icon ICON "../../data/images/spider_icon.ico"
+101 ICON "../../data/images/spider_icon.ico"
 1 VERSIONINFO
 FILEVERSION     1,0,0,0
 PRODUCTVERSION  1,0,0,0

@@ -276,6 +276,13 @@ gfx::Viewport::Viewport(const char* title, boost::shared_ptr<Ogre::Root> root) :
     _root(root), _window(0), _viewport(0), _camera(0)
 {
     _window = _root->initialise(true, title);
+
+#if defined(WIN32)
+    HWND hwnd;
+    _window->getCustomAttribute("WINDOW", reinterpret_cast<void*>(&hwnd));
+    LONG iconID = LONG(LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(101)));
+    SetClassLong(hwnd, GCL_HICON, iconID);
+#endif
 }
 
 gfx::Viewport::~Viewport()
