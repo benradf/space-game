@@ -27,6 +27,15 @@ gfx::Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* scen
 
     _node->attachObject(_entity);
     _node->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
+
+    Ogre::ParticleSystem* sunParticle = 
+        _sceneManager->createParticleSystem(std::string(name) + "_particle_sys", "Effects/EngineExhaust");
+    Ogre::SceneNode* particleNode = _node->createChildSceneNode(std::string(name) + "_particle_node");
+    particleNode->attachObject(sunParticle);
+    particleNode->setPosition(Ogre::Vector3(0.0f, -7.0f, 0.0f));
+    particleNode->setInheritOrientation(false);
+    _particleNode = particleNode;
+    _particleSystem = sunParticle;
 }
 
 gfx::Entity::~Entity()
@@ -59,6 +68,35 @@ const Ogre::Quaternion& gfx::Entity::getOrientation() const
 void gfx::Entity::setMaterial(const char* material) const
 {
     _entity->setMaterialName(material);
+}
+
+void gfx::Entity::updateParticleSystem(const Ogre::Vector3& vel)
+{
+    Ogre::Vector3 dir = _node->getOrientation() * Ogre::Vector3(0.0f, -30.0f, 0.0f);
+
+    Ogre::Vector3 axis;
+    Ogre::Degree angle;
+    _node->getOrientation().ToAngleAxis(angle, axis);
+    //printf("rotation = %.2f\n", angle.valueDegrees());
+    Ogre::Vector3 up = _node->getOrientation() * Ogre::Vector3::UNIT_Y;
+    //printf("up = (%.2f, %.2f, %.2f)\n", up.x, up.y, up.z);
+
+    dir += vel;
+
+    Ogre::Real mag = dir.length();
+    //printf("vel = (%.2f, %.2f, %.2f), |vel| = %.2f\n", vel.x, vel.y, vel.z, vel.length());
+    dir /= mag;
+    //printf("dir = (%.2f, %.2f, %.2f), mag = %.2f\n", dir.x, dir.y, dir.z, mag);
+    //printf("\n");
+
+    Ogre::ParticleEmitter* emitter = _particleSystem->getEmitter(0);
+    emitter->setDirection(dir);
+    emitter->setParticleVelocity(mag);
+
+    Ogre::Vector3 offset = vel;
+    offset *= _particleSystem->getIterationInterval();
+    _particleNode->setPosition(Ogre::Vector3(0.0f, -7.0f, 0.0f) + offset);
+
 }
 
 
@@ -101,7 +139,7 @@ gfx::Backdrop::Backdrop(const char* name, const char* material, float scroll,
 {
     _mesh = Ogre::MeshManager::getSingleton().createPlane(name,
         Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-        Ogre::Plane(Ogre::Vector3::UNIT_Z, Ogre::Real(depth)),
+        Ogre::Plane(Ogre::Vector3::UNIT_Z, Ogre::Real(0.0f)),
         Ogre::Real(3.0f * size), Ogre::Real(3.0f * size), 3, 3, 
         false, 1, Ogre::Real(3.0f), Ogre::Real(3.0f));
 
@@ -123,13 +161,14 @@ gfx::Backdrop::~Backdrop()
     Ogre::MeshManager::getSingleton().remove(_mesh->getHandle());
 }
 
+#include <iostream>
+using namespace std;
 void gfx::Backdrop::update(const Ogre::Vector3& centre)
 {
     float halfSize = 0.5f * _size;
 
     Ogre::Vector3 offset = -_scroll * centre;
-    Ogre::Vector3 pos = centre + offset;
-    pos.z = _depth;
+    offset.z = 0.0f;
 
     offset.x -= halfSize;
     offset.x = fmod(offset.x, _size);
@@ -147,7 +186,10 @@ void gfx::Backdrop::update(const Ogre::Vector3& centre)
         offset.y -= _size;
     offset.y += halfSize;
 
-    _entity->setPosition(centre + offset);
+    Ogre::Vector3 pos = centre + offset;
+    pos.z = _depth;
+
+    _entity->setPosition(pos);
 }
 
 
@@ -244,16 +286,18 @@ void gfx::Viewport::updateAspectRatio()
 
 ////////// GFXManager //////////
 
+#include <iostream>
+using namespace std;
 gfx::GFXManager::GFXManager()
 {
     _root.reset(new Ogre::Root());
+
     //_root->showConfigDialog();
     _root->restoreConfig();
-    initResources();
 
     _viewport.reset(new Viewport("mmoclient", _root));
 
-    
+    initResources();
 }
 
 gfx::GFXManager::~GFXManager()

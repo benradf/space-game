@@ -38,6 +38,7 @@ DATA= \
 	maps \
 	materials \
 	objects \
+	particles \
 	ships \
 	textures
 

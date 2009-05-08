@@ -1,0 +1,63 @@
+particle_system Effects/EngineExhaust
+{
+    material ParticleFX/Exhaust
+    particle_width  4
+    particle_height 4
+    cull_each       false
+    quota           2000
+    billboard_type  point
+ 
+    emitter Point
+    {
+        angle           1
+        emission_rate   60
+        time_to_live_min 0.1
+        time_to_live_max 0.5
+        direction       0 -1 0
+        velocity        30
+        //colour 0.15 0.1 0.0
+        width           5
+        height          5
+        depth           5
+    }
+ 
+    affector ColourFader
+    {
+        red -2.5
+        green -5.0
+        blue -5.0
+        alpha -2.5
+    }
+}
+particle_system Effects/Ring
+{
+    material ParticleFX/Plasma
+    particle_width  4
+    particle_height 4
+    cull_each       false
+    quota           2000
+    billboard_type  point
+ 
+    emitter Ring
+    {
+        angle           10
+        emission_rate   60
+        time_to_live    1
+        direction       0 -1 0
+        velocity        30
+        //colour 0.15 0.1 0.0
+        width           50
+        height          50
+        depth           50
+        //inner_width = 0.9
+        //inner_height = 0.9 
+    }
+ 
+    affector ColourFader
+    {
+        red -2.5
+        green -5.0
+        blue -5.0
+        alpha -2.5
+    }
+}

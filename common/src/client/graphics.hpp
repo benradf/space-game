@@ -32,6 +32,8 @@ class Entity {
 
         void setMaterial(const char* material) const;
 
+        void updateParticleSystem(const Ogre::Vector3& vel);
+
     private:
         Entity(const Entity&);
         Entity& operator=(const Entity&);
@@ -41,6 +43,8 @@ class Entity {
         Ogre::Entity* _entity;
         std::string _name;
 
+        Ogre::ParticleSystem* _particleSystem;
+        Ogre::SceneNode* _particleNode;
 };
 
 
