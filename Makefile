@@ -127,7 +127,7 @@ $(1)-$(2)-build:
 	@echo -e "\033[01;31m$$@\033[00m"; \
 	cd common/data/$(1) && $(MAKE) PLATFORM="$(2)"
 $(1)-$(2)-install:
-	@echo -e "\033[01;31m$$@\033[00m"; \
+	@echo -e "\033[01;36m$$@\033[00m"; \
 	cd common/data/$(1) && $(MAKE) PLATFORM="$(2)" install && \
 	cd - && scripts/enum-resources.sh $(2)/share/client/ \
 	>$(2)/share/client/resources.cfg
