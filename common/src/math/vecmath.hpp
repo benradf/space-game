@@ -50,6 +50,8 @@ struct Quaternion {
     Quaternion(T a, const Vector3<T>& v);
     Quaternion(const Vector3<T>& v);
 
+    Quaternion& operator+=(const Quaternion& q);
+    Quaternion& operator-=(const Quaternion& q);
     Quaternion& operator*=(const Quaternion& q);
     Quaternion& operator*=(T s);
     Quaternion& operator/=(T s);
@@ -197,6 +199,12 @@ inline Vector3<T> reflect(const Vector3<T>& v, const Vector3<T>& n)
 }
 
 template<typename T>
+inline Vector3<T> lerp(const Vector3<T>& u, const Vector3<T>& v, T t)
+{
+    return ((T(1) - t) * u + t * v);
+}
+
+template<typename T>
 const Vector3<T> Vector3<T>::ZERO(T(0), T(0), T(0));
 
 template<typename T>
@@ -234,6 +242,22 @@ inline Quaternion<T>::Quaternion(const Vector3<T>& v) :
     w(T(0)), x(v.x), y(v.y), z(v.z)
 {
 
+}
+
+template<typename T>
+Quaternion<T>& Quaternion<T>::operator+=(const Quaternion& q)
+{
+    w += q.w, x += q.x, y += q.y, z += q.z;
+
+    return *this;
+}
+
+template<typename T>
+Quaternion<T>& Quaternion<T>::operator-=(const Quaternion& q)
+{
+    w -= q.w, x -= q.x, y -= q.y, z -= q.z;
+
+    return *this;
 }
 
 template<typename T>
@@ -284,6 +308,18 @@ inline Quaternion<T>& Quaternion<T>::inverse()
 }
 
 template<typename T>
+inline Quaternion<T> operator+(const Quaternion<T>& p, const Quaternion<T>& q)
+{
+    return (Quaternion<T>(p) += q);
+}
+
+template<typename T>
+inline Quaternion<T> operator-(const Quaternion<T>& p, const Quaternion<T>& q)
+{
+    return (Quaternion<T>(p) -= q);
+}
+
+template<typename T>
 inline Quaternion<T> operator*(const Quaternion<T>& p, const Quaternion<T>& q)
 {
     return (Quaternion<T>(p) *= q);
@@ -314,9 +350,15 @@ inline Quaternion<T> operator-(const Quaternion<T>& q)
 }
 
 template<typename T>
+inline T dotProduct(const Quaternion<T>& p, const Quaternion<T>& q)
+{
+    return (p.w * q.w + p.x * q.x + p.y * q.y + p.z * q.z);
+}
+
+template<typename T>
 inline T magnitudeSq(const Quaternion<T>& q)
 {
-    return (q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
+    return dotProduct(q, q);
 }
 
 template<typename T>
@@ -346,7 +388,53 @@ inline Quaternion<T> inverse(const Quaternion<T>& q)
 template<typename T>
 inline Vector3<T> operator*(const Quaternion<T>& q, const Vector3<T> v)
 {
-    return (q * Quaternion<T>(v) * conjugate(q));
+    Vector3<T> u(q.x, q.y, q.z);
+    Vector3<T> b = crossProduct(v, u);
+    Vector3<T> a = crossProduct(b, u);
+
+    return (v + T(2) * (a - q.w * b));
+}
+
+template<typename T>
+inline Quaternion<T> lerp(const Quaternion<T>& p, const Quaternion<T>& q, T t)
+{
+    printf("lerp[(%.2f, %.2f, %.2f, %.2f), (%.2f, %.2f, %.2f, %.2f), %.3f]\n", p.w, p.x, p.y, p.z, q.w, q.x, q.y, q.z, t);
+    return normalise((T(1) - t) * p + t * q);
+}
+
+template<typename T>
+inline Quaternion<T> slerp(const Quaternion<T>& p, const Quaternion<T>& q, T t, T cosA)
+{
+    if (cosA >= T(999) / T(1000))
+        return lerp(p, q, t);
+
+    printf("slerp[(%.2f, %.2f, %.2f, %.2f), (%.2f, %.2f, %.2f, %.2f), %.3f] = ", p.w, p.x, p.y, p.z, q.w, q.x, q.y, q.z, t);
+
+    T sinA = sqrt(T(1) - cosA * cosA);
+    T a = acos(cosA);
+
+    T coeff0 = sin((T(1) - t) * a);
+    T coeff1 = sin(t * a);
+
+    Quaternion<T> result = ((coeff0 * p + coeff1 * q) / sinA);
+
+    printf("(%.2f, %.2f, %.2f, %.2f)\n", result.w, result.x, result.y, result.z);
+
+    return result;
+}
+
+template<typename T>
+inline Quaternion<T> slerp(const Quaternion<T>& p, const Quaternion<T>& q, T t)
+{
+    return slerp(p, q, t, dotProduct(p, q));
+}
+
+template<typename T>
+inline Quaternion<T> slerpMin(const Quaternion<T>& p, const Quaternion<T>& q, T t)
+{
+    T cosA = dotProduct(p, q);
+
+    return slerp(p, (cosA < T(0) ? -q : q), t, T(fabs(cosA)));
 }
 
 template<typename T>
