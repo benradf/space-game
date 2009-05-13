@@ -28,6 +28,11 @@ class MovableParticleSystem {
         ~MovableParticleSystem();
 
         void update(const Ogre::Vector3& velocity);
+        Ogre::ParticleSystem& get();
+
+        void setEnabled(bool enabled);
+        void setVisible(bool visible);
+        void setPaused(bool paused);
 
     private:
         Ogre::SceneManager* _sceneManager;
@@ -52,7 +57,9 @@ class Entity {
 
         void setMaterial(const char* material) const;
 
-        void attachParticleSystem(const char* system, const Ogre::Vector3& offset);
+        MovableParticleSystem* attachParticleSystem(
+            const char* system, const Ogre::Vector3& offset);
+
         void updateParticleSystems(const Ogre::Vector3& velocity);
 
     private:

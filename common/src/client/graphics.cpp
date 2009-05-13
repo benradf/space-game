@@ -28,6 +28,8 @@ gfx::MovableParticleSystem::MovableParticleSystem(const char* name, const char* 
         Ogre::ParticleEmitter* emitter = _system->getEmitter(i);
         _dir.push_back(emitter->getDirection() * emitter->getParticleVelocity());
     }
+
+    _system->setKeepParticlesInLocalSpace(true);
 }
 
 gfx::MovableParticleSystem::~MovableParticleSystem()
@@ -41,15 +43,41 @@ void gfx::MovableParticleSystem::update(const Ogre::Vector3& velocity)
         Ogre::SceneNode* parent = _node->getParentSceneNode();
         Ogre::Vector3 dir = parent->getOrientation() * _dir[i];
 
-        dir += velocity;
         Ogre::Real mag = dir.length();
         dir /= mag;
 
         _system->getEmitter(i)->setParticleVelocity(mag);
         _system->getEmitter(i)->setDirection(dir);
     }
+}
 
-    _node->setPosition(_offset + velocity * _system->getIterationInterval());
+Ogre::ParticleSystem& gfx::MovableParticleSystem::get()
+{
+    assert(_system != 0);
+
+    return *_system;
+}
+
+void gfx::MovableParticleSystem::setEnabled(bool enabled)
+{
+    assert(_system != 0);
+
+    for (int i = 0; i < _system->getNumEmitters(); i++) 
+        _system->getEmitter(i)->setEnabled(enabled);
+}
+
+void gfx::MovableParticleSystem::setVisible(bool visible)
+{
+    assert(_system != 0);
+
+    _system->setVisible(visible);
+}
+
+void gfx::MovableParticleSystem::setPaused(bool paused)
+{
+    assert(_system != 0);
+
+    _system->setSpeedFactor(paused ? 0.0f : 1.0f);
 }
 
 
@@ -106,7 +134,8 @@ void gfx::Entity::setMaterial(const char* material) const
     _entity->setMaterialName(material);
 }
 
-void gfx::Entity::attachParticleSystem(const char* system, const Ogre::Vector3& offset)
+gfx::MovableParticleSystem* gfx::Entity::attachParticleSystem(
+    const char* system, const Ogre::Vector3& offset)
 {
     char name[64];
     snprintf(name, sizeof(name), "_particlesystem_%s_%s_%d", 
@@ -118,7 +147,7 @@ void gfx::Entity::attachParticleSystem(const char* system, const Ogre::Vector3& 
 
     _particleSystems.push_back(particleSystem.get());
 
-    particleSystem.release();
+    return particleSystem.release();
 }
 
 void gfx::Entity::updateParticleSystems(const Ogre::Vector3& velocity)
