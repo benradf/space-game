@@ -20,32 +20,24 @@ namespace math {
 template<typename T>
 inline T lerp(T a, T b, T t)
 {
-    assert(t <= 1.0f);
-
     return ((T(1) - t) * a + t * b);
 }
 
 template<typename T>
 inline Vector3<T> lerp(const Vector3<T>& u, const Vector3<T>& v, T t)
 {
-    assert(t <= 1.0f);
-
     return ((T(1) - t) * u + t * v);
 }
 
 template<typename T>
 inline Quaternion<T> lerp(const Quaternion<T>& p, const Quaternion<T>& q, T t)
 {
-    assert(t <= 1.0f);
-
     return normalise((T(1) - t) * p + t * q);
 }
 
 template<typename T>
 inline Quaternion<T> slerp(const Quaternion<T>& p, const Quaternion<T>& q, T t, T cosA)
 {
-    assert(t <= 1.0f);
-
     if (fabs(cosA) >= T(999) / T(1000))
         return lerp(p, q, t);
 
