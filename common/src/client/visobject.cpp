@@ -24,7 +24,8 @@ VisibleObject::VisibleObject(
     _objectSim(object), _objectGfx(entity), _exhaust(exhaust), 
     _predictedPos(Vector3::ZERO), _apparentPos(Vector3::ZERO), 
     _shouldInterpPos(false), _timeToInterpPos(0), _predictedRot(Quaternion::IDENTITY), 
-    _apparentRot(Quaternion::IDENTITY),_shouldInterpRot(false), _timeToInterpRot(0)
+    _apparentRot(Quaternion::IDENTITY),_shouldInterpRot(false), _timeToInterpRot(0),
+    _roll(Quaternion::IDENTITY), _rollFrom(0.0f), _rollTo(0.0f)
 {
     assert(_objectSim.get() != 0);
     assert(_objectGfx.get() != 0);
@@ -34,9 +35,9 @@ VisibleObject::VisibleObject(
 void VisibleObject::update()
 {
     _objectSim->update();
-
-    updateApparentPosition();
+    updateBankedTurnRoll();
     updateApparentRotation();
+    updateApparentPosition();
 
     ControlState state = _objectSim->getControlState();
     const Vector3& position = getApparentPosition();
@@ -140,7 +141,7 @@ void VisibleObject::updateApparentPosition()
 
 void VisibleObject::updateApparentRotation()
 {
-    _apparentRot = _objectSim->getRotationQuat();
+    _apparentRot = _objectSim->getRotationQuat() * _roll;
 
     if (!_shouldInterpRot) 
         return;
@@ -153,5 +154,26 @@ void VisibleObject::updateApparentRotation()
 
     float t = float(elapsed) / float(_timeToInterpRot);
     _apparentRot = slerpMin(_predictedRot, _apparentRot, t);
+}
+
+void VisibleObject::updateBankedTurnRoll()
+{
+    Vector3 right = getApparentRotation() * Vector3::UNIT_X;
+
+    Vector3 velocity = _objectSim->getVelocity();
+    float velMagSq = magnitudeSq(velocity);
+
+    if (velMagSq > std::numeric_limits<float>::epsilon()) 
+        velocity.normalise();
+
+    float dp = dotProduct(velocity, right);
+
+    if ((fabs(dp) < 0.5) || !controlIsOn(CTRL_THRUST, _objectSim->getControlState()))
+        dp = 0.0f;
+
+    _rollTo = dp * std::min(magnitude(_objectSim->getVelocity()), 100.0f) / 100.0f;
+    _rollFrom = math::lerp(_rollFrom, _rollTo, 0.025f);
+    
+    _roll = Quaternion(-0.5f * M_PI * _rollFrom, Vector3::UNIT_Y);
 }
 

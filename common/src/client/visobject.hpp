@@ -45,6 +45,7 @@ class VisibleObject {
 
         void updateApparentPosition();
         void updateApparentRotation();
+        void updateBankedTurnRoll();
 
         static const int INTERP_TIME = 200000;
 
@@ -63,6 +64,10 @@ class VisibleObject {
         bool _shouldInterpRot;
         int _timeToInterpRot;
         Timer _interpRotTimer;
+
+        Quaternion _roll;
+        float _rollFrom;
+        float _rollTo;
 };
 
 
