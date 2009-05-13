@@ -1,7 +1,7 @@
 /// \file messages.cpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 28th April 2009
+/// \date 12th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -50,7 +50,7 @@ bool msg::ZoneTellObjectPos::matches(int subscription)
 
 ////////// msg::ZoneTellObjectAll //////////
 
-msg::ZoneTellObjectAll::ZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state) :
+msg::ZoneTellObjectAll::ZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state) :
     _player(player), _object(object), _pos(pos), _vel(vel), _rot(rot), _state(state)
 {
 
@@ -253,7 +253,7 @@ bool msg::ZoneSaysObjectPos::matches(int subscription)
 
 ////////// msg::ZoneSaysObjectAll //////////
 
-msg::ZoneSaysObjectAll::ZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state) :
+msg::ZoneSaysObjectAll::ZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state) :
     _object(object), _pos(pos), _vel(vel), _rot(rot), _state(state)
 {
 

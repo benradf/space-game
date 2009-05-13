@@ -25,14 +25,14 @@ class CachedObjectInfo {
     public:
         explicit CachedObjectInfo(ObjectID id);
 
+        void setRotation(float rotation);
         void setPosition(const Vector3& pos);
         void setVelocity(const Vector3& vel);
-        void setRotation(const Quaternion& rot);
         void setControlState(sim::ControlState state);
 
+        float getRotation() const;
         const Vector3& getPosition() const;
         const Vector3& getVelocity() const;
-        const Quaternion& getRotation() const;
         sim::ControlState getControlState() const;
 
         void clearCloseObjects();
@@ -47,9 +47,9 @@ class CachedObjectInfo {
     private:
         ObjectID _id;
 
+        float _rotation;
         Vector3 _position;
         Vector3 _velocity;
-        Quaternion _rotation;
         sim::ControlState _state;
 
         ObjectSet _closeObjects;
@@ -76,7 +76,7 @@ class ObjectCache : public virtual msg::MessageHandler {
         virtual void handleZoneSaysObjectAttach(ObjectID object, PlayerID player);
         virtual void handleZoneSaysObjectPos(ObjectID object, Vector3 pos);
         virtual void handleZoneSaysObjectAll(ObjectID object, Vector3 pos,
-            Vector3 vel, Quaternion rot, ControlState state);
+            Vector3 vel, float rot, ControlState state);
 
         CachedObjectInfo& getObjectInfo(ObjectID id);
         void removeObjectInfo(ObjectID id);
@@ -88,10 +88,15 @@ class ObjectCache : public virtual msg::MessageHandler {
 ////////// CachedObjectInfo //////////
 
 inline CachedObjectInfo::CachedObjectInfo(ObjectID id) :
-    _id(id), _position(Vector3::ZERO), _velocity(Vector3::ZERO),
-    _rotation(Quaternion::IDENTITY), _state(0), _attachedPlayer(0)
+    _id(id), _rotation(0.0f), _position(Vector3::ZERO), 
+    _velocity(Vector3::ZERO), _state(0), _attachedPlayer(0)
 {
 
+}
+
+inline void CachedObjectInfo::setRotation(float rotation)
+{
+    _rotation = rotation;
 }
 
 inline void CachedObjectInfo::setPosition(const Vector3& pos)
@@ -104,14 +109,14 @@ inline void CachedObjectInfo::setVelocity(const Vector3& vel)
     _velocity = vel;
 }
 
-inline void CachedObjectInfo::setRotation(const Quaternion& rot)
-{
-    _rotation = rot;
-}
-
 inline void CachedObjectInfo::setControlState(sim::ControlState state)
 {
     _state = state;
+}
+
+inline float CachedObjectInfo::getRotation() const
+{
+    return _rotation;
 }
 
 inline const Vector3& CachedObjectInfo::getPosition() const
@@ -122,11 +127,6 @@ inline const Vector3& CachedObjectInfo::getPosition() const
 inline const Vector3& CachedObjectInfo::getVelocity() const
 {
     return _velocity;
-}
-
-inline const Quaternion& CachedObjectInfo::getRotation() const
-{
-    return _rotation;
 }
 
 inline sim::ControlState CachedObjectInfo::getControlState() const

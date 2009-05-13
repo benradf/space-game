@@ -41,18 +41,11 @@ enum Control {
 };
 
 
-struct MovableObject {
+struct MovableObject : public RigidBody {
     virtual ~MovableObject();
     virtual void update() = 0;
     virtual ObjectID getID() const = 0;
-    virtual const Vector3& getPosition() const = 0;
-    virtual const Vector3& getVelocity() const = 0;
-    virtual const Vector3& getAcceleration() const = 0;
-    virtual const Quaternion& getRotation() const = 0;
     virtual ControlState getControlState() const = 0;
-    virtual void setPosition(const Vector3& pos) = 0;
-    virtual void setVelocity(const Vector3& vel) = 0;
-    virtual void setRotation(const Quaternion& rot) = 0;
     virtual void setControlState(ControlState control) = 0;
 };
 
@@ -63,22 +56,17 @@ class Ship : public MovableObject {
         virtual ~Ship();
 
         virtual void update();
-
         virtual ObjectID getID() const;
-
-        virtual const Vector3& getPosition() const;
-        virtual const Vector3& getVelocity() const;
-        virtual const Vector3& getAcceleration() const;
-        virtual const Quaternion& getRotation() const;
         virtual ControlState getControlState() const;
-
-        virtual void setPosition(const Vector3& pos);
-        virtual void setVelocity(const Vector3& vel);
-        virtual void setRotation(const Quaternion& rot);
         virtual void setControlState(ControlState control);
 
+        virtual void collisionWith(const Ship& other);
+        virtual void collisionWith(const RigidBody& other);
+        virtual void collisionDispatch(RigidBody& other) const;
+
+        void setSystem(Physics& system);
+
     private:
-        sim::Object _simObject;
         ControlState _control;
         Timer _timer;
 

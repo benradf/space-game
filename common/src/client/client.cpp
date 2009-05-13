@@ -39,18 +39,23 @@ void signalHandler(int signum)
 
 Scene* theScene = 0;
 
+Physics* physics = 0;
+
 std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
 {
     assert(theScene != 0);
+    assert(physics != 0);
 
     char nameBuffer[256];
     snprintf(nameBuffer, sizeof(nameBuffer), "object_%d", objectID);
-    std::auto_ptr<sim::MovableObject> object(new sim::Ship(objectID));
+    sim::Ship* ship = new sim::Ship(objectID);
+    ship->setSystem(*physics);
+    std::auto_ptr<sim::MovableObject> object(ship);
     std::auto_ptr<Entity> entity = theScene->createEntity(nameBuffer, "spider.mesh");
-    entity->attachParticleSystem("Effects/EngineExhaust", Ogre::Vector3(-2.0f, -7.0f, 0.0f));
-    entity->attachParticleSystem("Effects/EngineExhaust", Ogre::Vector3(2.0f, -7.0f, 0.0f));
+    MovableParticleSystem* exhaust = entity->attachParticleSystem(
+        "Effects/EngineExhaust", Ogre::Vector3(0.0f, -7.0f, 0.0f));
 
-    return std::auto_ptr<VisibleObject>(new VisibleObject(entity, object));
+    return std::auto_ptr<VisibleObject>(new VisibleObject(entity, object, exhaust));
 }
 
 //Vector3 cameraPos = Vector3::ZERO;
@@ -61,6 +66,12 @@ void loadCollisionGeom(const char* filename);
 void clientMain()
 {
     signal(SIGINT, signalHandler);
+
+    vol::AABB worldBounds(
+        Vector3(-2000.0f, -2000.0f, 0.0f), 
+        Vector3(2000.0f, 2000.0f, 0.0f));
+
+    physics = new Physics(worldBounds, "maps/base03.dat");
 
     GFXManager gfx;
     std::auto_ptr<Scene> scene = gfx.createScene();
@@ -82,7 +93,7 @@ void clientMain()
 
     std::auto_ptr<Entity> map = scene->createEntity("map", "base03.mesh");
     map->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
-    loadCollisionGeom("maps/base03.dat");
+    //loadCollisionGeom("maps/base03.dat");
 
     //Ship ship(*scene, "username", "spider.mesh");
     Input input(gfx.getViewport().getRenderWindow());
@@ -97,7 +108,6 @@ void clientMain()
     network.maintainServerConnection(true);
 
     Timer simTimer;
-    sim::Object testObj(10.0f);
 
     while (clientRunning) {
 #if 0
@@ -133,6 +143,8 @@ void clientMain()
 
         network.main();
         //ship.update();
+
+        physics->accumulateAndIntegrate();
 
         scene->updateBackdropPositions(cameraPos);
         gfx.render();

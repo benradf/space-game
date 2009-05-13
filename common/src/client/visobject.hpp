@@ -18,40 +18,51 @@
 class VisibleObject {
     public:
         VisibleObject(std::auto_ptr<gfx::Entity> entity,
-            std::auto_ptr<sim::MovableObject> object);
+            std::auto_ptr<sim::MovableObject> object,
+            gfx::MovableParticleSystem* exhaust);
 
         void update();
 
         const Vector3& getApparentPosition() const;
         const Quaternion& getApparentRotation() const;
 
+        float getRotation() const;
         const Vector3& getPosition() const;
         const Vector3& getVelocity() const;
-        const Quaternion& getRotation() const;
         sim::ControlState getControlState() const;
 
+        void setRotation(float rotation);
         void setPosition(const Vector3& pos);
         void setVelocity(const Vector3& vel);
-        void setRotation(const Quaternion& rot);
         void setControlState(sim::ControlState control);
 
     private:
         VisibleObject(const VisibleObject&);
         VisibleObject& operator=(const VisibleObject&);
 
-        void beginInterpolation();
+        void beginInterpPosition();
+        void beginInterpRotation();
 
-        static const int INTERP_TIME = 500000;
+        void updateApparentPosition();
+        void updateApparentRotation();
+
+        static const int INTERP_TIME = 200000;
 
         std::auto_ptr<sim::MovableObject> _objectSim;
         std::auto_ptr<gfx::Entity> _objectGfx;
-        
-        bool _shouldInterpolate;
-        int _timeToCorrect;
-        Timer _timer;
+        gfx::MovableParticleSystem* _exhaust;
 
-        Vector3 _position;
-        Quaternion _rotation;
+        Vector3 _predictedPos;
+        Vector3 _apparentPos;
+        bool _shouldInterpPos;
+        int _timeToInterpPos;
+        Timer _interpPosTimer;
+
+        Quaternion _predictedRot;
+        Quaternion _apparentRot;
+        bool _shouldInterpRot;
+        int _timeToInterpRot;
+        Timer _interpRotTimer;
 };
 
 

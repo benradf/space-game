@@ -1080,7 +1080,7 @@ void KDTreeData::saveFile(const char* filename) const
     fileHeader.referenceCount = _referenceCount;
     fileHeader.nodeOffset = sizeof(fileHeader);
     fileHeader.triangleOffset = fileHeader.nodeOffset + nodeSpace;
-    fileHeader.referenceOffset = fileHeader.triangleOffset + referenceSpace;
+    fileHeader.referenceOffset = fileHeader.triangleOffset + triangleSpace;
 
     file.write(reinterpret_cast<char*>(&fileHeader), sizeof(fileHeader));
     file.write(reinterpret_cast<char*>(_nodes), nodeSpace);

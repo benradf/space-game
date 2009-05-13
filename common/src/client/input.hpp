@@ -22,9 +22,9 @@ class RemoteController {
     public:
         RemoteController();
 
+        void setRotation(float rotation);
         void setPosition(const Vector3& pos);
         void setVelocity(const Vector3& vel);
-        void setRotation(const Quaternion& rot);
         void setState(uint32_t flags);
 
         void setObject(sim::MovableObject* object);

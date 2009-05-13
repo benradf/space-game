@@ -1,7 +1,7 @@
 /// \file messages.hpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 28th April 2009
+/// \date 12th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -58,7 +58,7 @@ class ZoneTellObjectPos : public Message {
 
 class ZoneTellObjectAll : public Message {
     public:
-        ZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state);
+        ZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state);
         virtual ~ZoneTellObjectAll();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
@@ -69,7 +69,7 @@ class ZoneTellObjectAll : public Message {
         ObjectID _object;
         Vector3 _pos;
         Vector3 _vel;
-        Quaternion _rot;
+        float _rot;
         ControlState _state;
 };
 
@@ -157,7 +157,7 @@ class ZoneSaysObjectPos : public Message {
 
 class ZoneSaysObjectAll : public Message {
     public:
-        ZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state);
+        ZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state);
         virtual ~ZoneSaysObjectAll();
         virtual std::auto_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
@@ -167,7 +167,7 @@ class ZoneSaysObjectAll : public Message {
         ObjectID _object;
         Vector3 _pos;
         Vector3 _vel;
-        Quaternion _rot;
+        float _rot;
         ControlState _state;
 };
 

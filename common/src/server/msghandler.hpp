@@ -1,7 +1,7 @@
 /// \file msghandler.hpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 28th April 2009
+/// \date 12th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -21,14 +21,14 @@ class MessageHandler {
     public:
         virtual ~MessageHandler();
         virtual void handleZoneTellObjectPos(PlayerID player, ObjectID object, Vector3 pos);
-        virtual void handleZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state);
+        virtual void handleZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state);
         virtual void handleZoneSaysObjectEnter(ObjectID object);
         virtual void handleZoneSaysObjectLeave(ObjectID object);
         virtual void handleZoneSaysObjectClearClose(ObjectID object);
         virtual void handleZoneSaysObjectsClose(ObjectID a, ObjectID b);
         virtual void handleZoneSaysObjectAttach(ObjectID object, PlayerID player);
         virtual void handleZoneSaysObjectPos(ObjectID object, Vector3 pos);
-        virtual void handleZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state);
+        virtual void handleZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state);
         virtual void handlePlayerRequestZoneSwitch(PlayerID player, ZoneID zone);
         virtual void handlePlayerEnterZone(PlayerID player, ZoneID zone);
         virtual void handlePlayerLeaveZone(PlayerID player, ZoneID zone);

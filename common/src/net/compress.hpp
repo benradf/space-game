@@ -64,14 +64,14 @@ inline Vector3 unpackVel(int16_t x, int16_t y)
     return unpackVel(Vec2<int16_t>(x, y));
 }
 
-inline uint8_t packRot(const Quaternion& rot)
+inline uint8_t packRot(float rot)
 {
-    return uint8_t(80.0f * acos(rot.z < 0.0f ? -rot.w : rot.w));
+    return uint8_t(rot * 40.0f);
 }
 
-inline Quaternion unpackRot(uint8_t rot)
+inline float unpackRot(uint8_t rot)
 {
-    return Quaternion(float(rot) / 40.0f, Vector3::UNIT_Z);
+    return (float(rot) / 40.0f);
 }
 
 

@@ -1,7 +1,7 @@
 /// \file msghandler.cpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 28th April 2009
+/// \date 12th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -22,7 +22,7 @@ void msg::MessageHandler::handleZoneTellObjectPos(PlayerID player, ObjectID obje
 
 }
 
-void msg::MessageHandler::handleZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state)
+void msg::MessageHandler::handleZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state)
 {
 
 }
@@ -57,7 +57,7 @@ void msg::MessageHandler::handleZoneSaysObjectPos(ObjectID object, Vector3 pos)
 
 }
 
-void msg::MessageHandler::handleZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, Quaternion rot, ControlState state)
+void msg::MessageHandler::handleZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state)
 {
 
 }

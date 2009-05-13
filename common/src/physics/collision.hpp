@@ -22,6 +22,9 @@ class CollisionGeometry {
         bool checkCollision(const vol::Sphere& sphere, Vector3& normal) const;
 
     private:
+        CollisionGeometry(const CollisionGeometry&);
+        CollisionGeometry& operator=(const CollisionGeometry&);
+
         KDTree::Ptr _kdtree;
 };
 

@@ -23,8 +23,11 @@ sim::MovableObject::~MovableObject()
 ////////// Ship //////////
 
 sim::Ship::Ship(ObjectID id) :
-    _simObject(10.0f), _control(0), _id(id)
+    _control(0), _id(id)
 {
+    setMass(10.0f);
+    setRadius(8.0f);
+
     _stats[STAT_THRUST] = 150.0f;
     _stats[STAT_BOOST] = 500.0f;
     _stats[STAT_ROTSPEED] = DEG2RAD(120.0f);
@@ -41,21 +44,25 @@ void sim::Ship::update()
     if (_timer.elapsed() < 0.01f) 
         return;
 
+    ClearForce();
+    ClearSpin();
+
     if (controlIsOn(CTRL_THRUST, _control)) 
-        _simObject.ApplyRelativeForce(Vector3::UNIT_Y * _stats[STAT_THRUST]);
+        ApplyRelativeForce(Vector3::UNIT_Y * _stats[STAT_THRUST]);
 
     if (controlIsOn(CTRL_BOOST, _control) && controlIsOn(CTRL_THRUST, _control)) 
-        _simObject.ApplyRelativeForce(Vector3::UNIT_Y * _stats[STAT_BOOST]);
+        ApplyRelativeForce(Vector3::UNIT_Y * _stats[STAT_BOOST]);
 
     if (controlIsOn(CTRL_LEFT, _control) && !controlIsOn(CTRL_RIGHT, _control)) 
-        _simObject.ApplySpin(Quaternion(_stats[STAT_ROTSPEED], Vector3::UNIT_Z));
+        ApplySpin(_stats[STAT_ROTSPEED]);
 
     if (controlIsOn(CTRL_RIGHT, _control) && !controlIsOn(CTRL_LEFT, _control)) 
-        _simObject.ApplySpin(Quaternion(-_stats[STAT_ROTSPEED], Vector3::UNIT_Z));
+        ApplySpin(-_stats[STAT_ROTSPEED]);
+}
 
-    float elapsed = _timer.elapsed();
-    _simObject.integrate(elapsed / 1000000);
-    _timer.reset();
+void sim::Ship::setSystem(Physics& system)
+{
+    system.registerBody(*this);
 }
 
 sim::ObjectID sim::Ship::getID() const
@@ -63,48 +70,28 @@ sim::ObjectID sim::Ship::getID() const
     return _id;
 }
 
-const Vector3& sim::Ship::getPosition() const
-{
-    return _simObject.getPosition();
-}
-
-const Vector3& sim::Ship::getVelocity() const
-{
-    return _simObject.getVelocity();
-}
-
-const Vector3& sim::Ship::getAcceleration() const
-{
-    return _simObject.getAcceleration();
-}
-
-const Quaternion& sim::Ship::getRotation() const
-{
-    return _simObject.getRotation();
-}
-
 sim::ControlState sim::Ship::getControlState() const
 {
     return _control;
 }
 
-void sim::Ship::setPosition(const Vector3& pos)
-{
-    _simObject.setPosition(pos);
-}
-
-void sim::Ship::setVelocity(const Vector3& vel)
-{
-    _simObject.setVelocity(vel);
-}
-
-void sim::Ship::setRotation(const Quaternion& rot)
-{
-    _simObject.setRotation(rot);
-}
-
 void sim::Ship::setControlState(ControlState control)
 {
     _control = control;
+}
+
+void sim::Ship::collisionWith(const Ship& other)
+{
+
+}
+
+void sim::Ship::collisionWith(const RigidBody& other)
+{
+
+}
+
+void sim::Ship::collisionDispatch(RigidBody& other) const
+{
+    other.collisionWith(*this);
 }
 

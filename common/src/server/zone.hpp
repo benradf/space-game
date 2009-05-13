@@ -15,7 +15,7 @@
 #include <core/timer.hpp>
 #include <core/foreach.hpp>
 #include "msgjob.hpp"
-#include "quadtree.hpp"
+#include <physics/quadtree.hpp>
 #include "typedefs.hpp"
 #include <tr1/unordered_map>
 #include <physics/object.hpp>
@@ -53,9 +53,11 @@ class Zone : public MessagableJob {
 
         virtual void handleZoneTellObjectPos(PlayerID player, ObjectID object, Vector3 pos);
         virtual void handleZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, 
-            Vector3 vel, Quaternion rot, ControlState state);
+            Vector3 vel, float rot, ControlState state);
 
         QuadTree<sim::MovableObject> _quadTree;
+
+        Physics _physicsSystem;
 
         ObjectMap _objectIdMap;
         PlayerMap _playerIdMap;

@@ -11,8 +11,11 @@
 #define QUADTREE_HPP
 
 
-#include <core/foreach.hpp>
 #include <math/volumes.hpp>
+#include <core/core.hpp>
+#include <assert.h>
+#include <vector>
+#include <algorithm>
 
 
 template<typename T>

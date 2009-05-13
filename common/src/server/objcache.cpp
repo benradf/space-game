@@ -67,7 +67,7 @@ void ObjectCache::handleZoneSaysObjectPos(ObjectID object, Vector3 pos)
 }
 
 void ObjectCache::handleZoneSaysObjectAll(ObjectID object, Vector3 pos,
-     Vector3 vel, Quaternion rot, ControlState state)
+     Vector3 vel, float rot, ControlState state)
 {
     CachedObjectInfo& info = getObjectInfo(object);
 

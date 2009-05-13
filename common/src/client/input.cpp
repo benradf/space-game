@@ -18,6 +18,13 @@ using namespace sim;
 
 ////////// RemoteController //////////
 
+void RemoteController::setRotation(float rotation)
+{
+    assert(_object != 0);
+
+    _object->setRotation(rotation);
+}
+
 void RemoteController::setPosition(const Vector3& pos)
 {
     assert(_object != 0);
@@ -30,13 +37,6 @@ void RemoteController::setVelocity(const Vector3& vel)
     assert(_object != 0);
 
     _object->setVelocity(vel);
-}
-
-void RemoteController::setRotation(const Quaternion& rot)
-{
-    assert(_object != 0);
-
-    _object->setRotation(rot);
 }
 
 void RemoteController::setState(uint32_t flags)

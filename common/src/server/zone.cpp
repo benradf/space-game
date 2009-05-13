@@ -17,7 +17,9 @@ using namespace sim;
 
 Zone::Zone(PostOffice& po) :
     MessagableJob(po, MSG_ZONETELL | MSG_PLAYER), _nextObjectID(1), _thisZone(1),
-    _quadTree(vol::AABB(Vector3(-500.0f, -500.0f, -10.0f), Vector3(500.0f, 500.0f, 10.0f)))
+    _quadTree(vol::AABB(Vector3(-500.0f, -500.0f, -10.0f), Vector3(500.0f, 500.0f, 10.0f))),
+    _physicsSystem(vol::AABB(Vector3(-500.0f, -500.0f, -10.0f), Vector3(500.0f, 500.0f, 10.0f)),
+        "maps/base03.dat")
 {
     Log::log->info("creating zone");
 }
@@ -53,7 +55,7 @@ Zone::RetType Zone::main()
         Vector3 offset(150.0f, 150.0f, 0.0f);
         const Vector3& pos = object->getPosition();
         SendCloseMsg visitor(objectID, newMessageSender());
-        _quadTree.process(visitor, vol::AABB(pos - offset, pos + offset));
+        _quadTree.process(visitor/*, vol::AABB(pos - offset, pos + offset)*/);
     }
 
     foreach (ObjectMap::value_type& pair, _objectIdMap) {
@@ -69,6 +71,8 @@ Zone::RetType Zone::main()
         }
     }
 
+    _physicsSystem.accumulateAndIntegrate();
+
     return YIELD;
 }
 
@@ -80,6 +84,7 @@ void Zone::handlePlayerEnterZone(PlayerID player, ZoneID zone)
     ObjectID objectID = _nextObjectID++;
 
     std::auto_ptr<Ship> ship(new Ship(objectID));
+    ship->setSystem(_physicsSystem);
     MovableObject* object = ship.get();
     _objectIdMap.insert(std::make_pair(objectID, object));
     ship.release();
@@ -142,7 +147,7 @@ void Zone::handleZoneTellObjectPos(PlayerID player, ObjectID object, Vector3 pos
 }
 
 void Zone::handleZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, 
-    Vector3 vel, Quaternion rot, ControlState state)
+    Vector3 vel, float rot, ControlState state)
 {
     //TODO: Verify position is within error margin of prediction position.
 
