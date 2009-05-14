@@ -7,6 +7,7 @@
 ///
 
 
+#include "hud.hpp"
 #include "graphics.hpp"
 #include <core/core.hpp>
 
@@ -338,6 +339,11 @@ void gfx::Viewport::attachCamera(Camera& camera)
 Ogre::RenderWindow* gfx::Viewport::getRenderWindow()
 {
     return _window;
+}
+
+std::auto_ptr<gfx::HUD> gfx::Viewport::createHUD()
+{
+    return std::auto_ptr<HUD>(new HUD(*_ceguiSystem));
 }
 
 void gfx::Viewport::updateAspectRatio()

@@ -14,6 +14,9 @@
 #include <memory>
 #include <vector>
 #include <Ogre.h>
+#include <OgreCEGUIRenderer.h>
+#include <CEGUI.h>
+#include <CEGUILua.h>
 #include <boost/shared_ptr.hpp>
 
 
@@ -96,6 +99,7 @@ class Camera {
 
 };
 
+
 class Backdrop {
     public:
         Backdrop(const char* name, const char* material, float scroll, 
@@ -113,6 +117,7 @@ class Backdrop {
         Ogre::MeshPtr _mesh;
         std::auto_ptr<Entity> _entity;
 };
+
 
 class Scene {
     public:
@@ -136,6 +141,7 @@ class Scene {
         std::vector<Backdrop*> _backdrops;
 };
 
+
 class Viewport {
     public:
         Viewport(const char* title, boost::shared_ptr<Ogre::Root> root);
@@ -147,6 +153,8 @@ class Viewport {
 
         Ogre::RenderWindow* getRenderWindow();
 
+        std::auto_ptr<class HUD> createHUD();
+
     private:
         Viewport(const Viewport&);
         Viewport& operator=(const Viewport&);
@@ -157,6 +165,9 @@ class Viewport {
         Ogre::RenderWindow* _window;
         Ogre::Viewport* _viewport;
         Ogre::Camera* _camera;
+
+        std::auto_ptr<CEGUI::OgreCEGUIRenderer> _ceguiRenderer;
+        std::auto_ptr<CEGUI::System> _ceguiSystem;
 };
 
 
