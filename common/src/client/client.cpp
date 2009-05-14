@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <physics/object.hpp>
 #include <string>
+#include <algorithm>
 
 
 using namespace std;
@@ -109,7 +110,17 @@ void clientMain()
 
     Timer simTimer;
 
+    Timer fpsTimer;
+    uint64_t frameCount = 0;
+
+    uint64_t targetFPS = 60;
+    Timer frameTimer;
+    uint64_t framePeriod = 1000000 / targetFPS;
+
+
     while (clientRunning) {
+        frameTimer.reset();
+
 #if 0
         testObj.ApplySpin(Quaternion(DEG2RAD(-30.0f), Vector3(0.0f, 0.0f, 1.0f)));
         testObj.ApplySpin(Quaternion(DEG2RAD(45.0f), Vector3(1.0f, 0.0f, 0.0f)));
@@ -149,8 +160,20 @@ void clientMain()
         scene->updateBackdropPositions(cameraPos);
         gfx.render();
         gfx.getViewport().update();
+        frameCount++;
 
-        usleep(10000);
+        if (fpsTimer.elapsed() > 5000000) {
+            int fps = frameCount / 5;
+            if (fps < targetFPS - 1) 
+                printf("WARNING: Failed to meet target of %dfps\n", int(targetFPS));
+            printf("fps = %d\n", fps);
+            frameCount = 0;
+            fpsTimer.reset();
+        }
+
+
+        if (frameTimer.elapsed() < framePeriod) 
+            usleep(framePeriod - frameTimer.elapsed());
     }
 }
 
