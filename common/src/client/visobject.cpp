@@ -84,9 +84,11 @@ sim::ControlState VisibleObject::getControlState() const
 
 void VisibleObject::setPosition(const Vector3& pos)
 {
+    if (magnitudeSq(_objectSim->getPosition() - pos) > 1.0f)
+        beginInterpPosition();
+
     _objectSim->setPosition(pos);
 
-    beginInterpPosition();
 }
 
 void VisibleObject::setVelocity(const Vector3& vel)
