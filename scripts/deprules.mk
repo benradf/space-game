@@ -78,6 +78,6 @@ $(call PKG_DEP,zonebuild,physics)
 
 # maps
 #$(call PKG_DEP,maps,zonebuild)
-maps-linux-all: zonebuild-linux-all
-maps-mingw-all: zonebuild-linux-all
+#maps-linux-all: zonebuild-linux-all
+#maps-mingw-all: zonebuild-linux-all
 
