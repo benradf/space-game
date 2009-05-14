@@ -311,4 +311,3 @@ inline void QuadTree<T>::Node::process(U& visitor, const V& volume)
 
 #endif  // QUADTREE_HPP
 
-
