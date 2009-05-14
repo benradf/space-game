@@ -35,22 +35,27 @@ class DerivedException : public Exception {
 };
 
 
+#undef NetworkException
 class NetworkExceptionTag {};
 typedef DerivedException<NetworkExceptionTag> NetworkException;
 
 
+#undef ScriptException
 class ScriptExceptionTag {};
 typedef DerivedException<ScriptExceptionTag> ScriptException;
 
 
+#undef FileException
 class FileExceptionTag {};
 typedef DerivedException<FileExceptionTag> FileException;
 
 
+#undef InputException
 class InputExceptionTag {};
 typedef DerivedException<InputExceptionTag> InputException;
 
 
+#undef MemoryException
 class MemoryExceptionTag {};
 typedef DerivedException<MemoryExceptionTag> MemoryException;
 
