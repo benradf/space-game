@@ -174,7 +174,7 @@ void VisibleObject::updateBankedTurnRoll()
         dp = 0.0f;
 
     _rollTo = dp * std::min(magnitude(_objectSim->getVelocity()), 100.0f) / 100.0f;
-    _rollFrom = math::lerp(_rollFrom, _rollTo, 0.025f);
+    _rollFrom = math::lerp(_rollFrom, _rollTo, 0.0125f);
     
     _roll = Quaternion(-0.5f * M_PI * _rollFrom, Vector3::UNIT_Y);
 }

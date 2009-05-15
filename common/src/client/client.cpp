@@ -119,7 +119,7 @@ void clientMain()
     Timer fpsTimer;
     uint64_t frameCount = 0;
 
-    uint64_t targetFPS = 60;
+    uint64_t targetFPS = 120;
     Timer frameTimer;
     uint64_t framePeriod = 1000000 / targetFPS;
 
