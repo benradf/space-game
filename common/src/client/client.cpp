@@ -23,6 +23,7 @@
 #include <physics/object.hpp>
 #include <string>
 #include <algorithm>
+#include "hud.hpp"
 
 
 using namespace std;
@@ -97,11 +98,16 @@ void clientMain()
     //loadCollisionGeom("maps/base03.dat");
 
     //Ship ship(*scene, "username", "spider.mesh");
-    Input input(gfx.getViewport().getRenderWindow());
-    std::auto_ptr<LocalController> ctrl = input.createKeyboardListener<LocalController>();
+    //Input input(gfx.getViewport().getRenderWindow());
+    Input& input = gfx.getViewport().getInput();
+    std::auto_ptr<LocalController> ctrl(new LocalController);
+    input.addKeyboardListener(*ctrl);
     //localController = ctrl.get();
     //ctrl->setObject(&ship);
     theScene = scene.get();
+
+    std::auto_ptr<gfx::GUI> gui(gfx.getViewport().createGUI());
+    std::auto_ptr<gfx::HUD> hud(gui->createHUD());
 
     NetworkInterface network;
 
@@ -159,8 +165,11 @@ void clientMain()
 
         scene->updateBackdropPositions(cameraPos);
         gfx.render();
+        gui->render();
         gfx.getViewport().update();
         frameCount++;
+
+        //Ogre::WindowEventUtilities::messagePump();
 
         if (fpsTimer.elapsed() > 5000000) {
             int fps = frameCount / 5;

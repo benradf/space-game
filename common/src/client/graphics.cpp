@@ -8,8 +8,10 @@
 
 
 #include "hud.hpp"
+#include "input.hpp"
 #include "graphics.hpp"
 #include <core/core.hpp>
+#include <CEGUIDefaultResourceProvider.h>
 
 
 ////////// MovableParticleSystem //////////
@@ -219,8 +221,6 @@ gfx::Backdrop::~Backdrop()
     Ogre::MeshManager::getSingleton().remove(_mesh->getHandle());
 }
 
-#include <iostream>
-using namespace std;
 void gfx::Backdrop::update(const Ogre::Vector3& centre)
 {
     float halfSize = 0.5f * _size;
@@ -251,12 +251,62 @@ void gfx::Backdrop::update(const Ogre::Vector3& centre)
 }
 
 
+////////// GUI //////////
+
+gfx::GUI::GUI(Ogre::RenderWindow* window, Ogre::SceneManager* sceneManager, Input& input)
+{
+    if (_ceguiSystem.get() != 0) 
+        return;
+
+    assert(sceneManager != 0);
+
+    _ceguiRenderer.reset(new CEGUI::OgreCEGUIRenderer(
+        window, Ogre::RENDER_QUEUE_OVERLAY, false, 3000, sceneManager));
+    //_ceguiRenderer->setTargetSceneManager(sceneManager);
+
+    _ceguiSystem.reset(new CEGUI::System(_ceguiRenderer.get()));
+
+    CEGUI::Logger *logger = &CEGUI::Logger::getSingleton();
+    logger->setLoggingLevel(CEGUI::Insane);
+
+    CEGUI::SchemeManager::getSingleton().loadScheme("TaharezLook.scheme");
+
+    if(! CEGUI::FontManager::getSingleton().isFontPresent( "Commonwealth-10" ) )
+    CEGUI::FontManager::getSingleton().createFont("Commonwealth-10.font");
+    
+    _ceguiSystem->setDefaultFont("Commonwealth-10");
+    _ceguiSystem->setDefaultMouseCursor("TaharezLook", "MouseArrow");
+    _ceguiSystem->setDefaultTooltip("TaharezLook/Tooltip");
+
+    _ceguiInput.reset(new CEGUIInput(*_ceguiSystem));
+    input.addKeyboardListener(*_ceguiInput);
+    input.addMouseListener(*_ceguiInput);
+}
+
+gfx::GUI::~GUI()
+{
+
+}
+
+void gfx::GUI::render()
+{
+    _ceguiSystem->renderGUI();
+}
+
+std::auto_ptr<gfx::HUD> gfx::GUI::createHUD()
+{
+    return std::auto_ptr<HUD>(new HUD(*_ceguiSystem));
+}
+
+
 ////////// Scene //////////
 
 gfx::Scene::Scene(boost::shared_ptr<Ogre::Root> root) :
-    _root(root), _sceneManager(0)
+    _root(root)
 {
-    _sceneManager = _root->createSceneManager(Ogre::ST_EXTERIOR_CLOSE, "ExteriorSceneManager");
+    _sceneManager = _root->createSceneManager(
+        Ogre::ST_EXTERIOR_CLOSE, "ExteriorSceneManager");
+
     //_sceneManager->setDisplaySceneNodes(true);
 }
 
@@ -285,7 +335,6 @@ void gfx::Scene::addBackdrop(const char* material, float scroll, float depth, fl
 {
     char name[16];
     snprintf(name, sizeof(name), "_backdrop%02d", int(_backdrops.size() + 1));
-    printf("backdrop name = '%s'\n", name);
 
     std::auto_ptr<Backdrop> backdrop(new Backdrop(name, 
         material, scroll, depth, size, _sceneManager));
@@ -313,6 +362,8 @@ gfx::Viewport::Viewport(const char* title, boost::shared_ptr<Ogre::Root> root) :
     LONG iconID = LONG(LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(101)));
     SetClassLong(hwnd, GCL_HICON, iconID);
 #endif
+
+    _input.reset(new Input(_window));
 }
 
 gfx::Viewport::~Viewport()
@@ -324,6 +375,11 @@ gfx::Viewport::~Viewport()
 void gfx::Viewport::update()
 {
     _window->update();
+}
+
+Input& gfx::Viewport::getInput()
+{
+    return *_input;
 }
 
 void gfx::Viewport::attachCamera(Camera& camera)
@@ -341,9 +397,11 @@ Ogre::RenderWindow* gfx::Viewport::getRenderWindow()
     return _window;
 }
 
-std::auto_ptr<gfx::HUD> gfx::Viewport::createHUD()
+std::auto_ptr<gfx::GUI> gfx::Viewport::createGUI()
 {
-    return std::auto_ptr<HUD>(new HUD(*_ceguiSystem));
+    assert(_camera != 0);
+
+    return std::auto_ptr<GUI>(new GUI(_window, _camera->getSceneManager(),  *_input));
 }
 
 void gfx::Viewport::updateAspectRatio()
@@ -356,8 +414,6 @@ void gfx::Viewport::updateAspectRatio()
 
 ////////// GFXManager //////////
 
-#include <iostream>
-using namespace std;
 gfx::GFXManager::GFXManager()
 {
     _root.reset(new Ogre::Root());
@@ -412,4 +468,3 @@ void gfx::GFXManager::initResources()
 
     Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 }
-

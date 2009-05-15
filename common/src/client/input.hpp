@@ -18,6 +18,9 @@
 #include <physics/object.hpp>
 
 
+namespace CEGUI { class System; }
+
+
 class RemoteController {
     public:
         RemoteController();
@@ -47,23 +50,46 @@ class LocalController : public OIS::KeyListener {
 };
 
 
-class Input {
+class CEGUIInput : public OIS::KeyListener, public OIS::MouseListener {
+    public:
+        CEGUIInput(CEGUI::System& system);
+
+        virtual bool keyPressed(const OIS::KeyEvent& arg);
+        virtual bool keyReleased(const OIS::KeyEvent& arg);
+
+        virtual bool mouseMoved(const OIS::MouseEvent &arg);
+        virtual bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id);
+        virtual bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id);
+
+    private:
+        CEGUI::System& _system;
+};
+
+
+class Input : public OIS::KeyListener, public OIS::MouseListener {
     public:
         Input(Ogre::RenderWindow* window);
         ~Input();
 
         template<typename T>
-        std::auto_ptr<T> createKeyboardListener();
+        void addKeyboardListener(T& listener);
 
         template<typename T>
-        std::auto_ptr<T> createMouseListener();
-
-        template<typename T>
-        std::auto_ptr<T> createInputListener();
+        void addMouseListener(T& listener);
 
         void capture();
 
     private:
+        virtual bool keyPressed(const OIS::KeyEvent& arg);
+        virtual bool keyReleased(const OIS::KeyEvent& arg);
+
+        virtual bool mouseMoved(const OIS::MouseEvent &arg);
+        virtual bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id);
+        virtual bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id);
+
+        std::vector<OIS::KeyListener*> _keyListeners;
+        std::vector<OIS::MouseListener*> _mouseListeners;
+
         OIS::InputManager* _inputManager;
         OIS::Keyboard* _keyboard;
         OIS::Mouse* _mouse;
@@ -73,31 +99,15 @@ class Input {
 ////////// Input //////////
 
 template<typename T>
-inline std::auto_ptr<T> Input::createKeyboardListener()
+inline void Input::addKeyboardListener(T& listener)
 {
-    std::auto_ptr<T> p(new T);
-    _keyboard->setEventCallback(p.get());
-
-    return p;
+    _keyListeners.push_back(&listener);
 }
 
 template<typename T>
-inline std::auto_ptr<T> Input::createMouseListener()
+inline void Input::addMouseListener(T& listener)
 {
-    std::auto_ptr<T> p(new T);
-    _mouse->setEventCallback(p.get());
-
-    return p;
-}
-
-template<typename T>
-inline std::auto_ptr<T> Input::createInputListener()
-{
-    std::auto_ptr<T> p(new T);
-    _keyboard->setEventCallback(p.get());
-    _mouse->setEventCallback(p.get());
-
-    return p;
+    _mouseListeners.push_back(&listener);
 }
 
 

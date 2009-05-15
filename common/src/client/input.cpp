@@ -11,6 +11,7 @@
 #include <core/core.hpp>
 #include <sstream>
 #include <physics/object.hpp>
+#include <CEGUI.h>
 
 
 using namespace sim;
@@ -106,6 +107,51 @@ bool LocalController::keyReleased(const OIS::KeyEvent& arg)
 }
 
 
+////////// CEGUIInput //////////
+
+CEGUI::MouseButton convertButton(OIS::MouseButtonID buttonID)
+{
+    switch (buttonID) {
+        case OIS::MB_Left:   return CEGUI::LeftButton;
+        case OIS::MB_Right:  return CEGUI::RightButton;
+        case OIS::MB_Middle: return CEGUI::MiddleButton;
+        default:             return CEGUI::LeftButton;
+    }
+}
+
+CEGUIInput::CEGUIInput(CEGUI::System& system) :
+    _system(system)
+{
+
+}
+
+bool CEGUIInput::keyPressed(const OIS::KeyEvent& arg)
+{
+    _system.injectChar(arg.text);
+    return _system.injectKeyDown(arg.key);
+}
+
+bool CEGUIInput::keyReleased(const OIS::KeyEvent& arg)
+{
+    return _system.injectKeyUp(arg.key);
+}
+
+bool CEGUIInput::mouseMoved(const OIS::MouseEvent &arg)
+{
+    return _system.injectMouseMove(arg.state.X.rel * 1.5, arg.state.Y.rel * 1.5);
+}
+
+bool CEGUIInput::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
+{
+    return _system.injectMouseButtonDown(convertButton(id));
+}
+
+bool CEGUIInput::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
+{
+    return _system.injectMouseButtonUp(convertButton(id));
+}
+
+
 ////////// Input //////////
 
 Input::Input(Ogre::RenderWindow* window)
@@ -127,6 +173,9 @@ Input::Input(Ogre::RenderWindow* window)
         _inputManager->createInputObject(OIS::OISMouse, true));
     _keyboard = static_cast<OIS::Keyboard*>(
         _inputManager->createInputObject(OIS::OISKeyboard, true));
+
+    _keyboard->setEventCallback(this);
+    _mouse->setEventCallback(this);
 }
 
 Input::~Input()
@@ -141,7 +190,41 @@ void Input::capture()
     _keyboard->capture();
     _mouse->capture();
 
-    //if (_keyboard->isKeyDown(OIS::KC_ESCAPE)) 
-    //    throw Exception("quitting");
+    extern bool clientRunning;
+    if (_keyboard->isKeyDown(OIS::KC_ESCAPE)) 
+        clientRunning = false;
+}
+
+bool Input::keyPressed(const OIS::KeyEvent& arg)
+{
+    foreach (OIS::KeyListener* listener, _keyListeners) 
+        listener->keyPressed(arg);
+}
+
+bool Input::keyReleased(const OIS::KeyEvent& arg)
+{
+
+    foreach (OIS::KeyListener* listener, _keyListeners) 
+        listener->keyReleased(arg);
+}
+
+bool Input::mouseMoved(const OIS::MouseEvent &arg)
+{
+
+    foreach (OIS::MouseListener* listener, _mouseListeners) 
+        listener->mouseMoved(arg);
+}
+
+bool Input::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
+{
+
+    foreach (OIS::MouseListener* listener, _mouseListeners) 
+        listener->mousePressed(arg, id);
+}
+
+bool Input::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
+{
+    foreach (OIS::MouseListener* listener, _mouseListeners) 
+        listener->mouseReleased(arg, id);
 }
 

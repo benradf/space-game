@@ -20,6 +20,10 @@
 #include <boost/shared_ptr.hpp>
 
 
+class Input;
+class CEGUIInput;
+
+
 namespace gfx {
 
 
@@ -96,7 +100,6 @@ class Camera {
 
         Ogre::SceneManager* _sceneManager;
         Ogre::Camera* _camera;
-
 };
 
 
@@ -119,6 +122,22 @@ class Backdrop {
 };
 
 
+class GUI {
+    public:
+        GUI(Ogre::RenderWindow* window, Ogre::SceneManager* sceneManager, Input& input);
+        ~GUI();
+
+        void render();
+
+        std::auto_ptr<class HUD> createHUD();
+
+    private:
+        std::auto_ptr<CEGUI::OgreCEGUIRenderer> _ceguiRenderer;
+        std::auto_ptr<CEGUI::System> _ceguiSystem;
+        std::auto_ptr<CEGUIInput> _ceguiInput;
+};
+
+
 class Scene {
     public:
         Scene(boost::shared_ptr<Ogre::Root> root);
@@ -129,7 +148,9 @@ class Scene {
 
         void setSkyPlane(const char* material, const Ogre::Vector3& normal, float dist);
         void addBackdrop(const char* material, float scroll, float depth, float size);
+
         void updateBackdropPositions(const Ogre::Vector3& centre);
+        void setCEGUIRenderer(CEGUI::OgreCEGUIRenderer* renderer);
 
     private:
         Scene(const Scene&);
@@ -149,11 +170,13 @@ class Viewport {
 
         void update();
 
+        Input& getInput();
+
         void attachCamera(Camera& camera);
 
         Ogre::RenderWindow* getRenderWindow();
 
-        std::auto_ptr<class HUD> createHUD();
+        std::auto_ptr<GUI> createGUI();
 
     private:
         Viewport(const Viewport&);
@@ -162,12 +185,10 @@ class Viewport {
         void updateAspectRatio();
 
         boost::shared_ptr<Ogre::Root> _root;
+        std::auto_ptr<Input> _input;
         Ogre::RenderWindow* _window;
         Ogre::Viewport* _viewport;
         Ogre::Camera* _camera;
-
-        std::auto_ptr<CEGUI::OgreCEGUIRenderer> _ceguiRenderer;
-        std::auto_ptr<CEGUI::System> _ceguiSystem;
 };
 
 
@@ -177,8 +198,11 @@ class GFXManager {
         ~GFXManager();
 
         void render();
+
         Viewport& getViewport();
+
         std::auto_ptr<Scene> createScene();
+        std::auto_ptr<Viewport> createViewport();
 
     private:
         GFXManager(const GFXManager&);
@@ -188,7 +212,6 @@ class GFXManager {
 
         boost::shared_ptr<Ogre::Root> _root;
         std::auto_ptr<Viewport> _viewport;
-
 };
 
 

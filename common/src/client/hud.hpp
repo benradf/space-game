@@ -24,6 +24,7 @@ class HUD {
     private:
         CEGUI::System& _cegui;
 
+
 };
 
 
