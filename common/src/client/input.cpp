@@ -162,7 +162,8 @@ bool CEGUIInput::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id
 
 ////////// Input //////////
 
-Input::Input(Ogre::RenderWindow* window)
+Input::Input(Ogre::RenderWindow* window) :
+    _window(window)
 {
     size_t windowHandle = 0;
     window->getCustomAttribute("WINDOW", &windowHandle);
@@ -188,6 +189,8 @@ Input::Input(Ogre::RenderWindow* window)
 
     _keyboard->setEventCallback(this);
     _mouse->setEventCallback(this);
+
+    updateMouseClipping();
 }
 
 Input::~Input()
@@ -195,6 +198,12 @@ Input::~Input()
     _inputManager->destroyInputObject(_mouse);
     _inputManager->destroyInputObject(_keyboard);
     OIS::InputManager::destroyInputSystem(_inputManager);
+}
+
+void Input::updateMouseClipping()
+{
+    _mouse->getMouseState().width = _window->getWidth();
+    _mouse->getMouseState().height = _window->getHeight();
 }
 
 void Input::capture()

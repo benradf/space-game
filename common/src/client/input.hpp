@@ -73,6 +73,8 @@ class Input : public OIS::KeyListener, public OIS::MouseListener {
         Input(Ogre::RenderWindow* window);
         ~Input();
 
+        void updateMouseClipping();
+
         template<typename T>
         void addKeyboardListener(T& listener);
 
@@ -92,6 +94,7 @@ class Input : public OIS::KeyListener, public OIS::MouseListener {
         std::vector<OIS::KeyListener*> _keyListeners;
         std::vector<OIS::MouseListener*> _mouseListeners;
 
+        Ogre::RenderWindow* _window;
         OIS::InputManager* _inputManager;
         OIS::Keyboard* _keyboard;
         OIS::Mouse* _mouse;
