@@ -1,7 +1,7 @@
 /// \file protocol.hpp
 /// \brief Network protocol.
 /// \author 
-/// \date 28th April 2009
+/// \date 15th May 2009
 ///
 /// Copyright (c) 2009 . All rights reserved.
 ///
@@ -68,6 +68,18 @@ class ProtocolUser {
 
         void sendObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y, int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl);
         virtual void handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y, int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl) = 0;
+
+        void sendMsgPubChat(const char* text);
+        virtual void handleMsgPubChat(const char* text) = 0;
+
+        void sendMsgPrivChat(const char* text);
+        virtual void handleMsgPrivChat(const char* text) = 0;
+
+        void sendMsgSystem(const char* text);
+        virtual void handleMsgSystem(const char* text) = 0;
+
+        void sendMsgInfo(const char* text);
+        virtual void handleMsgInfo(const char* text) = 0;
 
 };
 

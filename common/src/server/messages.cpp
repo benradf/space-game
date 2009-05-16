@@ -1,7 +1,7 @@
 /// \file messages.cpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 12th May 2009
+/// \date 15th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -480,6 +480,64 @@ void msg::PeerLoginDenied::dispatch(MessageHandler& handler)
 bool msg::PeerLoginDenied::matches(int subscription)
 {
     return ((subscription & MSG_PEER) != 0);
+}
+
+
+////////// msg::ChatSayPublic //////////
+
+msg::ChatSayPublic::ChatSayPublic(PlayerID player, const std::string& text) :
+    _player(player), _text(text)
+{
+
+}
+
+msg::ChatSayPublic::~ChatSayPublic()
+{
+
+}
+
+std::auto_ptr<msg::Message> msg::ChatSayPublic::clone() const
+{
+    return std::auto_ptr<Message>(new ChatSayPublic(*this));
+}
+
+void msg::ChatSayPublic::dispatch(MessageHandler& handler)
+{
+    handler.handleChatSayPublic(_player, _text);
+}
+
+bool msg::ChatSayPublic::matches(int subscription)
+{
+    return ((subscription & MSG_CHAT) != 0);
+}
+
+
+////////// msg::ChatBroadcast //////////
+
+msg::ChatBroadcast::ChatBroadcast(const std::string& text) :
+    _text(text)
+{
+
+}
+
+msg::ChatBroadcast::~ChatBroadcast()
+{
+
+}
+
+std::auto_ptr<msg::Message> msg::ChatBroadcast::clone() const
+{
+    return std::auto_ptr<Message>(new ChatBroadcast(*this));
+}
+
+void msg::ChatBroadcast::dispatch(MessageHandler& handler)
+{
+    handler.handleChatBroadcast(_text);
+}
+
+bool msg::ChatBroadcast::matches(int subscription)
+{
+    return ((subscription & MSG_CHAT) != 0);
 }
 
 

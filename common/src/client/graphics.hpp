@@ -22,6 +22,8 @@
 
 class Input;
 class CEGUIInput;
+class LocalController;
+class NetworkInterface;
 
 
 namespace gfx {
@@ -92,6 +94,8 @@ class Camera {
         void setPosition(const Ogre::Vector3& pos);
         const Ogre::Vector3& getPosition() const;
 
+        const Ogre::Matrix4& getViewMatrix() const;
+
         void lookAt(const Ogre::Vector3& pos);
 
     private:
@@ -129,7 +133,8 @@ class GUI {
 
         void render();
 
-        std::auto_ptr<class HUD> createHUD();
+        std::auto_ptr<class HUD> createHUD(NetworkInterface& network, 
+            LocalController& localController);
 
     private:
         std::auto_ptr<CEGUI::OgreCEGUIRenderer> _ceguiRenderer;

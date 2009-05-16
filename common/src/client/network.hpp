@@ -14,9 +14,12 @@
 #include <net/net.hpp>
 #include "cache.hpp"
 #include "input.hpp"
+#include "chat.hpp"
 
 
-class RemoteServer : public net::Peer, public ObjectCache {
+class RemoteServer : public net::Peer, 
+                     public ObjectCache, 
+                     public ChatSystem {
     public:
         RemoteServer(void* data);
         virtual ~RemoteServer();

@@ -1,7 +1,7 @@
 /// \file msghandler.hpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 12th May 2009
+/// \date 15th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -36,6 +36,8 @@ class MessageHandler {
         virtual void handlePeerRequestLogout(PeerID peer, PlayerID player);
         virtual void handlePeerLoginGranted(PeerID peer, PlayerID player);
         virtual void handlePeerLoginDenied(PeerID peer);
+        virtual void handleChatSayPublic(PlayerID player, const std::string& text);
+        virtual void handleChatBroadcast(const std::string& text);
 };
 
 

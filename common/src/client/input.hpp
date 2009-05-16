@@ -40,12 +40,14 @@ class LocalController : public OIS::KeyListener {
     public:
         LocalController();
 
+        void setEnabled(bool enabled);
         sim::ControlState getControlState() const;
 
         virtual bool keyPressed(const OIS::KeyEvent& arg);
         virtual bool keyReleased(const OIS::KeyEvent& arg);
 
     private:
+        bool _enabled;
         sim::ControlState _state;
 };
 

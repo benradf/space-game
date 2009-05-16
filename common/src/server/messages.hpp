@@ -1,7 +1,7 @@
 /// \file messages.hpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 12th May 2009
+/// \date 15th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -22,10 +22,11 @@ class MessageHandler;
 
 
 enum MsgType {
-    MSG_PEER     = 0x0001,
-    MSG_PLAYER   = 0x0002,
-    MSG_ZONESAYS = 0x0004,
-    MSG_ZONETELL = 0x0008,
+    MSG_CHAT     = 0x0001,
+    MSG_PEER     = 0x0002,
+    MSG_PLAYER   = 0x0004,
+    MSG_ZONESAYS = 0x0008,
+    MSG_ZONETELL = 0x0010,
 };
 
 
@@ -267,6 +268,33 @@ class PeerLoginDenied : public Message {
 
     private:
         PeerID _peer;
+};
+
+
+class ChatSayPublic : public Message {
+    public:
+        ChatSayPublic(PlayerID player, const std::string& text);
+        virtual ~ChatSayPublic();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PlayerID _player;
+        const std::string _text;
+};
+
+
+class ChatBroadcast : public Message {
+    public:
+        ChatBroadcast(const std::string& text);
+        virtual ~ChatBroadcast();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        const std::string _text;
 };
 
 

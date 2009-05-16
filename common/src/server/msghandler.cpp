@@ -1,7 +1,7 @@
 /// \file msghandler.cpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 12th May 2009
+/// \date 15th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -93,6 +93,16 @@ void msg::MessageHandler::handlePeerLoginGranted(PeerID peer, PlayerID player)
 }
 
 void msg::MessageHandler::handlePeerLoginDenied(PeerID peer)
+{
+
+}
+
+void msg::MessageHandler::handleChatSayPublic(PlayerID player, const std::string& text)
+{
+
+}
+
+void msg::MessageHandler::handleChatBroadcast(const std::string& text)
 {
 
 }

@@ -185,6 +185,11 @@ const Ogre::Vector3& gfx::Camera::getPosition() const
     return _camera->getPosition();
 }
 
+const Ogre::Matrix4& gfx::Camera::getViewMatrix() const
+{
+    return _camera->getViewMatrix();
+}
+
 void gfx::Camera::lookAt(const Ogre::Vector3& pos)
 {
     _camera->lookAt(pos);
@@ -269,14 +274,16 @@ gfx::GUI::GUI(Ogre::RenderWindow* window, Ogre::SceneManager* sceneManager, Inpu
     CEGUI::Logger *logger = &CEGUI::Logger::getSingleton();
     logger->setLoggingLevel(CEGUI::Insane);
 
-    CEGUI::SchemeManager::getSingleton().loadScheme("TaharezLook.scheme");
+    CEGUI::SchemeManager::getSingleton().loadScheme("SciFiLook.scheme");
 
     if(! CEGUI::FontManager::getSingleton().isFontPresent( "Commonwealth-10" ) )
-    CEGUI::FontManager::getSingleton().createFont("Commonwealth-10.font");
+    //CEGUI::FontManager::getSingleton().createFont("Commonwealth-10.font");
+    CEGUI::FontManager::getSingleton().createFont("DejaVuSans-8.font");
     
-    _ceguiSystem->setDefaultFont("Commonwealth-10");
-    _ceguiSystem->setDefaultMouseCursor("TaharezLook", "MouseArrow");
-    _ceguiSystem->setDefaultTooltip("TaharezLook/Tooltip");
+    //_ceguiSystem->setDefaultFont("Commonwealth-10");
+    _ceguiSystem->setDefaultFont("DejaVuSans-8");
+    _ceguiSystem->setDefaultMouseCursor("SciFiLook", "MouseArrow");
+    //_ceguiSystem->setDefaultTooltip("Vanilla/Tooltip");
 
     _ceguiInput.reset(new CEGUIInput(*_ceguiSystem));
     input.addKeyboardListener(*_ceguiInput);
@@ -293,9 +300,10 @@ void gfx::GUI::render()
     _ceguiSystem->renderGUI();
 }
 
-std::auto_ptr<gfx::HUD> gfx::GUI::createHUD()
+std::auto_ptr<gfx::HUD> gfx::GUI::createHUD(
+    NetworkInterface& network, LocalController& localController)
 {
-    return std::auto_ptr<HUD>(new HUD(*_ceguiSystem));
+    return std::auto_ptr<HUD>(new HUD(*_ceguiSystem, network, localController));
 }
 
 

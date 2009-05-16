@@ -106,13 +106,14 @@ void clientMain()
     //ctrl->setObject(&ship);
     theScene = scene.get();
 
-    std::auto_ptr<gfx::GUI> gui(gfx.getViewport().createGUI());
-    std::auto_ptr<gfx::HUD> hud(gui->createHUD());
-
     NetworkInterface network;
 
     network.setServer(serverHostname.c_str());
     network.maintainServerConnection(true);
+
+    std::auto_ptr<gfx::GUI> gui(gfx.getViewport().createGUI());
+    std::auto_ptr<gfx::HUD> hud(gui->createHUD(network, *ctrl));
+    input.addKeyboardListener(*hud);
 
     Timer simTimer;
 
@@ -165,6 +166,7 @@ void clientMain()
 
         scene->updateBackdropPositions(cameraPos);
         gfx.render();
+        hud->update();
         gui->render();
         gfx.getViewport().update();
         frameCount++;
@@ -173,9 +175,9 @@ void clientMain()
 
         if (fpsTimer.elapsed() > 5000000) {
             int fps = frameCount / 5;
-            if (fps < targetFPS - 1) 
-                printf("WARNING: Failed to meet target of %dfps\n", int(targetFPS));
-            printf("fps = %d\n", fps);
+            //if (fps < targetFPS - 1) 
+            //    printf("WARNING: Failed to meet target of %dfps\n", int(targetFPS));
+            //printf("fps = %d\n", fps);
             frameCount = 0;
             fpsTimer.reset();
         }

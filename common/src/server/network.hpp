@@ -44,6 +44,11 @@ class RemoteClient : public net::Peer {
         virtual void handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y, 
             int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl);
 
+        virtual void handleMsgPubChat(const char* text);
+        virtual void handleMsgPrivChat(const char* text);
+        virtual void handleMsgSystem(const char* text);
+        virtual void handleMsgInfo(const char* text);
+
         MessageSender _sendMsg;
         PlayerID _player;
 };
@@ -71,6 +76,8 @@ class NetworkInterface : public ObjectCache,
 
         virtual void handlePeerLoginGranted(PeerID peer, PlayerID player);
         virtual void handlePeerLoginDenied(PeerID peer);
+
+        virtual void handleChatBroadcast(const std::string& text);
 
         virtual net::Peer* handleConnect(void* data);
         virtual void handleDisconnect(net::Peer* peer);

@@ -14,3 +14,5 @@ Peer_RequestLogin(PeerID peer, const std::string& username, const MD5Hash& passw
 Peer_RequestLogout(PeerID peer, PlayerID player)
 Peer_LoginGranted(PeerID peer, PlayerID player)
 Peer_LoginDenied(PeerID peer)
+Chat_SayPublic(PlayerID player, const std::string& text)
+Chat_Broadcast(const std::string& text)

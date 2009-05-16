@@ -56,9 +56,14 @@ void RemoteController::setObject(sim::MovableObject* object)
 ////////// LocalController //////////
 
 LocalController::LocalController() :
-    _state(0)
+    _enabled(true), _state(0)
 {
 
+}
+
+void LocalController::setEnabled(bool enabled)
+{
+    _enabled = enabled;
 }
 
 sim::ControlState LocalController::getControlState() const
@@ -68,6 +73,9 @@ sim::ControlState LocalController::getControlState() const
 
 bool LocalController::keyPressed(const OIS::KeyEvent& arg)
 {
+    if (!_enabled) 
+        return true;
+
     switch (arg.key) {
         case OIS::KC_UP:
             _state = controlSet(CTRL_THRUST, true, _state);

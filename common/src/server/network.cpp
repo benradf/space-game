@@ -101,6 +101,11 @@ void RemoteClient::handleObjectLeave(uint16_t objectid)
     Log::log->warn("unexpected message: ObjectLeave");
 }
 
+void RemoteClient::handleObjectAttach(uint16_t objectid)
+{
+    Log::log->warn("unexpected message: ObjectAttach");
+}
+
 void RemoteClient::handleObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y)
 {
     _sendMsg(msg::ZoneTellObjectPos(_player, objectid, unpackPos(s_x, s_y)));
@@ -113,16 +118,31 @@ void RemoteClient::handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_
         unpackVel(v_x, v_y), unpackRot(rot), ctrl));
 }
 
-void RemoteClient::handleObjectAttach(uint16_t objectid)
+void RemoteClient::handleMsgPubChat(const char* text)
 {
-    Log::log->warn("unexpected message: ObjectAttach");
+    _sendMsg(msg::ChatSayPublic(_player, text));
+}
+
+void RemoteClient::handleMsgPrivChat(const char* text)
+{
+    Log::log->warn("unexpected message: MsgPrivChat");
+}
+
+void RemoteClient::handleMsgSystem(const char* text)
+{
+    Log::log->warn("unexpected message: MsgSystem");
+}
+
+void RemoteClient::handleMsgInfo(const char* text)
+{
+    Log::log->warn("unexpected message: MsgInfo");
 }
 
 
 ////////// NetworkInterface //////////
 
 NetworkInterface::NetworkInterface(PostOffice& po) :
-    MessagableJob(po, MSG_ZONESAYS | MSG_PEER), net::Interface(GAMEPORT)
+    MessagableJob(po, MSG_ZONESAYS | MSG_PEER | MSG_CHAT), net::Interface(GAMEPORT)
 {
     Log::log->info("NetworkInterface: startup");
 }
@@ -209,6 +229,12 @@ void NetworkInterface::handlePeerLoginDenied(PeerID peer)
     iter->second->disconnect();
 }
 
+void NetworkInterface::handleChatBroadcast(const std::string& text)
+{
+    foreach (Clients::value_type& client, _clients) 
+        client.second->sendMsgPubChat(text.c_str());
+}
+
 net::Peer* NetworkInterface::handleConnect(void* data)
 {
     std::auto_ptr<RemoteClient> peer(new RemoteClient(newMessageSender(), data));
@@ -218,7 +244,7 @@ net::Peer* NetworkInterface::handleConnect(void* data)
 
 void NetworkInterface::handleDisconnect(net::Peer* peer)
 {
-    RemoteClient* client = static_cast<RemoteClient*>(peer);
+    RemoteClient* client = dynamic_cast<RemoteClient*>(peer);
 
     PlayerID player = client->getAttachedPlayer();
     if (player != 0) 
