@@ -286,7 +286,7 @@ gfx::Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* scen
 gfx::Entity::~Entity()
 {
     foreach (MovableParticleSystem* system, _particleSystems) 
-        std::auto_ptr<MovableParticleSystem>(system);
+        std::auto_ptr<MovableParticleSystem> p(system);
 
     _node->detachObject(_entity);
     _sceneManager->destroyEntity(_entity);
