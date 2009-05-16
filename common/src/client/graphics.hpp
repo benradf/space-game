@@ -53,37 +53,6 @@ class MovableParticleSystem {
 };
 
 
-class Entity {
-    public:
-        Entity(const char* name, const char* mesh, Ogre::SceneManager* sceneManager);
-        ~Entity();
-
-        void setPosition(const Ogre::Vector3& pos);
-        const Ogre::Vector3& getPosition() const;
-
-        void setOrientation(const Ogre::Quaternion& rot);
-        const Ogre::Quaternion& getOrientation() const;
-
-        void setMaterial(const char* material) const;
-
-        MovableParticleSystem* attachParticleSystem(
-            const char* system, const Ogre::Vector3& offset);
-
-        void updateParticleSystems(const Ogre::Vector3& velocity);
-
-    private:
-        Entity(const Entity&);
-        Entity& operator=(const Entity&);
-
-        Ogre::SceneManager* _sceneManager;
-        Ogre::SceneNode* _node;
-        Ogre::Entity* _entity;
-        std::string _name;
-
-        std::vector<MovableParticleSystem*> _particleSystems;
-};
-
-
 class Camera {
     public:
         friend class Viewport;
@@ -104,6 +73,63 @@ class Camera {
 
         Ogre::SceneManager* _sceneManager;
         Ogre::Camera* _camera;
+};
+
+
+class ObjectOverlay {
+    public:
+        ObjectOverlay(Ogre::Overlay* overlay, const char* name);
+        ~ObjectOverlay();
+
+        void attachCamera(Camera& camera);
+        void update(Ogre::MovableObject* object);
+
+        void setColour(const Ogre::ColourValue& colour);
+        void setText(const char* text);
+        void setVisible(bool visible);
+
+    private:
+        void cleanUp();
+
+        Ogre::OverlayContainer* _container;
+        Ogre::OverlayElement* _text;
+        Ogre::Overlay* _overlay;
+        Camera* _camera;
+};
+
+
+class Entity {
+    public:
+        Entity(const char* name, const char* mesh, Ogre::SceneManager* sceneManager);
+        ~Entity();
+
+        void setPosition(const Ogre::Vector3& pos);
+        const Ogre::Vector3& getPosition() const;
+
+        void setOrientation(const Ogre::Quaternion& rot);
+        const Ogre::Quaternion& getOrientation() const;
+
+        void setMaterial(const char* material) const;
+
+        MovableParticleSystem* attachParticleSystem(
+            const char* system, const Ogre::Vector3& offset);
+
+        void updateParticleSystems(const Ogre::Vector3& velocity);
+
+        void attachObjectOverlay(std::auto_ptr<ObjectOverlay> overlay);
+        void updateObjectOverlay();
+
+    private:
+        Entity(const Entity&);
+        Entity& operator=(const Entity&);
+
+        Ogre::SceneManager* _sceneManager;
+        Ogre::SceneNode* _node;
+        Ogre::Entity* _entity;
+        std::string _name;
+
+        std::vector<MovableParticleSystem*> _particleSystems;
+        std::auto_ptr<ObjectOverlay> _objectOverlay;
 };
 
 
@@ -150,6 +176,7 @@ class Scene {
 
         std::auto_ptr<Camera> createCamera(const char* name);
         std::auto_ptr<Entity> createEntity(const char* name, const char* mesh);
+        std::auto_ptr<ObjectOverlay> createObjectOverlay(const char* name);
 
         void setSkyPlane(const char* material, const Ogre::Vector3& normal, float dist);
         void addBackdrop(const char* material, float scroll, float depth, float size);
@@ -165,6 +192,8 @@ class Scene {
         Ogre::SceneManager* _sceneManager;
 
         std::vector<Backdrop*> _backdrops;
+
+        Ogre::Overlay* _objectOverlay;
 };
 
 

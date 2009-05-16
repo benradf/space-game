@@ -84,6 +84,158 @@ void gfx::MovableParticleSystem::setPaused(bool paused)
 }
 
 
+////////// Camera //////////
+
+gfx::Camera::Camera(const char* name, Ogre::SceneManager* sceneManager) :
+    _camera(0), _sceneManager(sceneManager)
+{
+    _camera = _sceneManager->createCamera(name);
+    _camera->setNearClipDistance(1.0f);
+    _camera->setFarClipDistance(50000.0f);
+}
+
+gfx::Camera::~Camera()
+{
+    _sceneManager->destroyCamera(_camera);
+}
+
+void gfx::Camera::setPosition(const Ogre::Vector3& pos)
+{
+    _camera->setPosition(pos);
+}
+
+const Ogre::Vector3& gfx::Camera::getPosition() const
+{
+    return _camera->getPosition();
+}
+
+const Ogre::Matrix4& gfx::Camera::getViewMatrix() const
+{
+    return _camera->getViewMatrix();
+}
+
+void gfx::Camera::lookAt(const Ogre::Vector3& pos)
+{
+    _camera->lookAt(pos);
+}
+
+
+////////// ObjectOverlay //////////
+
+gfx::ObjectOverlay::ObjectOverlay(Ogre::Overlay* overlay, const char* name) :
+    _container(0), _text(0), _overlay(overlay), _camera(0)
+{
+    Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
+
+    _container = static_cast<Ogre::OverlayContainer*>(
+        overlayManager.createOverlayElement("Panel", name));
+
+    _overlay->add2D(_container);
+
+    char nameText[64];
+    snprintf(nameText, sizeof(nameText), "%s_text", name);
+    _text = overlayManager.createOverlayElement("TextArea", nameText);
+
+    _container->addChild(_text);
+
+    try {
+        _text->setDimensions(1.0f, 1.0f);
+        _text->setMetricsMode(Ogre::GMM_PIXELS);
+        _text->setPosition(0.0f, 0.0f);
+
+        //_text->setParameter("font_name", "bluebold");
+        _text->setParameter("char_height", "16");
+        _text->setParameter("horz_align", "center");
+
+        _container->show();
+        _text->show();
+
+    } catch (...) {
+        cleanUp();
+        throw;
+    }
+}
+
+gfx::ObjectOverlay::~ObjectOverlay()
+{
+    cleanUp();
+}
+
+void gfx::ObjectOverlay::attachCamera(Camera& camera)
+{
+    _camera = &camera;
+}
+
+struct MinMaxCorners {
+    MinMaxCorners(const Ogre::Matrix4& matrix);
+    void operator()(const Ogre::Vector3& corner);
+    const Ogre::Matrix4& viewMatrix;
+    Ogre::Vector3 min, max;
+};
+
+MinMaxCorners::MinMaxCorners(const Ogre::Matrix4& matrix) :
+    viewMatrix(matrix), min(Ogre::Vector3::ZERO), max(Ogre::Vector3::ZERO)
+    
+{
+
+}
+
+void MinMaxCorners::operator()(const Ogre::Vector3& corner)
+{
+    Ogre::Vector3 pos = viewMatrix * corner;
+    float x = pos.x / pos.z + 0.5f;
+    float y = pos.y / pos.z + 0.5f;
+
+    min.x = std::min(min.x, x);
+    min.y = std::min(min.y, y);
+    max.x = std::max(max.x, x);
+    max.y = std::max(max.y, y);
+}
+
+void gfx::ObjectOverlay::update(Ogre::MovableObject* object)
+{
+    if (!_container->isVisible() || (_camera == 0))
+        return;
+
+    MinMaxCorners corners(_camera->getViewMatrix());
+    const Ogre::AxisAlignedBox& aabb = object->getWorldBoundingBox(true);
+    std::for_each(aabb.getAllCorners(), aabb.getAllCorners() + 8, corners);
+
+    _container->setPosition(corners.min.x, corners.min.y);
+    _container->setDimensions(corners.max.x - corners.min.x, 0.1);
+}
+
+void gfx::ObjectOverlay::setColour(const Ogre::ColourValue& colour)
+{
+    _text->setColour(colour);
+}
+
+void gfx::ObjectOverlay::setText(const char* text)
+{
+    _text->setCaption(text);
+}
+
+void gfx::ObjectOverlay::setVisible(bool visible)
+{
+    if (visible) {
+        _container->show();
+    } else {
+        _container->hide();
+    }
+}
+
+void gfx::ObjectOverlay::cleanUp()
+{
+    Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
+
+    _container->removeChild(_text->getName());
+    overlayManager.destroyOverlayElement(_text);
+
+    _overlay->remove2D(_container);
+    overlayManager.destroyOverlayElement(_container);
+}
+
+
 ////////// Entity //////////
 
 gfx::Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* sceneManager) :
@@ -159,40 +311,14 @@ void gfx::Entity::updateParticleSystems(const Ogre::Vector3& velocity)
         system->update(velocity);
 }
 
-
-////////// Camera //////////
-
-gfx::Camera::Camera(const char* name, Ogre::SceneManager* sceneManager) :
-    _camera(0), _sceneManager(sceneManager)
+void gfx::Entity::attachObjectOverlay(std::auto_ptr<ObjectOverlay> overlay)
 {
-    _camera = _sceneManager->createCamera(name);
-    _camera->setNearClipDistance(1.0f);
-    _camera->setFarClipDistance(50000.0f);
+    _objectOverlay = overlay;
 }
 
-gfx::Camera::~Camera()
+void gfx::Entity::updateObjectOverlay()
 {
-    _sceneManager->destroyCamera(_camera);
-}
-
-void gfx::Camera::setPosition(const Ogre::Vector3& pos)
-{
-    _camera->setPosition(pos);
-}
-
-const Ogre::Vector3& gfx::Camera::getPosition() const
-{
-    return _camera->getPosition();
-}
-
-const Ogre::Matrix4& gfx::Camera::getViewMatrix() const
-{
-    return _camera->getViewMatrix();
-}
-
-void gfx::Camera::lookAt(const Ogre::Vector3& pos)
-{
-    _camera->lookAt(pos);
+    _objectOverlay->update(_entity);
 }
 
 
@@ -315,11 +441,14 @@ gfx::Scene::Scene(boost::shared_ptr<Ogre::Root> root) :
     _sceneManager = _root->createSceneManager(
         Ogre::ST_EXTERIOR_CLOSE, "ExteriorSceneManager");
 
-    //_sceneManager->setDisplaySceneNodes(true);
+    _objectOverlay = Ogre::OverlayManager::getSingleton().create("objectOverlay");
+    _objectOverlay->show();
 }
 
 gfx::Scene::~Scene()
 {
+    Ogre::OverlayManager::getSingleton().destroy(_objectOverlay);
+
     _root->destroySceneManager(_sceneManager);
 }
 
@@ -331,6 +460,11 @@ std::auto_ptr<gfx::Camera> gfx::Scene::createCamera(const char* name)
 std::auto_ptr<gfx::Entity> gfx::Scene::createEntity(const char* name, const char* mesh)
 {
     return std::auto_ptr<Entity>(new Entity(name, mesh, _sceneManager));
+}
+
+std::auto_ptr<gfx::ObjectOverlay> gfx::Scene::createObjectOverlay(const char* name)
+{
+    return std::auto_ptr<ObjectOverlay>(new ObjectOverlay(_objectOverlay, name));
 }
 
 void gfx::Scene::setSkyPlane(const char* material, const Ogre::Vector3& normal, float dist)

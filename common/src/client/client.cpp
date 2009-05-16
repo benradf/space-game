@@ -43,10 +43,16 @@ Scene* theScene = 0;
 
 Physics* physics = 0;
 
+gfx::HUD* hudPtr = 0;
+
+gfx::Camera* camPtr = 0;
+
 std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
 {
     assert(theScene != 0);
     assert(physics != 0);
+    assert(hudPtr != 0);
+    assert(camPtr != 0);
 
     char nameBuffer[256];
     snprintf(nameBuffer, sizeof(nameBuffer), "object_%d", objectID);
@@ -56,6 +62,12 @@ std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
     std::auto_ptr<Entity> entity = theScene->createEntity(nameBuffer, "spider.mesh");
     MovableParticleSystem* exhaust = entity->attachParticleSystem(
         "Effects/EngineExhaust", Ogre::Vector3(0.0f, -7.0f, 0.0f));
+    std::auto_ptr<ObjectOverlay> overlay = theScene->createObjectOverlay(nameBuffer);
+    overlay->attachCamera(*camPtr);
+    overlay->setText("username");
+    overlay->setVisible(true);
+    overlay->setColour(Ogre::ColourValue(1.0f, 1.0f, 1.0f));
+    entity->attachObjectOverlay(overlay);
 
     return std::auto_ptr<VisibleObject>(new VisibleObject(entity, object, exhaust));
 }
@@ -79,6 +91,8 @@ void clientMain()
     std::auto_ptr<Scene> scene = gfx.createScene();
     std::auto_ptr<Camera> camera = scene->createCamera("cam1");
     gfx.getViewport().attachCamera(*camera);
+    camPtr = camera.get();
+
     //std::auto_ptr<Entity> spider = scene->createEntity("spider", "warbird.mesh");
     //std::auto_ptr<Entity> warbird = scene->createEntity("warbird", "warbird.mesh");
     //spider->setPosition(Ogre::Vector3(0.0f, 10.0f, 0.0f));
@@ -114,6 +128,8 @@ void clientMain()
     std::auto_ptr<gfx::GUI> gui(gfx.getViewport().createGUI());
     std::auto_ptr<gfx::HUD> hud(gui->createHUD(network, *ctrl));
     input.addKeyboardListener(*hud);
+    hudPtr = hud.get();
+
 
     Timer simTimer;
 

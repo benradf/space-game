@@ -9,110 +9,9 @@
 
 #include "hud.hpp"
 #include "network.hpp"
+#include "graphics.hpp"
 
 using namespace CEGUI;
-
-
-////////// ObjectOverlay //////////
-
-gfx::ObjectOverlay::ObjectOverlay(Ogre::Overlay* overlay, const char* name) :
-    _container(0), _text(0), _overlay(overlay), _camera(0)
-{
-
-    Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
-
-    _container = static_cast<Ogre::OverlayContainer*>(
-        overlayManager.createOverlayElement("Panel", name));
-
-    _overlay->add2D(_container);
-
-    char nameText[64];
-    snprintf(nameText, sizeof(nameText), "%s_text", name);
-    _text = overlayManager.createOverlayElement("TextArea", nameText);
-
-    _container->addChild(_text);
-
-    _text->setDimensions(1.0f, 1.0f);
-    _text->setMetricsMode(Ogre::GMM_PIXELS);
-    _text->setPosition(0.0f, 0.0f);
-    _text->setParameter("font_name", "blue16");
-    _text->setParameter("char_height", "16");
-    _text->setParameter("horz_align", "center");
-}
-
-gfx::ObjectOverlay::~ObjectOverlay()
-{
-    Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
-
-    _container->removeChild(_text->getName());
-    overlayManager.destroyOverlayElement(_text);
-
-    _overlay->remove2D(_container);
-    overlayManager.destroyOverlayElement(_container);
-}
-
-void gfx::ObjectOverlay::attachCamera(Camera& camera)
-{
-    _camera = &camera;
-}
-
-struct MinMaxCorners {
-    MinMaxCorners(const Ogre::Matrix4& matrix);
-    void operator()(const Ogre::Vector3& corner);
-    const Ogre::Matrix4& viewMatrix;
-    Ogre::Vector3 min, max;
-};
-
-MinMaxCorners::MinMaxCorners(const Ogre::Matrix4& matrix) :
-    viewMatrix(matrix), min(Ogre::Vector3::ZERO), max(Ogre::Vector3::ZERO)
-    
-{
-
-}
-
-void MinMaxCorners::operator()(const Ogre::Vector3& corner)
-{
-    Ogre::Vector3 pos = viewMatrix * corner;
-    float x = pos.x / pos.z + 0.5f;
-    float y = pos.y / pos.z + 0.5f;
-
-    min.x = std::min(min.x, x);
-    min.y = std::min(min.y, y);
-    max.x = std::max(max.x, x);
-    max.y = std::max(max.y, y);
-}
-
-void gfx::ObjectOverlay::update(Ogre::MovableObject* object)
-{
-    if (!_container->isVisible() || (_camera == 0))
-        return;
-
-    MinMaxCorners corners(_camera->getViewMatrix());
-    const Ogre::AxisAlignedBox& aabb = object->getWorldBoundingBox(true);
-    std::for_each(aabb.getAllCorners(), aabb.getAllCorners() + 8, corners);
-
-    _container->setPosition(corners.min.x, corners.min.y);
-    _container->setDimensions(corners.max.x - corners.min.x, 0.1);
-}
-
-void gfx::ObjectOverlay::setColour(const Ogre::ColourValue& colour)
-{
-    _text->setColour(colour);
-}
-
-void gfx::ObjectOverlay::setText(const char* text)
-{
-    _text->setCaption(text);
-}
-
-void gfx::ObjectOverlay::setVisible(bool visible)
-{
-    if (visible) {
-        _container->show();
-    } else {
-        _container->hide();
-    }
-}
 
 
 ////////// HUD //////////
@@ -139,14 +38,6 @@ gfx::HUD::~HUD()
 void gfx::HUD::update()
 {
     updateConsoleText();
-}
-
-std::auto_ptr<gfx::ObjectOverlay> gfx::HUD::createObjectOverlay(const char* name)
-{
-    char overlayName[64];
-    snprintf(overlayName, sizeof(overlayName), "%s_%04x", name, rand() % 0x10000);
-
-    return std::auto_ptr<ObjectOverlay>(new ObjectOverlay(_objectOverlay, name));
 }
 
 bool gfx::HUD::keyPressed(const OIS::KeyEvent& arg)

@@ -25,27 +25,7 @@ class NetworkInterface;
 namespace gfx {
 
 
-class Camera;
-
-
-class ObjectOverlay {
-    public:
-        ObjectOverlay(Ogre::Overlay* overlay, const char* name);
-        ~ObjectOverlay();
-
-        void attachCamera(Camera& camera);
-        void update(Ogre::MovableObject* object);
-
-        void setColour(const Ogre::ColourValue& colour);
-        void setText(const char* text);
-        void setVisible(bool visible);
-
-    private:
-        Ogre::OverlayContainer* _container;
-        Ogre::OverlayElement* _text;
-        Ogre::Overlay* _overlay;
-        Camera* _camera;
-};
+class ObjectOverlay;
 
 
 class HUD : public OIS::KeyListener {
@@ -54,8 +34,6 @@ class HUD : public OIS::KeyListener {
         virtual ~HUD();
 
         void update();
-
-        std::auto_ptr<ObjectOverlay> createObjectOverlay(const char* name);
 
     private:
         virtual bool keyPressed(const OIS::KeyEvent& arg);
@@ -81,8 +59,6 @@ class HUD : public OIS::KeyListener {
         CEGUI::System& _cegui;
         CEGUI::Editbox* _message;
         CEGUI::Listbox* _console;
-
-        Ogre::Overlay* _objectOverlay;
 };
 
 

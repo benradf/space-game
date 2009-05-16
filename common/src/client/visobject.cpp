@@ -48,6 +48,7 @@ void VisibleObject::update()
     _objectGfx->setPosition(Ogre::Vector3(position.x, position.y, position.z));
     _objectGfx->setOrientation(Ogre::Quaternion(rotation.w, rotation.x, rotation.y, rotation.z));
     _objectGfx->updateParticleSystems(Ogre::Vector3(velocity.x, velocity.y, velocity.z));
+    _objectGfx->updateObjectOverlay();
 
     _exhaust->setEnabled(controlIsOn(CTRL_THRUST, state));
 }
