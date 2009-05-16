@@ -13,6 +13,7 @@
 
 #include <physics/object.hpp>
 #include "graphics.hpp"
+#include <string>
 
 
 class VisibleObject {
@@ -35,6 +36,9 @@ class VisibleObject {
         void setPosition(const Vector3& pos);
         void setVelocity(const Vector3& vel);
         void setControlState(sim::ControlState control);
+
+        const std::string& getName() const;
+        void setName(const std::string& name);
 
     private:
         VisibleObject(const VisibleObject&);
@@ -68,6 +72,8 @@ class VisibleObject {
         Quaternion _roll;
         float _rollFrom;
         float _rollTo;
+
+        std::string _name;
 };
 
 

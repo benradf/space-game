@@ -32,6 +32,7 @@ class RemoteServer : public net::Peer,
         virtual void handleLogin(const char* username, uint8_t (&password)[16]);
         virtual void handleDisconnect();
         virtual void handleWhoIsPlayer(uint32_t playerid);
+        virtual void handleGetObjectName(uint16_t objectid);
         virtual void handlePlayerInfo(uint32_t playerid, const char* username);
         virtual void handlePlayerInput(uint32_t flags);
         virtual void handlePrivateMsg(uint32_t playerid, const char* text);

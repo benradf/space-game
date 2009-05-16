@@ -20,8 +20,8 @@ using namespace net;
 
 ////////// RemoteClient //////////
 
-RemoteClient::RemoteClient(MessageSender sendMsg, void* data) :
-    net::Peer(data), _sendMsg(sendMsg), _player(0)
+RemoteClient::RemoteClient(NetworkInterface& net, MessageSender sendMsg, void* data) :
+    net::Peer(data), _net(net), _sendMsg(sendMsg), _player(0)
 {
     Log::log->info("NetworkInterface: remote client has connected");
 }
@@ -65,6 +65,15 @@ void RemoteClient::handleWhoIsPlayer(uint32_t playerid)
     Log::log->warn("unexpected message: WhoIsPlayer");
 }
 
+void RemoteClient::handleGetObjectName(uint16_t objectid)
+{
+    const CachedObjectInfo* objectInfo = _net.getCachedObjectInfo(objectid);
+    if (objectInfo == 0) 
+        return;
+
+    sendObjectName(objectid, objectInfo->getName().c_str());
+}
+
 void RemoteClient::handlePlayerInfo(uint32_t playerid, const char* username)
 {
 
@@ -99,6 +108,11 @@ void RemoteClient::handleObjectEnter(uint16_t objectid)
 void RemoteClient::handleObjectLeave(uint16_t objectid)
 {
     Log::log->warn("unexpected message: ObjectLeave");
+}
+
+void RemoteClient::handleObjectName(uint16_t objectid, const char* name)
+{
+    Log::log->warn("unexpected message: ObjectName");
 }
 
 void RemoteClient::handleObjectAttach(uint16_t objectid)
@@ -237,7 +251,7 @@ void NetworkInterface::handleChatBroadcast(const std::string& text)
 
 net::Peer* NetworkInterface::handleConnect(void* data)
 {
-    std::auto_ptr<RemoteClient> peer(new RemoteClient(newMessageSender(), data));
+    std::auto_ptr<RemoteClient> peer(new RemoteClient(*this, newMessageSender(), data));
     _clients.insert(std::make_pair(peer->getID(), peer.get()));
     return peer.release();
 }

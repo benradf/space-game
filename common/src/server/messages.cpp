@@ -1,7 +1,7 @@
 /// \file messages.cpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 15th May 2009
+/// \date 16th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -222,6 +222,35 @@ bool msg::ZoneSaysObjectAttach::matches(int subscription)
 }
 
 
+////////// msg::ZoneSaysObjectName //////////
+
+msg::ZoneSaysObjectName::ZoneSaysObjectName(ObjectID object, const std::string& name) :
+    _object(object), _name(name)
+{
+
+}
+
+msg::ZoneSaysObjectName::~ZoneSaysObjectName()
+{
+
+}
+
+std::auto_ptr<msg::Message> msg::ZoneSaysObjectName::clone() const
+{
+    return std::auto_ptr<Message>(new ZoneSaysObjectName(*this));
+}
+
+void msg::ZoneSaysObjectName::dispatch(MessageHandler& handler)
+{
+    handler.handleZoneSaysObjectName(_object, _name);
+}
+
+bool msg::ZoneSaysObjectName::matches(int subscription)
+{
+    return ((subscription & MSG_ZONESAYS) != 0);
+}
+
+
 ////////// msg::ZoneSaysObjectPos //////////
 
 msg::ZoneSaysObjectPos::ZoneSaysObjectPos(ObjectID object, Vector3 pos) :
@@ -362,6 +391,35 @@ void msg::PlayerLeaveZone::dispatch(MessageHandler& handler)
 }
 
 bool msg::PlayerLeaveZone::matches(int subscription)
+{
+    return ((subscription & MSG_PLAYER) != 0);
+}
+
+
+////////// msg::PlayerName //////////
+
+msg::PlayerName::PlayerName(PlayerID player, const std::string& username) :
+    _player(player), _username(username)
+{
+
+}
+
+msg::PlayerName::~PlayerName()
+{
+
+}
+
+std::auto_ptr<msg::Message> msg::PlayerName::clone() const
+{
+    return std::auto_ptr<Message>(new PlayerName(*this));
+}
+
+void msg::PlayerName::dispatch(MessageHandler& handler)
+{
+    handler.handlePlayerName(_player, _username);
+}
+
+bool msg::PlayerName::matches(int subscription)
 {
     return ((subscription & MSG_PLAYER) != 0);
 }

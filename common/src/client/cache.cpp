@@ -87,6 +87,11 @@ void ObjectCache::handleObjectAttach(uint16_t objectid)
     getObject(_attachedObject);
 }
 
+void ObjectCache::handleObjectName(uint16_t objectid, const char* name)
+{
+    getObject(objectid).setName(name);
+}
+
 void ObjectCache::handleObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y)
 {
     getObject(objectid).setPosition(unpackPos(makeVec2(s_x, s_y)));
@@ -120,6 +125,8 @@ VisibleObject& ObjectCache::getObject(ObjectID objectID)
 
     std::auto_ptr<VisibleObject> object(createVisibleObject(objectID));
     _objects.insert(std::make_pair(objectID, object.get()));
+
+    sendGetObjectName(objectID);
 
     return *object.release();
 }

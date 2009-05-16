@@ -20,6 +20,16 @@ ObjectCache::~ObjectCache()
         std::auto_ptr<CachedObjectInfo>(object.second);
 }
 
+const CachedObjectInfo* ObjectCache::getCachedObjectInfo(ObjectID id) const
+{
+    ObjectMap::const_iterator iter = _objects.find(id);
+
+    if (iter == _objects.end()) 
+        return 0;
+
+    return iter->second;
+}
+
 void ObjectCache::handleZoneSaysObjectEnter(ObjectID object)
 {
     getObjectInfo(object);
@@ -52,6 +62,11 @@ void ObjectCache::handleZoneSaysObjectAttach(ObjectID object, PlayerID player)
     getObjectInfo(object).attachPlayer(player);
 
     tellPlayerObjectAttach(player, object);
+}
+
+void ObjectCache::handleZoneSaysObjectName(ObjectID object, const std::string& name)
+{
+    getObjectInfo(object).setName(name);
 }
 
 void ObjectCache::handleZoneSaysObjectPos(ObjectID object, Vector3 pos)

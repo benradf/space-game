@@ -126,6 +126,15 @@ void Zone::handlePlayerLeaveZone(PlayerID player, ZoneID zone)
     Log::log->debug("player leaves zone");
 }
 
+void Zone::handlePlayerName(PlayerID player, const std::string& username)
+{
+    PlayerMap::iterator playerIter = _playerIdMap.find(player);
+    if (playerIter == _playerIdMap.end()) 
+        return;
+
+    sendMessage(msg::ZoneSaysObjectName(playerIter->second, username));
+}
+
 void Zone::handleZoneTellObjectPos(PlayerID player, ObjectID object, Vector3 pos)
 {
     //TODO: Verify position is within error margin of prediction position.

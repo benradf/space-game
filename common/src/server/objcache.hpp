@@ -42,10 +42,14 @@ class CachedObjectInfo {
         void attachPlayer(PlayerID player);
         PlayerID getAttachedPlayer() const;
 
+        void setName(const std::string& name);
+        const std::string& getName() const;
+
         ObjectID getID() const;
 
     private:
         ObjectID _id;
+        std::string _name;
 
         float _rotation;
         Vector3 _position;
@@ -61,6 +65,8 @@ class ObjectCache : public virtual msg::MessageHandler {
     public:
         virtual ~ObjectCache();
 
+        const CachedObjectInfo* getCachedObjectInfo(ObjectID id) const;
+
     private:
         typedef std::tr1::unordered_map<ObjectID, CachedObjectInfo*> ObjectMap;
 
@@ -74,6 +80,7 @@ class ObjectCache : public virtual msg::MessageHandler {
         virtual void handleZoneSaysObjectClearClose(ObjectID object);
         virtual void handleZoneSaysObjectsClose(ObjectID a, ObjectID b);
         virtual void handleZoneSaysObjectAttach(ObjectID object, PlayerID player);
+        virtual void handleZoneSaysObjectName(ObjectID object, const std::string& name);
         virtual void handleZoneSaysObjectPos(ObjectID object, Vector3 pos);
         virtual void handleZoneSaysObjectAll(ObjectID object, Vector3 pos,
             Vector3 vel, float rot, ControlState state);
@@ -157,6 +164,16 @@ inline void CachedObjectInfo::attachPlayer(PlayerID player)
 inline PlayerID CachedObjectInfo::getAttachedPlayer() const
 {
     return _attachedPlayer;
+}
+
+inline void CachedObjectInfo::setName(const std::string& name)
+{
+    _name = name;
+}
+
+inline const std::string& CachedObjectInfo::getName() const
+{
+    return _name;
 }
 
 inline ObjectID CachedObjectInfo::getID() const

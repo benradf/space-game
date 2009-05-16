@@ -1,7 +1,7 @@
 /// \file protocol.hpp
 /// \brief Network protocol.
 /// \author 
-/// \date 15th May 2009
+/// \date 16th May 2009
 ///
 /// Copyright (c) 2009 . All rights reserved.
 ///
@@ -42,6 +42,9 @@ class ProtocolUser {
         void sendWhoIsPlayer(uint32_t playerid);
         virtual void handleWhoIsPlayer(uint32_t playerid) = 0;
 
+        void sendGetObjectName(uint16_t objectid);
+        virtual void handleGetObjectName(uint16_t objectid) = 0;
+
         void sendPlayerInfo(uint32_t playerid, const char* username);
         virtual void handlePlayerInfo(uint32_t playerid, const char* username) = 0;
 
@@ -62,6 +65,9 @@ class ProtocolUser {
 
         void sendObjectAttach(uint16_t objectid);
         virtual void handleObjectAttach(uint16_t objectid) = 0;
+
+        void sendObjectName(uint16_t objectid, const char* name);
+        virtual void handleObjectName(uint16_t objectid, const char* name) = 0;
 
         void sendObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y);
         virtual void handleObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y) = 0;

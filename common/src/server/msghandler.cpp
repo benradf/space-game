@@ -1,7 +1,7 @@
 /// \file msghandler.cpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 15th May 2009
+/// \date 16th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -52,6 +52,11 @@ void msg::MessageHandler::handleZoneSaysObjectAttach(ObjectID object, PlayerID p
 
 }
 
+void msg::MessageHandler::handleZoneSaysObjectName(ObjectID object, const std::string& name)
+{
+
+}
+
 void msg::MessageHandler::handleZoneSaysObjectPos(ObjectID object, Vector3 pos)
 {
 
@@ -73,6 +78,11 @@ void msg::MessageHandler::handlePlayerEnterZone(PlayerID player, ZoneID zone)
 }
 
 void msg::MessageHandler::handlePlayerLeaveZone(PlayerID player, ZoneID zone)
+{
+
+}
+
+void msg::MessageHandler::handlePlayerName(PlayerID player, const std::string& username)
 {
 
 }

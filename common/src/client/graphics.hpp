@@ -117,6 +117,9 @@ class Entity {
 
         void updateParticleSystems(const Ogre::Vector3& velocity);
 
+        bool hasObjectOverlay() const;
+        ObjectOverlay& getObjectOverlay();
+
         void attachObjectOverlay(std::auto_ptr<ObjectOverlay> overlay);
         void updateObjectOverlay();
 

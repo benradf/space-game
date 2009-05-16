@@ -22,7 +22,8 @@ class NetworkInterface;
 
 class RemoteClient : public net::Peer {
     public:
-        RemoteClient(MessageSender sendMsg, void* data);
+        RemoteClient(NetworkInterface& net,
+            MessageSender sendMsg, void* data);
         virtual ~RemoteClient();
 
         void attachPlayer(PlayerID player);
@@ -33,6 +34,7 @@ class RemoteClient : public net::Peer {
         virtual void handleLogin(const char* username, uint8_t (&password)[16]);
         virtual void handleDisconnect();
         virtual void handleWhoIsPlayer(uint32_t playerid);
+        virtual void handleGetObjectName(uint16_t objectid);
         virtual void handlePlayerInfo(uint32_t playerid, const char* username);
         virtual void handlePlayerInput(uint32_t flags);
         virtual void handlePrivateMsg(uint32_t playerid, const char* text);
@@ -40,6 +42,7 @@ class RemoteClient : public net::Peer {
         virtual void handleObjectEnter(uint16_t objectid);
         virtual void handleObjectLeave(uint16_t objectid);
         virtual void handleObjectAttach(uint16_t objectid);
+        virtual void handleObjectName(uint16_t objectid, const char* name);
         virtual void handleObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y);
         virtual void handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y, 
             int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl);
@@ -49,6 +52,7 @@ class RemoteClient : public net::Peer {
         virtual void handleMsgSystem(const char* text);
         virtual void handleMsgInfo(const char* text);
 
+        NetworkInterface& _net;
         MessageSender _sendMsg;
         PlayerID _player;
 };

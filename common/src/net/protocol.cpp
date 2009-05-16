@@ -1,7 +1,7 @@
 /// \file protocol.cpp
 /// \brief Network protocol.
 /// \author 
-/// \date 15th May 2009
+/// \date 16th May 2009
 ///
 /// Copyright (c) 2009 . All rights reserved.
 ///
@@ -85,6 +85,15 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         handleWhoIsPlayer(ntohl(playerid));
         } break;
     case 0x05: {
+        if (offset + 0x02 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise GetObjectName: malformed packet");
+            return;
+        }
+        uint16_t objectid = *reinterpret_cast<uint16_t*>(offset);
+        offset += sizeof(uint16_t);
+        handleGetObjectName(ntohs(objectid));
+        } break;
+    case 0x06: {
         if (offset + 0x06 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise PlayerInfo: malformed packet");
             return;
@@ -103,7 +112,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += len;
         handlePlayerInfo(ntohl(playerid), (username));
         } break;
-    case 0x06: {
+    case 0x07: {
         if (offset + 0x04 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise PlayerInput: malformed packet");
             return;
@@ -112,7 +121,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += sizeof(uint32_t);
         handlePlayerInput(ntohl(flags));
         } break;
-    case 0x07: {
+    case 0x08: {
         if (offset + 0x06 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise PrivateMsg: malformed packet");
             return;
@@ -131,7 +140,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += len;
         handlePrivateMsg(ntohl(playerid), (text));
         } break;
-    case 0x08: {
+    case 0x09: {
         if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise BroadcastMsg: malformed packet");
             return;
@@ -148,7 +157,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += len;
         handleBroadcastMsg((text));
         } break;
-    case 0x09: {
+    case 0x0a: {
         if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise ObjectEnter: malformed packet");
             return;
@@ -157,7 +166,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += sizeof(uint16_t);
         handleObjectEnter(ntohs(objectid));
         } break;
-    case 0x0a: {
+    case 0x0b: {
         if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise ObjectLeave: malformed packet");
             return;
@@ -166,7 +175,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += sizeof(uint16_t);
         handleObjectLeave(ntohs(objectid));
         } break;
-    case 0x0b: {
+    case 0x0c: {
         if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise ObjectAttach: malformed packet");
             return;
@@ -175,7 +184,26 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += sizeof(uint16_t);
         handleObjectAttach(ntohs(objectid));
         } break;
-    case 0x0c: {
+    case 0x0d: {
+        if (offset + 0x04 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise ObjectName: malformed packet");
+            return;
+        }
+        uint16_t objectid = *reinterpret_cast<uint16_t*>(offset);
+        offset += sizeof(uint16_t);
+        len = ntohs(*reinterpret_cast<uint16_t*>(offset));
+        offset += 0x02;
+        if (offset + len + 0x00 > packet->data + packet->dataLength) {
+            Log::log->warn("Network: deserialise ObjectName: malformed packet");
+            return;
+        }
+        char* (name) = reinterpret_cast<char*>(offset - 1);
+        memmove((name), offset, len);
+        (name)[len] = '\0';
+        offset += len;
+        handleObjectName(ntohs(objectid), (name));
+        } break;
+    case 0x0e: {
         if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise ObjectUpdatePartial: malformed packet");
             return;
@@ -188,7 +216,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += sizeof(int16_t);
         handleObjectUpdatePartial(ntohs(objectid), ntohs(s_x), ntohs(s_y));
         } break;
-    case 0x0d: {
+    case 0x0f: {
         if (offset + 0x04 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise ObjectUpdateFull: malformed packet");
             return;
@@ -209,7 +237,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += sizeof(uint8_t);
         handleObjectUpdateFull(ntohs(objectid), ntohs(s_x), ntohs(s_y), ntohs(v_x), ntohs(v_y), (rot), (ctrl));
         } break;
-    case 0x0e: {
+    case 0x10: {
         if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise MsgPubChat: malformed packet");
             return;
@@ -226,7 +254,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += len;
         handleMsgPubChat((text));
         } break;
-    case 0x0f: {
+    case 0x11: {
         if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise MsgPrivChat: malformed packet");
             return;
@@ -243,7 +271,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += len;
         handleMsgPrivChat((text));
         } break;
-    case 0x10: {
+    case 0x12: {
         if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise MsgSystem: malformed packet");
             return;
@@ -260,7 +288,7 @@ void net::ProtocolUser::handlePacket(ENetPacket* packet)
         offset += len;
         handleMsgSystem((text));
         } break;
-    case 0x11: {
+    case 0x13: {
         if (offset + 0x02 > packet->data + packet->dataLength) {
             Log::log->warn("Network: deserialise MsgInfo: malformed packet");
             return;
@@ -340,11 +368,24 @@ void net::ProtocolUser::sendWhoIsPlayer(uint32_t playerid)
     sendPacket(packet);
 }
 
-void net::ProtocolUser::sendPlayerInfo(uint32_t playerid, const char* username)
+void net::ProtocolUser::sendGetObjectName(uint16_t objectid)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
     *reinterpret_cast<uint8_t*>(offset) = 0x05;
+    uint16_t len = 0;
+    offset += 0x01;
+    *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
+    offset += sizeof(uint16_t);
+    enet_packet_resize(packet, offset - packet->data);
+    sendPacket(packet);
+}
+
+void net::ProtocolUser::sendPlayerInfo(uint32_t playerid, const char* username)
+{
+    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
+    enet_uint8* offset = packet->data;
+    *reinterpret_cast<uint8_t*>(offset) = 0x06;
     uint16_t len = 0;
     offset += 0x01;
     *reinterpret_cast<uint32_t*>(offset) = htonl(playerid);
@@ -366,7 +407,7 @@ void net::ProtocolUser::sendPlayerInput(uint32_t flags)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x06;
+    *reinterpret_cast<uint8_t*>(offset) = 0x07;
     uint16_t len = 0;
     offset += 0x01;
     *reinterpret_cast<uint32_t*>(offset) = htonl(flags);
@@ -379,7 +420,7 @@ void net::ProtocolUser::sendPrivateMsg(uint32_t playerid, const char* text)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x07;
+    *reinterpret_cast<uint8_t*>(offset) = 0x08;
     uint16_t len = 0;
     offset += 0x01;
     *reinterpret_cast<uint32_t*>(offset) = htonl(playerid);
@@ -401,7 +442,7 @@ void net::ProtocolUser::sendBroadcastMsg(const char* text)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x08;
+    *reinterpret_cast<uint8_t*>(offset) = 0x09;
     uint16_t len = 0;
     offset += 0x01;
     len = std::min(strlen((text)), MAXSTRLEN);
@@ -421,7 +462,7 @@ void net::ProtocolUser::sendObjectEnter(uint16_t objectid)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x09;
+    *reinterpret_cast<uint8_t*>(offset) = 0x0a;
     uint16_t len = 0;
     offset += 0x01;
     *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
@@ -434,7 +475,7 @@ void net::ProtocolUser::sendObjectLeave(uint16_t objectid)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x0a;
+    *reinterpret_cast<uint8_t*>(offset) = 0x0b;
     uint16_t len = 0;
     offset += 0x01;
     *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
@@ -447,7 +488,7 @@ void net::ProtocolUser::sendObjectAttach(uint16_t objectid)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x0b;
+    *reinterpret_cast<uint8_t*>(offset) = 0x0c;
     uint16_t len = 0;
     offset += 0x01;
     *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
@@ -456,11 +497,33 @@ void net::ProtocolUser::sendObjectAttach(uint16_t objectid)
     sendPacket(packet);
 }
 
+void net::ProtocolUser::sendObjectName(uint16_t objectid, const char* name)
+{
+    ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
+    enet_uint8* offset = packet->data;
+    *reinterpret_cast<uint8_t*>(offset) = 0x0d;
+    uint16_t len = 0;
+    offset += 0x01;
+    *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
+    offset += sizeof(uint16_t);
+    len = std::min(strlen((name)), MAXSTRLEN);
+    if ((offset + len + 0x00 > packet->data + packet->dataLength) && 
+            (enet_packet_resize(packet, (packet->dataLength + len + 0x00) * 2) != 0)) {
+        Log::log->warn("Network: serialise ObjectName: enet_packet_resize failed");
+        return;
+    }
+    *reinterpret_cast<uint16_t*>(offset) = htons(len);
+    memcpy(offset += 0x02, (name), len);
+    offset += len;
+    enet_packet_resize(packet, offset - packet->data);
+    sendPacket(packet);
+}
+
 void net::ProtocolUser::sendObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x0c;
+    *reinterpret_cast<uint8_t*>(offset) = 0x0e;
     uint16_t len = 0;
     offset += 0x01;
     *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
@@ -477,7 +540,7 @@ void net::ProtocolUser::sendObjectUpdateFull(uint16_t objectid, int16_t s_x, int
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x0d;
+    *reinterpret_cast<uint8_t*>(offset) = 0x0f;
     uint16_t len = 0;
     offset += 0x01;
     *reinterpret_cast<uint16_t*>(offset) = htons(objectid);
@@ -502,7 +565,7 @@ void net::ProtocolUser::sendMsgPubChat(const char* text)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x0e;
+    *reinterpret_cast<uint8_t*>(offset) = 0x10;
     uint16_t len = 0;
     offset += 0x01;
     len = std::min(strlen((text)), MAXSTRLEN);
@@ -522,7 +585,7 @@ void net::ProtocolUser::sendMsgPrivChat(const char* text)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x0f;
+    *reinterpret_cast<uint8_t*>(offset) = 0x11;
     uint16_t len = 0;
     offset += 0x01;
     len = std::min(strlen((text)), MAXSTRLEN);
@@ -542,7 +605,7 @@ void net::ProtocolUser::sendMsgSystem(const char* text)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x10;
+    *reinterpret_cast<uint8_t*>(offset) = 0x12;
     uint16_t len = 0;
     offset += 0x01;
     len = std::min(strlen((text)), MAXSTRLEN);
@@ -562,7 +625,7 @@ void net::ProtocolUser::sendMsgInfo(const char* text)
 {
     ENetPacket* packet = enet_packet_create(0, 1024, ENET_PACKET_FLAG_RELIABLE);
     enet_uint8* offset = packet->data;
-    *reinterpret_cast<uint8_t*>(offset) = 0x11;
+    *reinterpret_cast<uint8_t*>(offset) = 0x13;
     uint16_t len = 0;
     offset += 0x01;
     len = std::min(strlen((text)), MAXSTRLEN);

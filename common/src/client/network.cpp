@@ -49,6 +49,11 @@ void RemoteServer::handleWhoIsPlayer(uint32_t playerid)
 
 }
 
+void RemoteServer::handleGetObjectName(uint16_t objectid)
+{
+
+}
+
 void RemoteServer::handlePlayerInfo(uint32_t playerid, const char* username)
 {
 

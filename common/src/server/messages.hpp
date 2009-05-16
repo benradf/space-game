@@ -1,7 +1,7 @@
 /// \file messages.hpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 15th May 2009
+/// \date 16th May 2009
 ///
 /// Copyright (c) 2009 Ben Radford. All rights reserved.
 ///
@@ -142,6 +142,20 @@ class ZoneSaysObjectAttach : public Message {
 };
 
 
+class ZoneSaysObjectName : public Message {
+    public:
+        ZoneSaysObjectName(ObjectID object, const std::string& name);
+        virtual ~ZoneSaysObjectName();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        ObjectID _object;
+        const std::string _name;
+};
+
+
 class ZoneSaysObjectPos : public Message {
     public:
         ZoneSaysObjectPos(ObjectID object, Vector3 pos);
@@ -212,6 +226,20 @@ class PlayerLeaveZone : public Message {
     private:
         PlayerID _player;
         ZoneID _zone;
+};
+
+
+class PlayerName : public Message {
+    public:
+        PlayerName(PlayerID player, const std::string& username);
+        virtual ~PlayerName();
+        virtual std::auto_ptr<Message> clone() const;
+        virtual void dispatch(MessageHandler& handler);
+        virtual bool matches(int subscription);
+
+    private:
+        PlayerID _player;
+        const std::string _username;
 };
 
 

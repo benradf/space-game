@@ -50,6 +50,7 @@ class Zone : public MessagableJob {
 
         virtual void handlePlayerEnterZone(PlayerID player, ZoneID zone);
         virtual void handlePlayerLeaveZone(PlayerID player, ZoneID zone);
+        virtual void handlePlayerName(PlayerID player, const std::string& username);
 
         virtual void handleZoneTellObjectPos(PlayerID player, ObjectID object, Vector3 pos);
         virtual void handleZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, 

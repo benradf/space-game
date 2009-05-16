@@ -10,7 +10,6 @@
 #include "player.hpp"
 #include "messages.hpp"
 
-
 using namespace msg;
 
 
@@ -32,20 +31,26 @@ LoginManager::RetType LoginManager::main()
 
 void LoginManager::handlePeerRequestLogin(PeerID peer, const std::string& username, const MD5Hash& password)
 {
+    PlayerID tempID;
+    if (lookupPlayerID(username, tempID)) {
+        sendMessage(msg::PeerLoginDenied(peer));
+        Log::log->info(std::string("login denied (") + username + ")");
+        return;
+    }
+
     PlayerID id = addNewPlayer(username);
     sendMessage(msg::PeerLoginGranted(peer, id));
     sendMessage(msg::PlayerEnterZone(id, 1));
+    sendMessage(msg::PlayerName(id, username));
 
     sendMessage(msg::ChatBroadcast(std::string("* ") + username + " has joined."));
 
-    Log::log->debug("handlePeerRequestLogin");
+    Log::log->info(std::string("login granted (") + username + ")");
 }
 
 void LoginManager::handlePeerRequestLogout(PeerID peer, PlayerID player)
 {
     sendMessage(msg::PlayerLeaveZone(player, 1));
-
-    Log::log->debug("handlePeerRequestLogout");
 
     std::string username;
     if (!lookupUsername(player, username)) 
@@ -54,6 +59,8 @@ void LoginManager::handlePeerRequestLogout(PeerID peer, PlayerID player)
     sendMessage(msg::ChatBroadcast(std::string("* ") + username + " has quit."));
 
     removePlayer(player);
+
+    Log::log->info(std::string("peer logout (") + username + ")");
 }
 
 void LoginManager::handleChatSayPublic(PlayerID player, const std::string& text)
@@ -63,6 +70,8 @@ void LoginManager::handleChatSayPublic(PlayerID player, const std::string& text)
         return;
 
     sendMessage(msg::ChatBroadcast(username + ">\t " + text));
+
+    Log::log->debug(std::string("PUBCHAT: ") + username + ">\t " + text);
 }
 
 bool LoginManager::lookupUsername(const PlayerID id, std::string& username)

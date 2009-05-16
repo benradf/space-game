@@ -340,6 +340,18 @@ void gfx::Entity::updateParticleSystems(const Ogre::Vector3& velocity)
         system->update(velocity);
 }
 
+bool gfx::Entity::hasObjectOverlay() const
+{
+    return (_objectOverlay.get() != 0);
+}
+
+gfx::ObjectOverlay& gfx::Entity::getObjectOverlay()
+{
+    assert(hasObjectOverlay());
+
+    return *_objectOverlay;
+}
+
 void gfx::Entity::attachObjectOverlay(std::auto_ptr<ObjectOverlay> overlay)
 {
     _objectOverlay = overlay;

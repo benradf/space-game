@@ -109,6 +109,19 @@ void VisibleObject::setControlState(ControlState control)
     _objectSim->setControlState(control);
 }
 
+const std::string& VisibleObject::getName() const
+{
+    return _name;
+}
+
+void VisibleObject::setName(const std::string& name)
+{
+    _name = name;
+
+    if (_objectGfx->hasObjectOverlay()) 
+        _objectGfx->getObjectOverlay().setText(name.c_str());
+}
+
 void VisibleObject::beginInterpPosition()
 {
     _predictedPos = _apparentPos;

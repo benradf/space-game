@@ -36,6 +36,7 @@ class ObjectCache : public virtual net::ProtocolUser {
         virtual void handleObjectEnter(uint16_t objectid);
         virtual void handleObjectLeave(uint16_t objectid);
         virtual void handleObjectAttach(uint16_t objectid);
+        virtual void handleObjectName(uint16_t objectid, const char* name);
         virtual void handleObjectUpdatePartial(uint16_t objectid, int16_t s_x, int16_t s_y);
         virtual void handleObjectUpdateFull(uint16_t objectid, int16_t s_x, int16_t s_y,
             int16_t v_x, int16_t v_y, uint8_t rot, uint8_t ctrl);
