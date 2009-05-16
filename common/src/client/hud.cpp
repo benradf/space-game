@@ -28,6 +28,10 @@ gfx::HUD::HUD(CEGUI::System& cegui, NetworkInterface& network, LocalController& 
 
     _message = static_cast<Editbox*>(wmgr.getWindow("Root/Message"));
     _console = static_cast<Listbox*>(wmgr.getWindow("Root/Console"));
+    _radar = wmgr.getWindow("Root/Radar");
+
+    _console->setVisible(true);
+    _radar->setVisible(true);
 }
 
 gfx::HUD::~HUD()

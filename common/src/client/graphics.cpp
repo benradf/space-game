@@ -199,6 +199,7 @@ void gfx::ObjectOverlay::update(Ogre::MovableObject* object)
     if (!_container->isVisible() || (_camera == 0))
         return;
 
+#if 0
     const Ogre::AxisAlignedBox& aabb = 
         object->getWorldBoundingBox(true);
 
@@ -207,9 +208,29 @@ void gfx::ObjectOverlay::update(Ogre::MovableObject* object)
 
     std::for_each(aabb.getAllCorners(), aabb.getAllCorners() + 8, 
         MinMaxCorners(_camera->getViewMatrix(), min, max));
+#endif
+
+    Ogre::Vector3 pos = _camera->getViewMatrix() *
+        object->getParentSceneNode()->getPosition();
+
+    pos.x = pos.x / pos.z + 0.5f;
+    pos.y = pos.y / pos.z + 0.5f;
+
+    _container->setPosition(1.0f - pos.x, pos.y + 0.02f);
+    _container->setDimensions(0.05, 0.1);
+
+#if 0
+    min = object->getParentSceneNode()->getPosition();
+
+    min = _camera->getViewMatrix() * min;
+
+    min.x = min.x / min.z + 0.5f;
+    min.y = min.y / min.z + 0.5f;
+    max = min;
 
     _container->setPosition(1.0f - min.x, min.y);
     _container->setDimensions(max.x - min.x, 0.1);
+#endif
 }
 
 void gfx::ObjectOverlay::setColour(const Ogre::ColourValue& colour)

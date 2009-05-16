@@ -59,6 +59,7 @@ class HUD : public OIS::KeyListener {
         CEGUI::System& _cegui;
         CEGUI::Editbox* _message;
         CEGUI::Listbox* _console;
+        CEGUI::Window* _radar;
 };
 
 

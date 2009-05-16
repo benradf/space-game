@@ -120,12 +120,12 @@ void clientMain()
     //ctrl->setObject(&ship);
     theScene = scene.get();
 
+    std::auto_ptr<gfx::GUI> gui(gfx.getViewport().createGUI());
+
     NetworkInterface network;
 
     network.setServer(serverHostname.c_str());
     network.maintainServerConnection(true);
-
-    std::auto_ptr<gfx::GUI> gui(gfx.getViewport().createGUI());
     std::auto_ptr<gfx::HUD> hud(gui->createHUD(network, *ctrl));
     input.addKeyboardListener(*hud);
     hudPtr = hud.get();
