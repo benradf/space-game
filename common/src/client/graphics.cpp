@@ -143,7 +143,7 @@ gfx::ObjectOverlay::ObjectOverlay(Ogre::Overlay* overlay, const char* name) :
         _text->setMetricsMode(Ogre::GMM_PIXELS);
         _text->setPosition(0.0f, 0.0f);
 
-        //_text->setParameter("font_name", "bluebold");
+        _text->setParameter("font_name", "BlueBold");
         _text->setParameter("char_height", "16");
         _text->setParameter("horz_align", "center");
 
@@ -167,15 +167,17 @@ void gfx::ObjectOverlay::attachCamera(Camera& camera)
 }
 
 struct MinMaxCorners {
-    MinMaxCorners(const Ogre::Matrix4& matrix);
+    MinMaxCorners(const Ogre::Matrix4& matrix, 
+        Ogre::Vector3& min_, Ogre::Vector3& max_);
     void operator()(const Ogre::Vector3& corner);
     const Ogre::Matrix4& viewMatrix;
-    Ogre::Vector3 min, max;
+    Ogre::Vector3& min;
+    Ogre::Vector3& max;
 };
 
-MinMaxCorners::MinMaxCorners(const Ogre::Matrix4& matrix) :
-    viewMatrix(matrix), min(Ogre::Vector3::ZERO), max(Ogre::Vector3::ZERO)
-    
+MinMaxCorners::MinMaxCorners(const Ogre::Matrix4& matrix, 
+    Ogre::Vector3& min_, Ogre::Vector3& max_) :
+    viewMatrix(matrix), min(min_), max(max_)
 {
 
 }
@@ -197,12 +199,17 @@ void gfx::ObjectOverlay::update(Ogre::MovableObject* object)
     if (!_container->isVisible() || (_camera == 0))
         return;
 
-    MinMaxCorners corners(_camera->getViewMatrix());
-    const Ogre::AxisAlignedBox& aabb = object->getWorldBoundingBox(true);
-    std::for_each(aabb.getAllCorners(), aabb.getAllCorners() + 8, corners);
+    const Ogre::AxisAlignedBox& aabb = 
+        object->getWorldBoundingBox(true);
 
-    _container->setPosition(corners.min.x, corners.min.y);
-    _container->setDimensions(corners.max.x - corners.min.x, 0.1);
+    Ogre::Vector3 min(1.0f, 1.0f, 1.0f);
+    Ogre::Vector3 max(0.0f, 0.0f, 0.0f);
+
+    std::for_each(aabb.getAllCorners(), aabb.getAllCorners() + 8, 
+        MinMaxCorners(_camera->getViewMatrix(), min, max));
+
+    _container->setPosition(1.0f - min.x, min.y);
+    _container->setDimensions(max.x - min.x, 0.1);
 }
 
 void gfx::ObjectOverlay::setColour(const Ogre::ColourValue& colour)
