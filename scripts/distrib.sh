@@ -30,6 +30,9 @@ function distrib-client-mingw() {
 
     # CEGUI stuff
     cp -Rv common/data/cegui/datafiles mingw/distrib/client
+    for f in `ls mingw/bin/libCEGUI*.dll`; do
+        scripts/cp-dll-depends.sh $f mingw/distrib/client "mingw/bin mingw/lib"
+    done
 
     # Pack debug archive.
     cd mingw/distrib; rar -r a client-debug-`date +%d%m%y-%H%M%S`.rar client/; cd -
