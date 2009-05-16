@@ -17,6 +17,5 @@ function cp-dlls() {
     done
 }
 
-rm -f $2/*.dll
 cp-dlls $@
 

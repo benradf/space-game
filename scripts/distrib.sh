@@ -38,7 +38,7 @@ function distrib-client-mingw() {
     cd mingw/distrib; rar -r a client-debug-`date +%d%m%y-%H%M%S`.rar client/; cd -
 
     # Strip binaries.
-    find mingw/distrib/client '(' -name "*.dll" -or -name "*.exe" ')' -exec i386-mingw32msvc-strip {} \;
+    find mingw/distrib/client '(' -name "[lib,Plugin_,RenderSystem_]*.dll" -or -name "*.exe" ')' -exec i386-mingw32msvc-strip {} \;
 
     # Pack release archive.
     cd mingw/distrib; rar -r a client-release-`date +%d%m%y-%H%M%S`.rar client/; cd -
