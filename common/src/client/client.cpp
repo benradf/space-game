@@ -197,7 +197,7 @@ void clientMain()
         gfx.getViewport().update();
         frameCount++;
 
-        //Ogre::WindowEventUtilities::messagePump();
+        Ogre::WindowEventUtilities::messagePump();
 
         if (fpsTimer.elapsed() > 5000000) {
             int fps = frameCount / 5;

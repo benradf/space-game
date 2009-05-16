@@ -146,7 +146,7 @@ bool CEGUIInput::keyReleased(const OIS::KeyEvent& arg)
 
 bool CEGUIInput::mouseMoved(const OIS::MouseEvent &arg)
 {
-    return _system.injectMouseMove(arg.state.X.rel * 1.5, arg.state.Y.rel * 1.5);
+    return _system.injectMousePosition(arg.state.X.abs, arg.state.Y.abs);
 }
 
 bool CEGUIInput::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
@@ -172,8 +172,12 @@ Input::Input(Ogre::RenderWindow* window)
     windowHandleStr << windowHandle;
     params.insert(std::make_pair(std::string("WINDOW"), windowHandleStr.str()));
     params.insert(std::make_pair(std::string("x11_mouse_grab"), std::string("false")));
-    params.insert(std::make_pair(std::string("x11_mouse_hide"), std::string("false"))); 
+    params.insert(std::make_pair(std::string("x11_mouse_hide"), std::string("true"))); 
     params.insert(std::make_pair(std::string("x11_keyboard_grab"), std::string("false")));
+    params.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_FOREGROUND")));
+    params.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_NONEXCLUSIVE")));
+    params.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_FOREGROUND")));
+    params.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_NONEXCLUSIVE")));
 
     _inputManager = OIS::InputManager::createInputSystem(params);
 

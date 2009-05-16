@@ -31,6 +31,8 @@ Login::Login(CEGUI::System& cegui) :
     Window* connectButton = wmgr.getWindow("Root/Login/Connect");
     connectButton->subscribeEvent(PushButton::EventClicked,
         Event::Subscriber(&Login::connectClicked, this));
+
+    _hostname = "localhost";
 }
 
 void Login::promptForLoginDetails()
@@ -44,7 +46,7 @@ void Login::promptForLoginDetails()
     _usernameBox->activate();
     _usernameBox->setText("");
     _passwordBox->setText("");
-    _hostnameBox->setText("");
+    _hostnameBox->setText(_hostname);
 
     _detailsAvailable = false;
     _prompting = true;

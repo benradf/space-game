@@ -15,6 +15,7 @@ function distrib-client-mingw() {
 
     # Libraries.
     scripts/cp-dll-depends.sh mingw/bin/client.exe mingw/distrib/client "mingw/bin mingw/lib"
+    cp mingw/usr/lib/libCg.dll mingw/distrib/client/cg.dll
 
     # Ogre plugins.
     mkdir -p mingw/distrib/client/plugins
@@ -26,6 +27,9 @@ function distrib-client-mingw() {
     sed 's/^PluginFolder=.*$/PluginFolder=plugins/;s/^Plugin=\(.*\)\.so$/Plugin=\1\.dll/' \
         mingw/distrib/client/plugins.cfg.in >mingw/distrib/client/plugins.cfg
     rm mingw/distrib/client/plugins.cfg.in
+
+    # CEGUI stuff
+    cp -Rv common/data/cegui/datafiles mingw/distrib/client
 
     # Pack debug archive.
     cd mingw/distrib; rar -r a client-debug-`date +%d%m%y-%H%M%S`.rar client/; cd -
