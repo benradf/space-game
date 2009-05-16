@@ -21,6 +21,7 @@
 
 
 class Input;
+class Login;
 class CEGUIInput;
 class LocalController;
 class NetworkInterface;
@@ -161,6 +162,8 @@ class GUI {
 
         std::auto_ptr<class HUD> createHUD(NetworkInterface& network, 
             LocalController& localController);
+
+        std::auto_ptr<Login> createLogin();
 
     private:
         std::auto_ptr<CEGUI::OgreCEGUIRenderer> _ceguiRenderer;

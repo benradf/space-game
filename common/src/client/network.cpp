@@ -8,6 +8,7 @@
 
 
 #include "network.hpp"
+#include "login.hpp"
 #include <core/core.hpp>
 #include <iostream>
 
@@ -71,8 +72,8 @@ void RemoteServer::handleBroadcastMsg(const char* text)
 
 ////////// NetworkInterface //////////
 
-NetworkInterface::NetworkInterface() :
-    _maintainConnection(false), _connectingHandle(0)
+NetworkInterface::NetworkInterface(Login& login) :
+    _maintainConnection(false), _connectingHandle(0), _login(login)
 {
     Log::log->info("starting network interface");
 }
@@ -86,12 +87,16 @@ void NetworkInterface::main()
 {
     if (_maintainConnection && (_server.get() == 0)) {
         if (!connectionInProgress(_connectingHandle)) {
-            try {
-                Log::log->info("attempting to connect to server");
-                _connectingHandle = connect(_hostname.c_str(), GAMEPORT);
-            } catch (NetworkException& e) {
-                e.annotate("while connecting to server");
-                throw;
+            if (_login.loginDetailsAvailable()) {
+                try {
+                    Log::log->info("attempting to connect to server");
+                    _connectingHandle = connect(_login.getHostname().c_str(), GAMEPORT);
+                } catch (NetworkException& e) {
+                    e.annotate("while connecting to server");
+                    throw;
+                }
+            } else {
+                _login.promptForLoginDetails();
             }
         }
     }
@@ -100,16 +105,6 @@ void NetworkInterface::main()
         _server->updateCachedObjects();
 
     doNetworkTasks();
-}
-
-void NetworkInterface::setServer(const std::string& hostname)
-{
-    _hostname = hostname;
-}
-
-void NetworkInterface::maintainServerConnection(bool yes)
-{
-    _maintainConnection = yes;
 }
 
 RemoteServer& NetworkInterface::getServer()
@@ -122,15 +117,24 @@ bool NetworkInterface::hasServer() const
     return (_server.get() != 0);
 }
 
+void NetworkInterface::maintainServerConnection(bool yes)
+{
+    _maintainConnection = yes;
+}
+
 net::Peer* NetworkInterface::handleConnect(void* data)
 {
+    assert(_login.loginDetailsAvailable());
+
     Log::log->info("connected to server");
 
     _server.reset(new RemoteServer(data));
     _connectingHandle = 0;
 
     uint8_t password[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-    _server->sendLogin("username", password);
+    strncpy((char*)password, _login.getPassword().c_str(), sizeof(password));
+    
+    _server->sendLogin(_login.getUsername().c_str(), password);
 
     return _server.get();
 }

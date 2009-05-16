@@ -17,6 +17,9 @@
 #include "chat.hpp"
 
 
+class Login;
+
+
 class RemoteServer : public net::Peer, 
                      public ObjectCache, 
                      public ChatSystem {
@@ -38,16 +41,15 @@ class RemoteServer : public net::Peer,
 
 class NetworkInterface : public net::Interface {
     public:
-        NetworkInterface();
+        NetworkInterface(Login& login);
         virtual ~NetworkInterface();
 
         void main();
 
-        void setServer(const std::string& hostname);
-        void maintainServerConnection(bool yes = true);
-
         RemoteServer& getServer();
         bool hasServer() const;
+
+        void maintainServerConnection(bool yes = true);
 
     private:
         virtual net::Peer* handleConnect(void* data);
@@ -57,7 +59,7 @@ class NetworkInterface : public net::Interface {
 
         bool _maintainConnection;
         void* _connectingHandle;
-        std::string _hostname;
+        Login& _login;
 };
 
 

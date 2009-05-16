@@ -24,6 +24,7 @@
 #include <string>
 #include <algorithm>
 #include "hud.hpp"
+#include "login.hpp"
 
 
 using namespace std;
@@ -100,16 +101,6 @@ void clientMain()
     camera->setPosition(Ogre::Vector3(-0.1f, -0.1f, 200.0f));
     camera->lookAt(Ogre::Vector3(0.0f, 0.0f, 0.0f));
     //scene->setSkyPlane("Sky/Orion", Ogre::Vector3::UNIT_Z, -500.0f);
-    scene->addBackdrop("Backdrop/StarFieldBackdrop", 0.0f, -1000.0f, 1500.0f);
-    scene->addBackdrop("Backdrop/StarFieldOverlay1", 0.05f, -900.0f, 1350.0f);
-    scene->addBackdrop("Backdrop/StarFieldOverlay2", 0.15f, -800.0f, 1200.0f);
-    scene->addBackdrop("Backdrop/StarFieldOverlay3", 0.25f, -850.0f, 1100.0f);
-
-    Ogre::Vector3 cameraPos = Ogre::Vector3::ZERO;
-
-    std::auto_ptr<Entity> map = scene->createEntity("map", "base03.mesh");
-    map->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
-    //loadCollisionGeom("maps/base03.dat");
 
     //Ship ship(*scene, "username", "spider.mesh");
     //Input input(gfx.getViewport().getRenderWindow());
@@ -121,10 +112,29 @@ void clientMain()
     theScene = scene.get();
 
     std::auto_ptr<gfx::GUI> gui(gfx.getViewport().createGUI());
+    std::auto_ptr<Login> login(gui->createLogin());
 
-    NetworkInterface network;
+#if 0
+    while (clientRunning) {
+        input.capture();
+        gui->render();
+        gfx.getViewport().update();
+    }
+#endif
 
-    network.setServer(serverHostname.c_str());
+    scene->addBackdrop("Backdrop/StarFieldBackdrop", 0.0f, -1000.0f, 1500.0f);
+    scene->addBackdrop("Backdrop/StarFieldOverlay1", 0.05f, -900.0f, 1350.0f);
+    scene->addBackdrop("Backdrop/StarFieldOverlay2", 0.15f, -800.0f, 1200.0f);
+    scene->addBackdrop("Backdrop/StarFieldOverlay3", 0.25f, -850.0f, 1100.0f);
+
+    Ogre::Vector3 cameraPos = Ogre::Vector3::ZERO;
+
+    std::auto_ptr<Entity> map = scene->createEntity("map", "base03.mesh");
+    map->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
+    //loadCollisionGeom("maps/base03.dat");
+
+    NetworkInterface network(*login);
+
     network.maintainServerConnection(true);
     std::auto_ptr<gfx::HUD> hud(gui->createHUD(network, *ctrl));
     input.addKeyboardListener(*hud);

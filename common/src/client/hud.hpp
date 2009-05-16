@@ -33,6 +33,7 @@ class HUD : public OIS::KeyListener {
         HUD(CEGUI::System& cegui, NetworkInterface& network, LocalController& localController);
         virtual ~HUD();
 
+        void activate();
         void update();
 
     private:
@@ -50,6 +51,7 @@ class HUD : public OIS::KeyListener {
         enum State {
             STATE_NORMAL,
             STATE_TYPEMSG,
+            STATE_LOGIN,
         };
 
         State _state;
@@ -57,6 +59,7 @@ class HUD : public OIS::KeyListener {
         NetworkInterface& _network;
 
         CEGUI::System& _cegui;
+        CEGUI::Window* _hudRoot;
         CEGUI::Editbox* _message;
         CEGUI::Listbox* _console;
         CEGUI::Window* _radar;

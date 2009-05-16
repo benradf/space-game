@@ -21,10 +21,9 @@ gfx::HUD::HUD(CEGUI::System& cegui, NetworkInterface& network, LocalController& 
 {
     WindowManager& wmgr = WindowManager::getSingleton();
 
-    Window* root = wmgr.loadWindowLayout("HUD.layout");
-    _cegui.setGUISheet(root);
-    root->setVisible(true);
-    //wmgr.getWindow("Root/Radar")->setVisible(false);
+    _hudRoot = wmgr.loadWindowLayout("HUD.layout");
+    _cegui.setGUISheet(_hudRoot);
+    _hudRoot->setVisible(true);
 
     _message = static_cast<Editbox*>(wmgr.getWindow("Root/Message"));
     _console = static_cast<Listbox*>(wmgr.getWindow("Root/Console"));
@@ -36,7 +35,12 @@ gfx::HUD::HUD(CEGUI::System& cegui, NetworkInterface& network, LocalController& 
 
 gfx::HUD::~HUD()
 {
+    // unset gui sheet
+}
 
+void gfx::HUD::activate()
+{
+    _cegui.setGUISheet(_hudRoot);
 }
 
 void gfx::HUD::update()

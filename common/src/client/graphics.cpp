@@ -9,6 +9,7 @@
 
 #include "hud.hpp"
 #include "input.hpp"
+#include "login.hpp"
 #include "graphics.hpp"
 #include <core/core.hpp>
 #include <CEGUIDefaultResourceProvider.h>
@@ -458,6 +459,11 @@ std::auto_ptr<gfx::HUD> gfx::GUI::createHUD(
     NetworkInterface& network, LocalController& localController)
 {
     return std::auto_ptr<HUD>(new HUD(*_ceguiSystem, network, localController));
+}
+
+std::auto_ptr<Login> gfx::GUI::createLogin()
+{
+    return std::auto_ptr<Login>(new Login(*_ceguiSystem));
 }
 
 
