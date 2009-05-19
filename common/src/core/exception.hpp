@@ -4,6 +4,8 @@
 
 #include <string>
 #include <exception>
+#include <string.h>
+#include <errno.h>
 
 
 #define STRINGIZE(S) REALLY_STRINGIZE(S)
@@ -23,6 +25,14 @@ class Exception : public std::exception {
     private:
         int levels;
         std::string _what;
+};
+
+
+class ErrNoException : public Exception {
+    public:
+        ErrNoException();
+        ErrNoException(const char* context);
+        virtual ~ErrNoException() throw ();
 };
 
 
@@ -88,6 +98,32 @@ inline void Exception::annotate(const std::string& description)
 {
     _what += "\n";
     _what += description;
+}
+
+
+////////// ErrNoException //////////
+
+inline ErrNoException::ErrNoException()
+{
+    char buffer[64];
+
+    annotate(strerror_r(errno, buffer, sizeof(buffer)));
+}
+
+inline ErrNoException::ErrNoException(const char* context)
+{
+    char buffer[64];
+    char description[256];
+
+    snprintf(description, sizeof(description), "%s: %s", 
+        context, strerror_r(errno, buffer, sizeof(buffer)));
+
+    annotate(description);
+}
+
+inline ErrNoException::~ErrNoException() throw ()
+{
+
 }
 
 
