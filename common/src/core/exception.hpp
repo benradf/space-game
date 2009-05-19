@@ -31,7 +31,7 @@ class Exception : public std::exception {
 class ErrNoException : public Exception {
     public:
         ErrNoException();
-        ErrNoException(const char* context);
+        ErrNoException(const std::string& context);
         virtual ~ErrNoException() throw ();
 };
 
@@ -110,13 +110,13 @@ inline ErrNoException::ErrNoException()
     annotate(strerror_r(errno, buffer, sizeof(buffer)));
 }
 
-inline ErrNoException::ErrNoException(const char* context)
+inline ErrNoException::ErrNoException(const std::string& context)
 {
     char buffer[64];
     char description[256];
 
     snprintf(description, sizeof(description), "%s: %s", 
-        context, strerror_r(errno, buffer, sizeof(buffer)));
+        context.c_str(), strerror_r(errno, buffer, sizeof(buffer)));
 
     annotate(description);
 }
