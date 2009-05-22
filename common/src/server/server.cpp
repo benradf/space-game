@@ -18,6 +18,8 @@
 #include <math/prim.hpp>
 #include "canvas.hpp"
 #include <physics/kdtree.hpp>
+#include "daemon.hpp"
+#include "logging.hpp"
 
 // temp testing of headers
 #include <math/volumes.hpp>
@@ -27,31 +29,55 @@ using namespace std;
 
 static const int CYCLE_PERIOD = 100000;
 
-void signalShutdown(int signum)
+
+class Server : public Daemon, public SignalHandler {
+    public:
+        Server();
+        virtual ~Server();
+        virtual int main();
+
+    private:
+        int safeMain();
+
+        bool _running;
+
+};
+
+Server::Server() :
+    Daemon("/var/run/mmoserv.pid"), _running(true)
 {
-    Log::log->info("SIGINT caught: use CTRL+D to shutdown server cleanly");
+
 }
 
-void catchSignals(bool yes)
+Server::~Server()
 {
-    if (yes) {
-        signal(SIGINT, signalShutdown);
-    } else {
-        signal(SIGINT, SIG_DFL);
+
+}
+
+int Server::main()
+{
+    char logFilename[64];
+    snprintf(logFilename, sizeof(logFilename), "/var/log/mmoserv_%d.xml", getpid());
+
+    FileLogger fileLog(logFilename);
+    logger = &fileLog;
+    
+    logDebug(LogNote("server started"));
+    net::initialise();
+    
+    try {
+        safeMain();
+    } catch (std::exception& e) {
+        logFatal(LogException(e));
     }
+
+    net::cleanup();
+    
+    return 0;
 }
 
-void loadCollisionGeom(const char* filename);
-
-void serverMain()
+int Server::safeMain()
 {
-    // Catch signals.
-    catchSignals(true);
-
-    // Change working directory.
-    if (chdir(getSettings().directory().c_str()) != 0)
-        throw FileException("unable to change to specified working directory");
-
     // Create standard jobs.
     std::auto_ptr<Idle> jobIdle(new Idle(CYCLE_PERIOD));
     std::auto_ptr<PostOffice> jobPostOffice(new PostOffice);
@@ -73,50 +99,26 @@ void serverMain()
         workers.push_back(boost::shared_ptr<Worker>(new Worker(pool)));
         Log::log->info("Worker thread created");
     }
-    
-    // Main thread waits.
-    while (!feof(stdin))
-        fgetc(stdin);
 
-    // Stop catching signals.
-    catchSignals(false);
+    do {
+        pause();
+    } while (_running);
 }
-
-extern void displayKDTree();
 
 int main(int argc, char* argv[])
 {
-    //displayKDTree();
-    //return 0;
+    Settings settings(argc, argv);
+    setSettings(settings);
 
-    // Initialise logging.
-    Log::Console consoleLog;
-    Log::File fileLog("server.log");
-    Log::Multi multiLog;
-    multiLog.add(consoleLog);
-    multiLog.add(fileLog);
-    Log::log = &multiLog;
-
-    // Read settings.
-    Settings serverSettings(argc, argv);
-    setSettings(serverSettings);
-    
-    Log::log->info("Server starts");
-    Log::log->info("Built " __DATE__ " " __TIME__);
-
-    net::initialise();
-    
     try {
-        serverMain();
-    } catch (std::exception& e) {
-        Log::log->error(e.what());
+        Server server;
+        server.daemonise("mmoserv", "/");
+    } catch (const std::exception& e) {
+        ofstream log("/var/log/mmoserv.log");
+        log << e.what() << endl;
+        log.close();
     }
 
-    net::cleanup();
-    
-    Log::log->info("Server stops");
-    
     return 0;
 }
-
 

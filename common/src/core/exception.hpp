@@ -28,12 +28,16 @@ class Exception : public std::exception {
 };
 
 
+#ifndef WIN32
+
 class ErrNoException : public Exception {
     public:
         ErrNoException();
         ErrNoException(const std::string& context);
         virtual ~ErrNoException() throw ();
 };
+
+#endif // WIN32
 
 
 template<typename T>
@@ -103,6 +107,8 @@ inline void Exception::annotate(const std::string& description)
 
 ////////// ErrNoException //////////
 
+#ifndef WIN32
+
 inline ErrNoException::ErrNoException()
 {
     char buffer[64];
@@ -125,6 +131,8 @@ inline ErrNoException::~ErrNoException() throw ()
 {
 
 }
+
+#endif  // WIN32
 
 
 ////////// DerivedException //////////

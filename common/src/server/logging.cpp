@@ -189,3 +189,12 @@ LogException::LogException(const std::exception& e) :
     pushChild(new LogXMLText("description", e.what()));
 }
 
+
+////////// LogStatic //////////
+
+LogNote::LogNote(const std::string& message) :
+    LogContext("notification")
+{
+    pushChild(new LogXMLText("message", message));
+}
+

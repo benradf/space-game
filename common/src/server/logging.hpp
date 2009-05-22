@@ -1,4 +1,4 @@
-/// \file loggin.hpp
+/// \file logging.hpp
 /// \brief Advanced logging features.
 /// \author Ben Radford 
 /// \date 19th May 2009
@@ -104,6 +104,11 @@ struct LogContext : public LogXMLTree {
 
 struct LogException : public LogContext {
     LogException(const std::exception& e);
+};
+
+
+struct LogNote : public LogContext {
+    LogNote(const std::string& message);
 };
 
 
