@@ -11,17 +11,15 @@
 #define DAEMON_HPP
 
 
-class Daemon {
+class SignalHandler {
     public:
-        Daemon();
-        virtual ~Daemon();
-        virtual void main() = 0;
+        SignalHandler();
+        virtual ~SignalHandler();
 
-        void secure(const char* user);
-        void daemonise(const char* pidFile);
-
+    protected:
         void installSignalHandler(int sig);
 
+    private:
         virtual void handle_SIGINT();
         virtual void handle_SIGQUIT();
         virtual void handle_SIGILL();
@@ -51,13 +49,29 @@ class Daemon {
         virtual void handle_SIGPWR();
         virtual void handle_SIGWINCH();
 
+        static void signalHandler(int sig);
+        static SignalHandler* _this;
+};
+
+
+class Daemon {
+    public:
+        Daemon(const char* pidFile);
+
+        virtual ~Daemon();
+        virtual int main() = 0;
+
+        void daemonise(const char* user, const char* dir);
+
     private:
+        void secure(const char* user);
+
         void forkOff();
         void closeFiles();
-        void exclude(const char* pidFile);
+        void writePidFile();
 
-        static void signalHandler(int sig);
-        static Daemon* _this;
+        const char* _pidFile;
+        int _pidFileDescriptor;
 };
 
 

@@ -22,243 +22,169 @@ using namespace std;
 #include <pwd.h>
 
 #include <core/exception.hpp>
+#include "logging.hpp"
 
 
-////////// Daemon //////////
+////////// SignalHandler //////////
 
-Daemon* Daemon::_this = 0;
+SignalHandler* SignalHandler::_this = 0;
 
-Daemon::Daemon()
+SignalHandler::SignalHandler()
 {
     _this = this;
 }
 
-Daemon::~Daemon()
+SignalHandler::~SignalHandler()
 {
     _this = 0;
 }
 
-void Daemon::secure(const char* user)
-{
-    passwd* entry = getpwnam(user);
-
-    if (entry == 0) 
-        throw Exception("user not found");
-
-    if (chdir(entry->pw_dir) != 0) 
-        throw ErrNoException("chdir failed");
-
-    if (chroot(entry->pw_dir) != 0) 
-        throw ErrNoException("chroot failed");
-
-    if (setgid(entry->pw_gid) != 0) 
-        throw ErrNoException("setgid failed");
-
-    if (setuid(entry->pw_uid) != 0)
-        throw ErrNoException("setuid failed");
-}
-
-void Daemon::daemonise(const char* pidFile)
-{
-    forkOff();
-    setsid();
-    forkOff();
-    closeFiles();
-    umask(0022);
-    chdir("/");
-    exclude(pidFile);
-    main();
-}
-
-void Daemon::installSignalHandler(int sig)
+void SignalHandler::installSignalHandler(int sig)
 {
     signal(sig, signalHandler);
 }
 
-void Daemon::handle_SIGINT()
+void SignalHandler::handle_SIGINT()
 {
 
 }
 
-void Daemon::handle_SIGQUIT()
+void SignalHandler::handle_SIGQUIT()
 {
 
 }
 
-void Daemon::handle_SIGILL()
+void SignalHandler::handle_SIGILL()
 {
 
 }
 
-void Daemon::handle_SIGABRT()
+void SignalHandler::handle_SIGABRT()
 {
 
 }
 
-void Daemon::handle_SIGFPE()
+void SignalHandler::handle_SIGFPE()
 {
 
 }
 
-void Daemon::handle_SIGSEGV()
+void SignalHandler::handle_SIGSEGV()
 {
 
 }
 
-void Daemon::handle_SIGPIPE()
+void SignalHandler::handle_SIGPIPE()
 {
 
 }
 
-void Daemon::handle_SIGALRM()
+void SignalHandler::handle_SIGALRM()
 {
 
 }
 
-void Daemon::handle_SIGTERM()
+void SignalHandler::handle_SIGTERM()
 {
 
 }
 
-void Daemon::handle_SIGUSR1()
+void SignalHandler::handle_SIGUSR1()
 {
 
 }
 
-void Daemon::handle_SIGUSR2()
+void SignalHandler::handle_SIGUSR2()
 {
 
 }
 
-void Daemon::handle_SIGCHLD()
+void SignalHandler::handle_SIGCHLD()
 {
 
 }
 
-void Daemon::handle_SIGCONT()
+void SignalHandler::handle_SIGCONT()
 {
 
 }
 
-void Daemon::handle_SIGTSTP()
+void SignalHandler::handle_SIGTSTP()
 {
 
 }
 
-void Daemon::handle_SIGTTIN()
+void SignalHandler::handle_SIGTTIN()
 {
 
 }
 
-void Daemon::handle_SIGTTOU()
+void SignalHandler::handle_SIGTTOU()
 {
 
 }
 
-void Daemon::handle_SIGBUS()
+void SignalHandler::handle_SIGBUS()
 {
 
 }
 
-void Daemon::handle_SIGPOLL()
+void SignalHandler::handle_SIGPOLL()
 {
 
 }
 
-void Daemon::handle_SIGPROF()
+void SignalHandler::handle_SIGPROF()
 {
 
 }
 
-void Daemon::handle_SIGSYS()
+void SignalHandler::handle_SIGSYS()
 {
 
 }
 
-void Daemon::handle_SIGTRAP()
+void SignalHandler::handle_SIGTRAP()
 {
 
 }
 
-void Daemon::handle_SIGURG()
+void SignalHandler::handle_SIGURG()
 {
 
 }
 
-void Daemon::handle_SIGVTALRM()
+void SignalHandler::handle_SIGVTALRM()
 {
 
 }
 
-void Daemon::handle_SIGXCPU()
+void SignalHandler::handle_SIGXCPU()
 {
 
 }
 
-void Daemon::handle_SIGXFSZ()
+void SignalHandler::handle_SIGXFSZ()
 {
 
 }
 
-void Daemon::handle_SIGSTKFLT()
+void SignalHandler::handle_SIGSTKFLT()
 {
 
 }
 
-void Daemon::handle_SIGPWR()
+void SignalHandler::handle_SIGPWR()
 {
 
 }
 
-void Daemon::handle_SIGWINCH()
+void SignalHandler::handle_SIGWINCH()
 {
 
 }
 
-void Daemon::forkOff()
-{
-    pid_t pid = fork();
-
-    if (pid == -1) 
-        throw ErrNoException("fork failed");
-
-    if (pid == 0) 
-        return;
-
-    _exit(0);
-}
-
-void Daemon::closeFiles()
-{
-    for (int i = 0; i < getdtablesize(); i++) 
-        close(i);
-
-    int fd = open("/dev/null", O_RDONLY);
-    dup2(fd, 0);
-    close(fd);
-
-    fd = open("/dev/null", O_WRONLY);
-    dup2(fd, 1);
-    dup2(fd, 2);
-    close(fd);
-}
-
-void Daemon::exclude(const char* pidFile)
-{
-    int fd = open(pidFile, O_WRONLY|O_CREAT, 0640);
-    
-    if (fd == -1) 
-        throw ErrNoException("failed to open pid file");
-
-    if (lockf(fd, F_TLOCK, 0) != 0) 
-        throw ErrNoException("failed to lock pid file");
-
-    char buffer[16];
-    snprintf(buffer, sizeof(buffer), "%d\n", getpid());
-    write(fd, buffer, strlen(buffer));
-}
-
-void Daemon::signalHandler(int sig)
+void SignalHandler::signalHandler(int sig)
 {
     if (_this == 0) 
         return;
@@ -293,5 +219,98 @@ void Daemon::signalHandler(int sig)
         case SIGPWR: _this->handle_SIGPWR(); break;
         case SIGWINCH: _this->handle_SIGWINCH(); break;
     }
+}
+
+
+////////// Daemon //////////
+
+Daemon::Daemon(const char* pidFile) :
+    _pidFile(pidFile)
+{
+
+}
+
+Daemon::~Daemon()
+{
+
+}
+
+void Daemon::daemonise(const char* user, const char* dir)
+{
+    secure(user);
+    forkOff();
+    setsid();
+    forkOff();
+    chdir(dir);
+    umask(0022);
+    writePidFile();
+    main();
+}
+
+void Daemon::secure(const char* user)
+{
+    closeFiles();
+
+    passwd* entry = getpwnam(user);
+
+    if (entry == 0) 
+        throw Exception("user not found");
+
+    if (chdir(entry->pw_dir) != 0) 
+        throw ErrNoException("chdir failed");
+
+    if (chroot(entry->pw_dir) != 0) 
+        throw ErrNoException("chroot failed");
+
+    if (setgid(entry->pw_gid) != 0) 
+        throw ErrNoException("setgid failed");
+
+    if (setuid(entry->pw_uid) != 0)
+        throw ErrNoException("setuid failed");
+}
+
+void Daemon::forkOff()
+{
+    pid_t pid = fork();
+
+    if (pid == -1) 
+        throw ErrNoException("fork failed");
+
+    if (pid == 0) 
+        return;
+
+    _exit(0);
+}
+
+void Daemon::closeFiles()
+{
+    for (int i = 0; i < getdtablesize(); i++)
+        close(i);
+
+    int fd = open("/dev/null", O_RDONLY);
+    dup2(fd, 0);
+    close(fd);
+
+    fd = open("/dev/null", O_WRONLY);
+    dup2(fd, 1);
+    dup2(fd, 2);
+    close(fd);
+}
+
+void Daemon::writePidFile()
+{
+    int fd = open(_pidFile, O_WRONLY|O_CREAT, 0640);
+    
+    if (fd == -1) 
+        throw ErrNoException("failed to open pid file");
+
+    if (lockf(fd, F_TLOCK, 0) != 0) 
+        throw ErrNoException("failed to lock pid file");
+
+    char buffer[16];
+    snprintf(buffer, sizeof(buffer), "%d\n", getpid());
+    write(fd, buffer, strlen(buffer));
+
+    _pidFileDescriptor = fd;
 }
 
