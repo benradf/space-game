@@ -16,6 +16,7 @@
 #include <vector>
 #include <fstream>
 #include <core/log.hpp>
+#include "logmsg.hpp"
 #include "lock.hpp"
 
 

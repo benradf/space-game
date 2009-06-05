@@ -7,14 +7,16 @@
 void initialiseLogging()
 {
     static Log::Console consoleLog;
+    static Log::File fileLogAll("/var/log/mmoserv_all.log");
 
     char filename[64];
     snprintf(filename, sizeof(filename), "/var/log/mmoserv_%d.log", getpid());
-    static Log::File fileLog(filename);
+    static Log::File fileLogSession(filename);
 
     static Log::Multi multiLog;
     multiLog.add(consoleLog);
-    multiLog.add(fileLog);
+    multiLog.add(fileLogAll);
+    multiLog.add(fileLogSession);
 
     static SafeLog safeLog(multiLog);
     Log::log = &safeLog;

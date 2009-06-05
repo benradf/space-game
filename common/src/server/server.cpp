@@ -40,6 +40,7 @@ class Server : public Daemon, public SignalHandler {
         int safeMain();
 
         virtual void handle_SIGINT();
+        virtual void handle_SIGTERM();
 
         bool _running;
 
@@ -60,10 +61,11 @@ int Server::main()
 {
     initialiseLogging();
     
-    logInfo("server started");
+    logInfo(LOGMSG_SERVER_START);
     net::initialise();
 
     installSignalHandler(SIGINT);
+    installSignalHandler(SIGTERM);
     
     try {
         safeMain();
@@ -97,7 +99,7 @@ int Server::safeMain()
     std::vector<boost::shared_ptr<Worker> > workers;
     for (int i = 0; i < getSettings().threadMax(); i++) {
         workers.push_back(boost::shared_ptr<Worker>(new Worker(pool)));
-        Log::log->info("Worker thread created");
+        logInfo(LOGMSG_CREATE_THREAD);
     }
 
     do {
@@ -107,7 +109,14 @@ int Server::safeMain()
 
 void Server::handle_SIGINT()
 {
-    logInfo("SIGINT caught: stopping server");
+    logInfo(LOGMSG_SERVER_STOP);
+
+    _running = false;
+}
+
+void Server::handle_SIGTERM()
+{
+    logInfo(LOGMSG_SERVER_STOP);
 
     _running = false;
 }
@@ -121,7 +130,7 @@ int main(int argc, char* argv[])
         Server server;
         server.daemonise("mmoserv", "/");
     } catch (const std::exception& e) {
-        ofstream log("/var/log/mmoserv.log");
+        ofstream log("/var/log/mmoserv_init.log");
         log << e.what() << endl;
         log.close();
     }
