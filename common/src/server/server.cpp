@@ -39,6 +39,8 @@ class Server : public Daemon, public SignalHandler {
     private:
         int safeMain();
 
+        virtual void handle_SIGINT();
+
         bool _running;
 
 };
@@ -56,19 +58,17 @@ Server::~Server()
 
 int Server::main()
 {
-    char logFilename[64];
-    snprintf(logFilename, sizeof(logFilename), "/var/log/mmoserv_%d.xml", getpid());
-
-    FileLogger fileLog(logFilename);
-    logger = &fileLog;
+    initialiseLogging();
     
-    logDebug(LogNote("server started"));
+    logInfo("server started");
     net::initialise();
+
+    installSignalHandler(SIGINT);
     
     try {
         safeMain();
     } catch (std::exception& e) {
-        logFatal(LogException(e));
+        logFatal(e.what());
     }
 
     net::cleanup();
@@ -103,6 +103,13 @@ int Server::safeMain()
     do {
         pause();
     } while (_running);
+}
+
+void Server::handle_SIGINT()
+{
+    logInfo("SIGINT caught: stopping server");
+
+    _running = false;
 }
 
 int main(int argc, char* argv[])

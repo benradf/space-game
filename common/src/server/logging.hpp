@@ -15,100 +15,54 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <core/log.hpp>
+#include "lock.hpp"
 
 
-class Logger;
-class LogXMLTree;
-class LogXMLText;
+#ifdef NDEBUG
+#define logTrace(e)
+#define logDebug(e)
+#define logInfo(e) Log::log->info(e)
+#define logWarn(e) Log::log->warn(e)
+#define logError(e) Log::log->error(e)
+#define logFatal(e) Log::log->fatal(e)
+#else
+#define logTrace(e) Log::log->trace(e)
+#define logDebug(e) Log::log->debug(e)
+#define logInfo(e) Log::log->info(e)
+#define logWarn(e) Log::log->warn(e)
+#define logError(e) Log::log->error(e)
+#define logFatal(e) Log::log->fatal(e)
+#endif  // NDEBUG
 
 
-extern Logger* logger;
+void initialiseLogging();
 
 
-#define logTrace(e) logger->log(Logger::TRACE, e)
-#define logDebug(e) logger->log(Logger::DEBUG, e)
-#define logInfo(e) logger->log(Logger::INFO, e)
-#define logWarn(e) logger->log(Logger::WARN, e)
-#define logError(e) logger->log(Logger::ERROR, e)
-#define logFatal(e) logger->log(Logger::FATAL, e)
-
-
-struct Logger {
-    enum Level { TRACE, DEBUG, INFO, WARN, ERROR, FATAL };
-    virtual void log(Level level, const LogXMLTree& event) = 0;
-};
-
-
-class FileLogger : public Logger {
+class SafeLog : public Log::Base {
     public:
-        FileLogger(const char* filename);
-        virtual void log(Level level, const LogXMLTree& event);
+        SafeLog(Log::Base& log);
+        virtual void write(const std::string& message);
 
     private:
-        std::ofstream _log;
+        Lock<Log::Base> _lock;
 };
 
 
-class LogXMLTree {
+class LogEvent {
     public:
-        LogXMLTree(const std::string& name);
-        virtual ~LogXMLTree();
+        virtual const std::string& what() = 0;
+        operator const std::string&();
+};
 
-        virtual std::string getXML(int indent = 0) const;
 
-    protected:
-        void pushChild(LogXMLTree* child);
-        void pushChild(std::auto_ptr<LogXMLTree> child);
+class LogMsg : public LogEvent {
+    public:
+        LogMsg(const std::string& msg);
+        virtual const std::string& what();
 
     private:
-        static const int INDENT_SPACES = 4;
-
-        std::vector<LogXMLTree*> _children;
-        std::string _name;
-};
-
-
-class LogXMLText : public LogXMLTree {
-    public:
-        LogXMLText(const std::string& name, const std::string& text);
-
-    private:
-        struct Text : public LogXMLTree {
-            Text(const std::string& text);
-            virtual std::string getXML(int indent = 0) const;
-            std::string _text;
-        };
-};
-
-
-struct LogTime : public LogXMLText {
-    LogTime();
-};
-
-
-struct LogBacktraceFrame : public LogXMLTree {
-    LogBacktraceFrame(char* symbol);
-};
-
-
-struct LogBacktrace : public LogXMLTree {
-    LogBacktrace();
-    static const int MAX_SIZE = 64;
-};
-
-
-struct LogContext : public LogXMLTree {
-    LogContext(const std::string& name);
-};
-
-
-struct LogException : public LogContext {
-    LogException(const std::exception& e);
-};
-
-
-struct LogNote : public LogContext {
-    LogNote(const std::string& message);
+        std::string _msg;
 };
 
 

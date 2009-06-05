@@ -1,200 +1,58 @@
 #include "logging.hpp"
-#include <core/core.hpp>
-#include <execinfo.h>
+#include "autolock.hpp"
+#include <sys/types.h>
+#include <unistd.h>
 
 
-static FileLogger nullLogger("/dev/null");
-Logger* logger = &nullLogger;
+void initialiseLogging()
+{
+    static Log::Console consoleLog;
+
+    char filename[64];
+    snprintf(filename, sizeof(filename), "/var/log/mmoserv_%d.log", getpid());
+    static Log::File fileLog(filename);
+
+    static Log::Multi multiLog;
+    multiLog.add(consoleLog);
+    multiLog.add(fileLog);
+
+    static SafeLog safeLog(multiLog);
+    Log::log = &safeLog;
+}
 
 
-////////// FileLogger //////////
+////////// LogEvent //////////
 
-FileLogger::FileLogger(const char* filename) :
-    _log(filename)
+LogEvent::operator const std::string&()
+{
+    return what();
+}
+
+
+////////// SafeLog //////////
+
+SafeLog::SafeLog(Log::Base& log) :
+    _lock(log)
 {
 
 }
 
-void FileLogger::log(Level level, const LogXMLTree& event)
+void SafeLog::write(const std::string& message)
 {
-    _log << event.getXML() << std::endl;
+    AutoWriteLock<Log::Base>(_lock)->write(message);
 }
 
 
-////////// LogXMLTree //////////
+////////// LogMsg //////////
 
-LogXMLTree::LogXMLTree(const std::string& name) :
-    _name(name)
-{
-
-}
-
-LogXMLTree::~LogXMLTree()
-{
-    foreach (LogXMLTree* child, _children) 
-        std::auto_ptr<LogXMLTree> p(child);
-}
-
-std::string LogXMLTree::getXML(int indent) const
-{
-    std::string xml;
-
-    std::string indentStr;
-    for (int i = 0; i < indent; i++) 
-        indentStr += " ";
-
-    xml += indentStr + "<" + _name + ">\n";
-
-    foreach (const LogXMLTree* child, _children) 
-        xml += child->getXML(indent + INDENT_SPACES);
-
-    xml += indentStr + "</" + _name + ">\n";
-
-    return xml;
-}
-
-void LogXMLTree::pushChild(LogXMLTree* child)
-{
-    pushChild(std::auto_ptr<LogXMLTree>(child));
-}
-
-void LogXMLTree::pushChild(std::auto_ptr<LogXMLTree> child)
-{
-    _children.push_back(child.get());
-    child.release();
-}
-
-
-////////// LogXMLText //////////
-
-LogXMLText::LogXMLText(const std::string& name, const std::string& text) :
-    LogXMLTree(name)
-{
-    pushChild(new Text(text));
-}
-
-
-////////// LogXMLText::Text //////////
-
-LogXMLText::Text::Text(const std::string& text) :
-    LogXMLTree(""), _text(text)
+LogMsg::LogMsg(const std::string& msg) :
+    _msg(msg)
 {
 
 }
 
-std::string LogXMLText::Text::getXML(int indent) const
+const std::string& LogMsg::what()
 {
-    std::string indentStr;
-    for (int i = 0; i < indent; i++) 
-        indentStr += " ";
-
-    return indentStr + _text + "\n";
-}
-
-
-////////// LogTime //////////
-
-static std::string getTimeString()
-{
-    char buffer[64];
-    time_t epochTime = time(0);
-    strftime(buffer, sizeof(buffer), "%d/%m/%y %H:%M:%S", localtime(&epochTime));
-    
-    return std::string(buffer);
-}
-
-LogTime::LogTime() :
-    LogXMLText("time", getTimeString())
-{
-
-}
-
-
-////////// LogBacktraceFrame //////////
-
-LogBacktraceFrame::LogBacktraceFrame(char* symbol) :
-    LogXMLTree("frame")
-{
-    char null = 0;
-
-    char* addr = strchr(symbol, ' ');
-    if (addr != 0) {
-        *addr++ = 0;
-    } else {
-        addr = &null;
-    }
-
-    char* offset = strchr(symbol, '+');
-    if (offset != 0) {
-        *offset++ = 0;
-        *strchr(offset, ')') = 0;
-    } else {
-        offset = &null;
-    }
-
-    char* function = strchr(symbol, '(');
-    if (function != 0) {
-        *function++ = 0;
-    } else {
-        function = &null;
-    }
-
-    char* object = symbol;
-
-    pushChild(new LogXMLText("object", object));
-    pushChild(new LogXMLText("function", function));
-    pushChild(new LogXMLText("offset", offset));
-    pushChild(new LogXMLText("return", addr));
-}
-
-
-////////// LogBacktrace //////////
-
-LogBacktrace::LogBacktrace() :
-    LogXMLTree("backtrace")
-{
-    void** buffer = new void*[MAX_SIZE];
-    int size = backtrace(buffer, MAX_SIZE);
-    char** symbols = backtrace_symbols(buffer, size);
-
-    try {
-        for (int i = 0; i < size; i++)
-            pushChild(new LogBacktraceFrame(symbols[i]));
-
-    } catch (...) {
-        free(symbols);
-    }
-
-    if (size == MAX_SIZE) 
-        pushChild(new LogXMLText("function", "..."));
-
-    free(symbols);
-}
-
-
-////////// LogContext //////////
-
-LogContext::LogContext(const std::string& name) :
-    LogXMLTree(name)
-{
-    pushChild(new LogTime);
-}
-
-
-////////// LogException //////////
-
-LogException::LogException(const std::exception& e) :
-    LogContext("exception")
-{
-    pushChild(new LogXMLText("description", e.what()));
-}
-
-
-////////// LogStatic //////////
-
-LogNote::LogNote(const std::string& message) :
-    LogContext("notification")
-{
-    pushChild(new LogXMLText("message", message));
+    return _msg;
 }
 
