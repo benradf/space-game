@@ -32,7 +32,7 @@ Login::Login(CEGUI::System& cegui) :
     connectButton->subscribeEvent(PushButton::EventClicked,
         Event::Subscriber(&Login::connectClicked, this));
 
-    _hostname = "localhost";
+    _hostname = "mmoserv.username.co.uk";
 }
 
 void Login::promptForLoginDetails()
