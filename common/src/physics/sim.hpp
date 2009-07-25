@@ -1,4 +1,4 @@
-/// \file sim.cpp
+/// \file sim.hpp
 /// \brief Physics simulation.
 /// \author Ben Radford 
 /// \date 25th March 2009
