@@ -20,6 +20,9 @@
 #include "collision.hpp"
 
 
+namespace physics {
+
+
 class RigidBody {
     public:
         RigidBody();
@@ -28,12 +31,12 @@ class RigidBody {
         void integrate(float dt);
         void blendStates(float t);
 
-        virtual void collisionWith(const RigidBody& body) = 0;
-        virtual void collisionDispatch(RigidBody& body) const = 0;
+        virtual void collision(RigidBody& body) = 0;
+        virtual void collision(const Vector3& normal) = 0;
 
-        void ApplyAbsoluteForce(const Vector3& force);
-        void ApplyRelativeForce(const Vector3& force);
-        void ApplySpin(float spin);
+        void applyAbsoluteForce(const Vector3& force);
+        void applyRelativeForce(const Vector3& force);
+        void applySpin(float spin);
 
         const Vector3& getPosition() const;
         const Vector3& getVelocity() const;
@@ -52,8 +55,8 @@ class RigidBody {
         void setMass(float mass);
         void setRadius(float radius);
 
-        void ClearForce();
-        void ClearSpin();
+        void clearForce();
+        void clearSpin();
 
     private:
         void integrateLinearMotion(float dt);
@@ -125,6 +128,9 @@ class Physics {
         uint64_t _accumulator;
         Timer _timer;
 };
+
+
+}  // namespace physics
 
 
 #endif  // SIM_HPP
