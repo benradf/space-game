@@ -164,9 +164,8 @@ void bmp::Bitmap::saveFile(const char* filename, BitDepth depth) const
             }
         }
 
-        uint8_t padding = 0;
         for (uint32_t i = 0; i < padBytes; i++) 
-            file.write(reinterpret_cast<char*>(&padding), sizeof(padding));
+            file.put(0);
     }
 
     file.close();
