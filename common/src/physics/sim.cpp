@@ -279,7 +279,7 @@ physics::Physics::Physics(const vol::AABB& worldBounds, const char* collisionGeo
 
 physics::Physics::~Physics()
 {
-    foreach (RigidBody* body, _registered) 
+    for (auto body : _registered) 
         deregisterBody(*body);
 }
 
@@ -309,7 +309,7 @@ void physics::Physics::accumulateAndIntegrate()
     }
 
     float blend = float(_accumulator) / TIMESTEP_USEC;
-    foreach (RigidBody* body, _registered)
+    for (auto body : _registered)
         body->blendStates(blend);
 }
 
@@ -337,7 +337,7 @@ const CollisionGeometry& physics::Physics::getCollisionGeom() const
 
 void physics::Physics::integrateTimeDelta(float dt)
 {
-    foreach (RigidBody* body, _registered) {
+    for (auto body : _registered) {
         body->integrate(dt);
 
         CollisionVisitor visitor(*body);

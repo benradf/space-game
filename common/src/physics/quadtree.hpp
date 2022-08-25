@@ -186,7 +186,7 @@ inline typename QuadTree<T>::Node* QuadTree<T>::findByObj(Node* node, T* object)
 {
     node = findByPos(node, object->getPosition());
 
-    foreach (T* obj, node->objects) {
+    for (auto obj : node->objects) {
         if (obj == object) 
             return node;
     }
@@ -224,7 +224,7 @@ inline void QuadTree<T>::maybeSplitNode(Node* node)
     node->leaf = false;
     _nodeCount += 4;
 
-    foreach (T* object, node->objects) 
+    for (auto object : node->objects) 
         addObject(findByPos(node, object->getPosition()), object);
 
     std::vector<T*>().swap(node->objects);
@@ -283,7 +283,7 @@ inline void QuadTree<T>::Node::process(U& visitor)
         return;
     }
 
-    foreach (T* object, objects)
+    for (auto object : objects)
         visitor.visit(object);
 }
 
@@ -301,7 +301,7 @@ inline void QuadTree<T>::Node::process(U& visitor, const V& volume)
         return;
     }
 
-    foreach (T* object, objects) {
+    for (auto object : objects) {
         vol::Point point(object->getPosition());
         if (intersects2d(volume, point)) 
             visitor.visit(object);

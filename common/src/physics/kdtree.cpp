@@ -26,7 +26,7 @@
 
 
 struct TriangleLessThan {
-    bool operator()(const Triangle* a, const Triangle* b);
+    bool operator()(const Triangle* a, const Triangle* b) const;
 };
 
 
@@ -43,7 +43,7 @@ typedef std::map<const Triangle*, size_t, TriangleLessThan> TriangleMap;
 
 class TemporaryNode {
     public:
-        typedef std::auto_ptr<TemporaryNode> Ptr;
+        typedef std::unique_ptr<TemporaryNode> Ptr;
 
         TemporaryNode();
         TemporaryNode(Ptr left, Ptr right, SplitAxis axis, float position);
@@ -177,8 +177,8 @@ class UpdateBase {
         float _position;
 
         std::vector<SplitPlane*> _countPending;
-        SplitAxis _prevAxis;
         float _prevPos;
+        SplitAxis _prevAxis;
         bool _prevFlat;
 };
 
@@ -245,7 +245,7 @@ struct IsFlat {
 
 ////////// TriangleLessThan //////////
 
-bool TriangleLessThan::operator()(const Triangle* a, const Triangle* b)
+bool TriangleLessThan::operator()(const Triangle* a, const Triangle* b) const
 {
     const Vector3& a_v0 = a->getV0();
     const Vector3& a_v1 = a->getV1();
@@ -282,13 +282,17 @@ bool TriangleLessThan::operator()(const Triangle* a, const Triangle* b)
 ////////// TemporaryNode //////////
 
 inline TemporaryNode::TemporaryNode() :
-    _left(0), _right(0), _triangles(new TriangleSet)
+    _left(), _right(), _triangles(new TriangleSet)
 {
 
 }
 
 inline TemporaryNode::TemporaryNode(Ptr left, Ptr right, SplitAxis axis, float position) :
-    _left(left), _right(right), _axis(axis), _position(position), _triangles(0)
+    _left(std::move(left)),
+    _right(std::move(right)),
+    _axis(axis),
+    _position(position),
+    _triangles(0)
 {
 
 }
@@ -385,6 +389,8 @@ SplitPlane::SplitPlane(SplitAxis axis, float pos, const vol::AABB& global, bool 
             break;
         case SPLIT_AXIS_Z:
             _volumeL = (pos - min.x) / (max.z - min.z);
+            break;
+        case SPLIT_LEAF:
             break;
     }
 
@@ -567,7 +573,7 @@ inline float SplitPlane::getCost() const
 
 SplitPlaneFactory::~SplitPlaneFactory()
 {
-    foreach (SplitPlane* plane, _planes) 
+    for (auto plane : _planes) 
         delete plane;
 }
 
@@ -585,9 +591,9 @@ SplitInsertIter SplitPlaneFactory::createFromTriangle(const Triangle& triangle, 
     _planes.push_back(new SplitPlane(SPLIT_AXIS_Z, min.z, global, true));
     _planes.push_back(new SplitPlane(SPLIT_AXIS_Z, max.z, global, false));
 
-    for (int i = _planes.size() - 6; i < _planes.size(); i++) {
+    for (size_t i = _planes.size() - 6; i < _planes.size(); i++) {
         _planes[i]->_tri = &triangle;
-        for (int j = 0; j < 6; j++)
+        for (size_t j = 0; j < 6; j++)
             _planes[i]->_others[j] = _planes[_planes.size() + j - 6];
     }
 
@@ -601,11 +607,11 @@ SplitInsertIter SplitPlaneFactory::duplicatePlanes(const SplitPlane& plane, Spli
     if ((plane._axis != SPLIT_AXIS_X) || !plane._minBound) 
         return iter;
 
-    for (int i = 0; i < 6; i++) 
+    for (size_t i = 0; i < 6; i++) 
         _planes.push_back(new SplitPlane(*plane._others[i]));
 
-    for (int i = _planes.size() - 6; i < _planes.size(); i++) {
-        for (int j = 0; j < 6; j++)
+    for (size_t i = _planes.size() - 6; i < _planes.size(); i++) {
+        for (size_t j = 0; j < 6; j++)
             _planes[i]->_others[j] = _planes[_planes.size() + j - 6];
     }
 
@@ -653,7 +659,7 @@ void UpdateBase::handlePending(bool moveZeroDist)
             if (_countPending.back()->getMinBound() && (_countPending.size() != 1))
                 peakCountL++;
 
-            foreach (SplitPlane* plane, _countPending)
+            for (auto plane : _countPending)
                 setCount(plane, peakCountL, peakCountR);
         }
 
@@ -871,17 +877,17 @@ inline bool shouldStopSplitting(float splitCost, float currentCost, int depth)
     return ((splitCost  >= currentCost) || (depth > KDTree::MAX_DEPTH));
 }
 
-std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, SplitPlaneFactory& factory, int depth, float cost)
+std::unique_ptr<TemporaryNode> createTemporaryNode(SplitList& list, SplitPlaneFactory& factory, int depth, float cost)
 {
     if (list.empty())
-        return std::auto_ptr<TemporaryNode>(new TemporaryNode);
+        return std::make_unique<TemporaryNode>();
 
     SplitPlane& split = *std::accumulate(list.begin(), list.end(), *list.begin(), MinCost());
 
     if (shouldStopSplitting(split.getCost(), cost, depth)) {
-        std::auto_ptr<TemporaryNode> node(new TemporaryNode);
+        auto node = std::make_unique<TemporaryNode>();
 
-        foreach (const SplitPlane* plane, list) {
+        for (const auto plane : list) {
             if ((plane->getAxis() == SPLIT_AXIS_X) && (!plane->getMinBound())) 
                 node->addTriangle(plane->getTriangle());
         }
@@ -912,10 +918,10 @@ std::auto_ptr<TemporaryNode> createTemporaryNode(SplitList& list, SplitPlaneFact
     std::for_each(listL.begin(), listL.end(), updaterL);
     std::for_each(listR.begin(), listR.end(), updaterR);
 
-    return std::auto_ptr<TemporaryNode>(new TemporaryNode(
+    return std::make_unique<TemporaryNode>(
         createTemporaryNode(listL, factory, depth + 1, costL),
         createTemporaryNode(listR, factory, depth + 1, costR),
-        splitAxis, splitPos));
+        splitAxis, splitPos);
 }
 
 bool boundsAreValid(const vol::AABB& bounds)
@@ -929,14 +935,14 @@ bool boundsAreValid(const vol::AABB& bounds)
     return (minValid && maxValid);
 }
 
-std::auto_ptr<TemporaryNode> constructKDTree(const std::vector<Triangle>& triangles, const vol::AABB& bounds)
+std::unique_ptr<TemporaryNode> constructKDTree(const std::vector<Triangle>& triangles, const vol::AABB& bounds)
 {
     assert(boundsAreValid(bounds));
 
     SplitList list;
     SplitPlaneFactory factory;
 
-    foreach (const Triangle& triangle, triangles) 
+    for (const auto triangle : triangles) 
         factory.createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
 
     list.sort(LessThanPtrs());
@@ -946,15 +952,15 @@ std::auto_ptr<TemporaryNode> constructKDTree(const std::vector<Triangle>& triang
     return createTemporaryNode(list, factory, 1, std::numeric_limits<float>::max());
 }
 
-std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
+std::unique_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
 {
     TriangleSet triangles;
     TriangleMap triangleMap;
     root.uniqueTriangles(triangles);
 
-    std::auto_ptr<KDTreeData> data(
-        new KDTreeData(root.getDescendantCount() + 1, 
-        triangles.size(), root.getTriangleCount()));
+    auto data = std::make_unique<KDTreeData>(
+        root.getDescendantCount() + 1, 
+        triangles.size(), root.getTriangleCount());
 
     std::transform(triangles.begin(), triangles.end(), std::inserter(
         triangleMap, triangleMap.begin()), AssignIndex(*data));
@@ -975,7 +981,7 @@ std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
             compressedNode.triangles = nextRef;
             compressedNode.triangleCount = 0;
 
-            foreach (const Triangle* triangle, temporaryNode.getTriangles()) {
+            for (const auto triangle : temporaryNode.getTriangles()) {
                 data->getReference(nextRef++) = triangleMap[triangle];
                 compressedNode.triangleCount++;
             }
@@ -1000,8 +1006,12 @@ std::auto_ptr<KDTreeData> compressKDTree(const TemporaryNode& root)
 ////////// KDTreeData //////////
 
 KDTreeData::KDTreeData(const char* filename) :
-    _nodes(0), _nodeCount(0), _triangles(0), _triangleCount(0),
-    _references(0), _referenceCount(0)
+    _nodes(0),
+    _nodeCount(0),
+    _references(0),
+    _referenceCount(0),
+    _triangles(0),
+    _triangleCount(0)
 {
     loadFile(filename);
 }
@@ -1015,8 +1025,12 @@ struct ScopedArray {
 };
 
 KDTreeData::KDTreeData(size_t nodes, size_t triangles, size_t references) :
-    _nodes(0), _nodeCount(nodes), _triangles(0), _triangleCount(triangles),
-    _references(0), _referenceCount(references)
+    _nodes(0),
+    _nodeCount(nodes),
+    _references(0),
+    _referenceCount(references),
+    _triangles(0),
+    _triangleCount(triangles)
 {
     if (nodes > MAX_NODES) 
         throw MemoryException("node count exceeds max");
@@ -1032,9 +1046,9 @@ KDTreeData::KDTreeData(size_t nodes, size_t triangles, size_t references) :
     _triangles = triangleArray.release();
     _references = referenceArray.release();
 
-    memset(_nodes, 0, sizeof(KDTreeNode) * _nodeCount);
-    memset(_triangles, 0, sizeof(Triangle) * _triangleCount);
-    memset(_references, 0, sizeof(Reference) * _referenceCount);
+    memset(reinterpret_cast<void*>(_nodes), 0, sizeof(KDTreeNode) * _nodeCount);
+    memset(reinterpret_cast<void*>(_triangles), 0, sizeof(Triangle) * _triangleCount);
+    memset(reinterpret_cast<void*>(_references), 0, sizeof(Reference) * _referenceCount);
 }
 
 KDTreeData::~KDTreeData()
@@ -1127,7 +1141,7 @@ void KDTreeData::loadFile(const char* filename)
 KDTreeData::Validity KDTreeData::checkValidity() const
 {
     size_t nodeCount = getNodeCount();
-    size_t triangleCount = getTriangleCount();
+    //size_t triangleCount = getTriangleCount();
     size_t referenceCount = getReferenceCount();
 
     std::tr1::unordered_set<size_t> visited;
@@ -1168,8 +1182,8 @@ size_t KDTreeData::getMemoryUsage() const
 
 ////////// KDTree //////////
 
-KDTree::KDTree(std::auto_ptr<KDTreeData> data) :
-    _data(data)
+KDTree::KDTree(std::unique_ptr<KDTreeData> data) :
+    _data(std::move(data))
 {
 
 }
@@ -1181,15 +1195,15 @@ void KDTree::save(const char* filename) const
 
 KDTree::Ptr KDTree::create(const Triangles& triangles, const vol::AABB& bounds)
 {
-    std::auto_ptr<TemporaryNode> root(constructKDTree(triangles, bounds));
-    std::auto_ptr<KDTreeData> data(compressKDTree(*root));
-    return std::auto_ptr<KDTree>(new KDTree(data));
+    auto root = constructKDTree(triangles, bounds);
+    auto data = compressKDTree(*root);
+    return std::make_unique<KDTree>(std::move(data));
 }
 
 KDTree::Ptr KDTree::load(const char* filename)
 {
-    std::auto_ptr<KDTreeData> data(new KDTreeData(filename));
-    return std::auto_ptr<KDTree>(new KDTree(data));
+    auto data = std::make_unique<KDTreeData>(filename);
+    return std::make_unique<KDTree>(std::move(data));
 }
 
 size_t KDTree::getMemoryUsage() const

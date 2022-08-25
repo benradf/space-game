@@ -102,10 +102,10 @@ class KDTree {
     public:
         static const int MAX_DEPTH = 22;
 
-        typedef std::auto_ptr<KDTree> Ptr;
+        typedef std::unique_ptr<KDTree> Ptr;
         typedef std::vector<Triangle> Triangles;
 
-        KDTree(std::auto_ptr<KDTreeData> data);
+        KDTree(std::unique_ptr<KDTreeData> data);
 
         void save(const char* filename) const;
 
@@ -136,7 +136,7 @@ class KDTree {
         template<typename T>
         void process(const KDTreeNode& node, T& visitor, const vol::Ray& ray) const;
 
-        std::auto_ptr<KDTreeData> _data;
+        std::unique_ptr<KDTreeData> _data;
 };
 
 
