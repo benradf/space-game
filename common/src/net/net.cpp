@@ -100,7 +100,7 @@ void net::Peer::sendPacket(ENetPacket* packet)
 /// need to connect to remote peers, not listen for connections themselves.
 net::Interface::Interface()
 {
-    if ((_host = enet_host_create(0, 1, 0, 0)) == 0)
+    if ((_host = enet_host_create(nullptr, 1, 0, 0, 0)) == 0)
         throw NetworkException("enet_host_create failed");
 }
 
@@ -115,7 +115,7 @@ net::Interface::Interface(uint16_t port, uint32_t addr)
     address.host = addr;
     address.port = port;
 
-    if ((_host = enet_host_create(&address, 1024, 0, 0)) == 0)
+    if ((_host = enet_host_create(&address, 1024, 0, 0, 0)) == 0)
         throw NetworkException("enet_host_create failed");
 }
 
@@ -142,7 +142,7 @@ void* net::Interface::connect(const char* host, uint16_t port)
     address.port = port;
 
     ENetPeer* peer = 0;
-    if ((peer = enet_host_connect(_host, &address, 1)) == 0) 
+    if ((peer = enet_host_connect(_host, &address, 1, 0)) == 0)
         throw NetworkException("enet_host_connect failed");
 
     _connecting.insert(peer);
@@ -171,6 +171,8 @@ void net::Interface::doNetworkTasks()
                 return eventReceive(event);
             case ENET_EVENT_TYPE_DISCONNECT:
                 return eventDisconnect(event);
+            case ENET_EVENT_TYPE_NONE:
+                break;
         }
     }
 }

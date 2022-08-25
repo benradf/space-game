@@ -53,6 +53,20 @@ cc_library(
 )
 
 
+nixpkgs_package(
+    name = "boost",
+    attribute_path = "boost155.dev",
+    build_file_content = """\
+cc_library(
+    name = "boost",
+    hdrs = glob(["include/**/*.hpp"]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+""",
+    repository = "@nixpkgs",
+)
+
 
 #http_archive(
 #    name = "rules_cc",
