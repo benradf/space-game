@@ -1,0 +1,25 @@
+cc_library(
+    name = "core",
+    srcs = glob(["core/*.hpp", "core/*.cpp"]),
+    hdrs = glob(["core/*.hpp"]),
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "math",
+    srcs = glob(["math/*.hpp", "math/*.cpp"]),
+    hdrs = glob(["math/*.hpp"]),
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "physics",
+    srcs = glob(["physics/*.hpp", "physics/*.cpp"]),
+    hdrs = glob(["physics/*.hpp"]),
+    deps = [
+        "//common/src:core",
+        "//common/src:math",
+    ],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)

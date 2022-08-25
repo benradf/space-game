@@ -4,10 +4,6 @@
 #include "log.hpp"
 
 
-#include <boost/foreach.hpp>
-#define foreach BOOST_FOREACH
-
-
 // NOTE: This implementation is not thread safe at the moment.
 
 
@@ -107,6 +103,6 @@ void Log::Multi::add(Base& log)
 
 void Log::Multi::write(const std::string& message)
 {
-    foreach (Base* log, _logs)
+    for (auto log : _logs)
         log->write(message);
 }

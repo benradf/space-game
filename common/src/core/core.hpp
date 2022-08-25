@@ -5,10 +5,6 @@
 #include "log.hpp"
 #include "exception.hpp"
 
-#include "foreach.hpp"
-#define foreach BOOST_FOREACH
-
-
 static const int GAMEPORT = 12345;
 
 static const float degPerRad = 180.0f / 3.141592654f;

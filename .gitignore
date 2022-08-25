@@ -1,5 +1,6 @@
 .*.sw?
 .sw?
+/bazel-*
 Ogre.log
 client.log
 server.log
