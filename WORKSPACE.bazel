@@ -32,6 +32,41 @@ nixpkgs_git_repository(
 )
 
 nixpkgs_package(
+    name = "argtable",
+    build_file_content = """\
+load("@rules_cc//cc:defs.bzl", "cc_import")
+cc_import(
+    name = "argtable-import",
+    hdrs = glob(["include/**/*.h"]),
+    shared_library = "lib/libargtable3.so",
+    visibility = ["//visibility:public"],
+)
+cc_library(
+    name = "argtable",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+    deps = [":argtable-import"],
+    visibility = ["//visibility:public"],
+)
+""",
+    repository = "@nixpkgs",
+)
+
+nixpkgs_package(
+    name = "boost",
+    attribute_path = "boost155.dev",
+    build_file_content = """\
+cc_library(
+    name = "boost",
+    hdrs = glob(["include/**/*.hpp"]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+""",
+    repository = "@nixpkgs",
+)
+
+nixpkgs_package(
     name = "enet",
     build_file_content = """\
 load("@rules_cc//cc:defs.bzl", "cc_import")
@@ -54,13 +89,21 @@ cc_library(
 
 
 nixpkgs_package(
-    name = "boost",
-    attribute_path = "boost155.dev",
+    name = "lua",
+    attribute_path = "lua5_1",
     build_file_content = """\
+load("@rules_cc//cc:defs.bzl", "cc_import")
+cc_import(
+    name = "lua-import",
+    hdrs = glob(["include/**/*.h"]),
+    shared_library = "lib/liblua.so",
+    visibility = ["//visibility:public"],
+)
 cc_library(
-    name = "boost",
-    hdrs = glob(["include/**/*.hpp"]),
+    name = "lua",
+    hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
+    deps = [":lua-import"],
     visibility = ["//visibility:public"],
 )
 """,

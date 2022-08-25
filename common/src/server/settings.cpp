@@ -1,5 +1,5 @@
 #include <assert.h>
-#include <argtable2.h>
+#include <argtable3.h>
 #include <core/core.hpp>
 #include "settings.hpp"
 

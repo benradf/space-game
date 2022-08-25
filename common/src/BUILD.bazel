@@ -1,39 +1,65 @@
 cc_library(
     name = "core",
-    srcs = glob(["core/*.hpp", "core/*.cpp"]),
     hdrs = glob(["core/*.hpp"]),
+    srcs = glob(["core/*.hpp", "core/*.cpp"]),
     visibility = ["//visibility:public"],
     includes = ["."],
 )
 
 cc_library(
     name = "math",
-    srcs = glob(["math/*.hpp", "math/*.cpp"]),
     hdrs = glob(["math/*.hpp"]),
+    srcs = glob(["math/*.hpp", "math/*.cpp"]),
+    visibility = ["//visibility:public"],
+    includes = ["."],
+)
+
+cc_library(
+    name = "net",
+    hdrs = glob(["net/*.hpp"]),
+    srcs = glob(["net/*.hpp", "net/*.cpp"]),
+    deps = [
+        "//common/src:core",
+        "@boost",
+        "@enet",
+    ],
     visibility = ["//visibility:public"],
     includes = ["."],
 )
 
 cc_library(
     name = "physics",
-    srcs = glob(["physics/*.hpp", "physics/*.cpp"]),
     hdrs = glob(["physics/*.hpp"]),
+    srcs = glob(["physics/*.hpp", "physics/*.cpp"]),
     deps = [
         "//common/src:core",
         "//common/src:math",
     ],
-    includes = ["."],
     visibility = ["//visibility:public"],
+    includes = ["."],
 )
 
 cc_library(
-    name = "net",
-    srcs = glob(["net/*.hpp", "net/*.cpp"]),
-    hdrs = glob(["net/*.hpp"]),
+    name = "script",
+    hdrs = glob(["script/*.hpp"]),
+    srcs = glob(["script/*.hpp", "script/*.cpp"]),
     deps = [
         "//common/src:core",
-        "@boost",
-        "@enet",
+        "//common/src:math",
+        "@lua",
+    ],
+    visibility = ["//visibility:public"],
+    includes = ["."],
+)
+
+cc_binary(
+    name = "server",
+    srcs = glob(["server/*.hpp", "server/*.cpp"]),
+    deps = [
+        #"//common/src:core",
+        "//common/src:net",
+        "//common/src:physics",
+        "@argtable",
     ],
     visibility = ["//visibility:public"],
     includes = ["."],

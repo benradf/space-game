@@ -20,7 +20,7 @@ endif
 endif
 
 # Do not build these combinations.
-include scripts/blacklist.mk
+include scripts/filter-out.mk
 
 # Packages, components and in one list.
 COMBINED=$(PACKAGES) $(COMPONENTS) $(DATA)
