@@ -19,31 +19,29 @@
 
 using math::lerp;
 
-using namespace physics;
-
 
 ////////// RigidBody //////////
 
-physics::RigidBody::RigidBody() :
+RigidBody::RigidBody() :
     _system(0)
 {
 
 }
 
-physics::RigidBody::~RigidBody()
+RigidBody::~RigidBody()
 {
     if (_system != 0) 
         _system->deregisterBody(*this);
 }
 
-void physics::RigidBody::integrate(float dt)
+void RigidBody::integrate(float dt)
 {
     advanceCurrentState();
     integrateLinearMotion(dt);
     integrateRotationalMotion(dt);
 }
 
-void physics::RigidBody::blendStates(float t)
+void RigidBody::blendStates(float t)
 {
     State& current = getCurrentState();
     State& blended = getBlendedState();
@@ -60,94 +58,94 @@ void physics::RigidBody::blendStates(float t)
     blended.radius = lerp(previous.radius, current.radius, t);
 }
 
-void physics::RigidBody::applyAbsoluteForce(const Vector3& force)
+void RigidBody::ApplyAbsoluteForce(const Vector3& force)
 {
     State& state = getCurrentState();
 
     state.acc += state.massInv * force;
 }
 
-void physics::RigidBody::applyRelativeForce(const Vector3& force)
+void RigidBody::ApplyRelativeForce(const Vector3& force)
 {
-    applyAbsoluteForce(getCurrentState().rotQuat * force);
+    ApplyAbsoluteForce(getCurrentState().rotQuat * force);
 }
 
-void physics::RigidBody::applySpin(float spin)
+void RigidBody::ApplySpin(float spin)
 {
     getCurrentState().spin += spin;
 }
 
-const Vector3& physics::RigidBody::getPosition() const
+const Vector3& RigidBody::getPosition() const
 {
     return getBlendedState().pos;
 }
 
-const Vector3& physics::RigidBody::getVelocity() const
+const Vector3& RigidBody::getVelocity() const
 {
     return getBlendedState().vel;
 }
 
-const Vector3& physics::RigidBody::getAcceleration() const
+const Vector3& RigidBody::getAcceleration() const
 {
     return getBlendedState().acc;
 }
 
-const Quaternion& physics::RigidBody::getRotationQuat() const
+const Quaternion& RigidBody::getRotationQuat() const
 {
     return getBlendedState().rotQuat;
 }
 
-float physics::RigidBody::getRotation() const
+float RigidBody::getRotation() const
 {
     return getBlendedState().rot;
 }
 
-float physics::RigidBody::getSpin() const
+float RigidBody::getSpin() const
 {
     return getBlendedState().spin;
 }
 
-float physics::RigidBody::getMass() const
+float RigidBody::getMass() const
 {
     return getBlendedState().mass;
 }
 
-float physics::RigidBody::getRadius() const
+float RigidBody::getRadius() const
 {
     return getBlendedState().radius;
 }
 
-void physics::RigidBody::setPosition(const Vector3& pos)
+void RigidBody::setPosition(const Vector3& pos)
 {
     getCurrentState().pos = pos;
     getPreviousState().pos = pos;
 }
 
-void physics::RigidBody::setVelocity(const Vector3& vel)
+void RigidBody::setVelocity(const Vector3& vel)
 {
     getCurrentState().vel = vel;
     getPreviousState().vel = vel;
 }
 
-void physics::RigidBody::setAcceleration(const Vector3& acc)
+void RigidBody::setAcceleration(const Vector3& acc)
 {
     getCurrentState().acc = acc;
     getPreviousState().acc = acc;
 }
 
-void physics::RigidBody::setRotation(float rot)
+void RigidBody::setRotation(float rot)
 {
     getCurrentState().rot = rot;
     getPreviousState().rot = rot;
 }
 
-void physics::RigidBody::setSpin(float spin)
+void RigidBody::setSpin(float spin)
 {
     getCurrentState().spin = spin;
     getPreviousState().spin = spin;
 }
 
-void physics::RigidBody::setMass(float mass)
+void RigidBody::setMass(float mass)
 {
     getCurrentState().mass = mass;
     getPreviousState().mass = mass;
@@ -155,23 +153,23 @@ void physics::RigidBody::setMass(float mass)
     getPreviousState().massInv = 1.0f / mass;
 }
 
-void physics::RigidBody::setRadius(float radius)
+void RigidBody::setRadius(float radius)
 {
     getCurrentState().radius = radius;
     getPreviousState().radius = radius;
 }
 
-void physics::RigidBody::clearForce()
+void RigidBody::ClearForce()
 {
     getCurrentState().acc = Vector3::ZERO;
 }
 
-void physics::RigidBody::clearSpin()
+void RigidBody::ClearSpin()
 {
     getCurrentState().spin = 0.0f;
 }
 
-void physics::RigidBody::integrateLinearMotion(float dt)
+void RigidBody::integrateLinearMotion(float dt)
 {
     if (!needsLinearIntegration())
         return;
@@ -197,7 +195,7 @@ void physics::RigidBody::integrateLinearMotion(float dt)
     }
 }
 
-void physics::RigidBody::integrateRotationalMotion(float dt)
+void RigidBody::integrateRotationalMotion(float dt)
 {
     if (!needsRotationalIntegration())
         return;
@@ -212,47 +210,47 @@ void physics::RigidBody::integrateRotationalMotion(float dt)
     state.rotQuat = Quaternion(state.rot, Vector3::UNIT_Z);
 }
 
-bool physics::RigidBody::needsLinearIntegration() const
+bool RigidBody::needsLinearIntegration() const
 {
     return true;
 }
 
-bool physics::RigidBody::needsRotationalIntegration() const
+bool RigidBody::needsRotationalIntegration() const
 {
     return true;
 }
 
-void physics::RigidBody::advanceCurrentState()
+void RigidBody::advanceCurrentState()
 {
     getPreviousState() = getCurrentState();
 }
 
-physics::RigidBody::State& physics::RigidBody::getPreviousState()
+RigidBody::State& RigidBody::getPreviousState()
 {
     return _state[2];
 }
 
-const physics::RigidBody::State& physics::RigidBody::getPreviousState() const
+const RigidBody::State& RigidBody::getPreviousState() const
 {
     return _state[2];
 }
 
-physics::RigidBody::State& physics::RigidBody::getBlendedState()
+RigidBody::State& RigidBody::getBlendedState()
 {
     return _state[1];
 }
 
-const physics::RigidBody::State& physics::RigidBody::getBlendedState() const
+const RigidBody::State& RigidBody::getBlendedState() const
 {
     return _state[1];
 }
 
-physics::RigidBody::State& physics::RigidBody::getCurrentState()
+RigidBody::State& RigidBody::getCurrentState()
 {
     return _state[0];
 }
 
-const physics::RigidBody::State& physics::RigidBody::getCurrentState() const
+const RigidBody::State& RigidBody::getCurrentState() const
 {
     return _state[0];
 }
@@ -260,7 +258,7 @@ const physics::RigidBody::State& physics::RigidBody::getCurrentState() const
 
 ////////// RigidBody::State //////////
 
-physics::RigidBody::State::State() :
+RigidBody::State::State() :
     pos(Vector3::ZERO), vel(Vector3::ZERO), acc(Vector3::ZERO), 
     rotQuat(Quaternion::IDENTITY), rot(0.0f), spin(0.0f), 
     mass(1.0f), massInv(1.0f), radius(1.0f)
@@ -271,13 +269,13 @@ physics::RigidBody::State::State() :
 
 ////////// Physics //////////
 
-physics::Physics::Physics(const vol::AABB& worldBounds, const char* collisionGeomFile) :
+Physics::Physics(const vol::AABB& worldBounds, const char* collisionGeomFile) :
     _quadTree(worldBounds), _collisionGeom(collisionGeomFile), _accumulator(0.0f)
 {
 
 }
 
-physics::Physics::~Physics()
+Physics::~Physics()
 {
     for (auto body : _registered) 
         deregisterBody(*body);
@@ -292,13 +290,13 @@ struct CollisionVisitor {
         float distSq = magnitudeSq(thisBody.getPosition() - otherBody->getPosition());
 
         if (distSq <= radiusSq) 
-            otherBody->collision(thisBody);
+            thisBody.collisionWith(*otherBody);
     }
     RigidBody& thisBody;
     float radiusSq;
 };
 
-void physics::Physics::accumulateAndIntegrate()
+void Physics::accumulateAndIntegrate()
 {
     _accumulator += _timer.elapsed();
     _timer.reset();
@@ -313,7 +311,7 @@ void physics::Physics::accumulateAndIntegrate()
         body->blendStates(blend);
 }
 
-void physics::Physics::registerBody(RigidBody& body)
+void Physics::registerBody(RigidBody& body)
 {
     if (body._system != 0)
         body._system->deregisterBody(body);
@@ -322,7 +320,7 @@ void physics::Physics::registerBody(RigidBody& body)
     body._system = this;
 }
 
-void physics::Physics::deregisterBody(RigidBody& body)
+void Physics::deregisterBody(RigidBody& body)
 {
     assert(body._system == this);
 
@@ -330,12 +328,12 @@ void physics::Physics::deregisterBody(RigidBody& body)
     body._system = 0;
 }
 
-const CollisionGeometry& physics::Physics::getCollisionGeom() const
+const CollisionGeometry& Physics::getCollisionGeom() const
 {
     return _collisionGeom;
 }
 
-void physics::Physics::integrateTimeDelta(float dt)
+void Physics::integrateTimeDelta(float dt)
 {
     for (auto body : _registered) {
         body->integrate(dt);
@@ -346,5 +344,5 @@ void physics::Physics::integrateTimeDelta(float dt)
     }
 }
 
-const float physics::Physics::TIMESTEP_SEC = convUSecToSec(float(physics::Physics::TIMESTEP_USEC));
+const float Physics::TIMESTEP_SEC = convUSecToSec(float(Physics::TIMESTEP_USEC));
 

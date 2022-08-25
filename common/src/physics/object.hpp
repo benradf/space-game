@@ -16,37 +16,78 @@
 #include <core/timer.hpp>
 
 
-namespace physics {
+namespace sim {
 
 
-class Ship;
-class Missile;
+typedef uint32_t ObjectID;
+typedef uint32_t ControlState;
 
 
-struct GameObjectBase : public RigidBody {
-    virtual void updateState() = 0;
-    virtual void collision(Ship& ship);
-    virtual void collision(Missile& missile);
-    virtual void collision(const Vector3& normal);
+enum STAT {
+    STAT_THRUST,
+    STAT_BOOST,
+    STAT_ROTSPEED,
+    STAT_MAXSPEED,
+    STAT_COUNT
 };
 
 
-template<typename T>
-struct GameObject : public GameObjectBase {
-    virtual void collision(RigidBody& body);
+enum Control {
+    CTRL_THRUST = 0x00000001,
+    CTRL_BOOST  = 0x00000002,
+    CTRL_LEFT   = 0x00000004,
+    CTRL_RIGHT  = 0x00000008,
+    CTRL_CANNON = 0x00000010,
 };
 
 
-////////// GameObject //////////
+struct MovableObject : public RigidBody {
+    virtual ~MovableObject();
+    virtual void update() = 0;
+    virtual ObjectID getID() const = 0;
+    virtual ControlState getControlState() const = 0;
+    virtual void setControlState(ControlState control) = 0;
+};
 
-template<typename T>
-inline void GameObject<T>::collision(RigidBody& body)
+
+class Ship : public MovableObject {
+    public:
+        Ship(ObjectID id);
+        virtual ~Ship();
+
+        virtual void update();
+        virtual ObjectID getID() const;
+        virtual ControlState getControlState() const;
+        virtual void setControlState(ControlState control);
+
+        virtual void collisionWith(const Ship& other);
+        virtual void collisionWith(const RigidBody& other);
+        virtual void collisionDispatch(RigidBody& other) const;
+
+        void setSystem(Physics& system);
+
+    private:
+        ControlState _control;
+        Timer _timer;
+
+        ObjectID _id;
+
+        float _stats[STAT_COUNT];
+};
+
+
+inline bool controlIsOn(Control control, ControlState state)
 {
-    static_cast<GameObjectBase&>(body).collision(static_cast<T&>(*this));
+    return ((state & control) != 0);
+}
+
+inline ControlState controlSet(Control control, bool enable, ControlState state)
+{
+    return (enable ? state | control : state & ~control);
 }
 
 
-}  // namespace physics
+}  // namespace sim
 
 
 #endif  // OBJECT_HPP
