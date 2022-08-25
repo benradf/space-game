@@ -13,9 +13,6 @@ load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_depende
 
 rules_nixpkgs_dependencies()
 
-#load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_package")
-
-
 
 load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_cc_configure")
 
@@ -23,6 +20,39 @@ nixpkgs_cc_configure(
     name = "nixpkgs_config_cc",
     repository = "@nixpkgs",
 )
+
+
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_package")
+
+nixpkgs_git_repository(
+    name = "nixpkgs",
+    revision = "22.05",
+    sha256 = "0f8c25433a6611fa5664797cd049c80faefec91575718794c701f3b033f2db01",
+)
+
+nixpkgs_package(
+    name = "enet",
+    build_file_content = """\
+load("@rules_cc//cc:defs.bzl", "cc_import")
+cc_import(
+    name = "enet-import",
+    hdrs = glob(["include/**/*.h"]),
+    shared_library = "lib/libenet.so",
+    visibility = ["//visibility:public"],
+)
+cc_library(
+    name = "enet",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+    deps = [":enet-import"],
+    visibility = ["//visibility:public"],
+)
+""",
+    repository = "@nixpkgs",
+)
+
+
 
 #http_archive(
 #    name = "rules_cc",

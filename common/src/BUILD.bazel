@@ -3,6 +3,7 @@ cc_library(
     srcs = glob(["core/*.hpp", "core/*.cpp"]),
     hdrs = glob(["core/*.hpp"]),
     visibility = ["//visibility:public"],
+    includes = ["."],
 )
 
 cc_library(
@@ -10,6 +11,7 @@ cc_library(
     srcs = glob(["math/*.hpp", "math/*.cpp"]),
     hdrs = glob(["math/*.hpp"]),
     visibility = ["//visibility:public"],
+    includes = ["."],
 )
 
 cc_library(
@@ -22,4 +24,16 @@ cc_library(
     ],
     includes = ["."],
     visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "net",
+    srcs = glob(["net/*.hpp", "net/*.cpp"]),
+    hdrs = glob(["net/*.hpp"]),
+    deps = [
+        "//common/src:core",
+        "@enet",
+    ],
+    visibility = ["//visibility:public"],
+    includes = ["."],
 )
