@@ -7,10 +7,10 @@
 void initialiseLogging()
 {
     static Log::Console consoleLog;
-    static Log::File fileLogAll("/var/log/mmoserv_all.log");
+    static Log::File fileLogAll("/tmp/space-game-server-all.log");
 
-    char filename[64];
-    snprintf(filename, sizeof(filename), "/var/log/mmoserv_%d.log", getpid());
+    char filename[256];
+    snprintf(filename, sizeof(filename), "/tmp/space-game-server-%d.log", getpid());
     static Log::File fileLogSession(filename);
 
     static Log::Multi multiLog;

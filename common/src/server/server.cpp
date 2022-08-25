@@ -123,12 +123,14 @@ void Server::handle_SIGTERM()
 
 int main(int argc, char* argv[])
 {
+    std::cout << "main()" << std::endl;
     Settings settings(argc, argv);
     setSettings(settings);
 
     try {
         Server server;
-        server.daemonise("mmoserv", "/");
+        //server.daemonise("mmoserv", "/");
+        server.main();
     } catch (const std::exception& e) {
         ofstream log("/var/log/mmoserv_init.log");
         log << e.what() << endl;
