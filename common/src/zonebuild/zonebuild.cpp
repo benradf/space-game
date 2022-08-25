@@ -76,7 +76,7 @@ KDTree::Ptr BuildCollisionKDTree::createKDTree() const
 {
     float min = 0.0f, max = 0.0f;
 
-    foreach (const Triangle& triangle, _triangles) {
+    for (const auto& triangle : _triangles) {
         min = std::min(min, triangle.getV0().x);
         max = std::max(max, triangle.getV0().x);
         min = std::min(min, triangle.getV1().y);
@@ -104,7 +104,7 @@ BuildCollisionKDTree::BuildCollisionKDTree(const BuildCollisionKDTree&)
 
 BuildCollisionKDTree& BuildCollisionKDTree::operator=(const BuildCollisionKDTree&)
 {
-
+    return *this;
 }
 
 void BuildCollisionKDTree::beginElement(void* thisPtr, const char* name, const char** attrib)

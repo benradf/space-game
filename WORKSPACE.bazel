@@ -87,6 +87,39 @@ cc_library(
     repository = "@nixpkgs",
 )
 
+nixpkgs_package(
+    name = "expat",
+    nix_file_content = """\
+with import <nixpkgs> {
+  config = { };
+  overlays = [ ];
+};
+buildEnv {
+  name = "expat";
+  paths = [ expat expat.dev ];
+  postBuild = ''
+    mkdir -p $out
+  '';
+}
+""",
+    build_file_content = """\
+load("@rules_cc//cc:defs.bzl", "cc_import")
+cc_import(
+    name = "expat-import",
+    hdrs = glob(["include/**/*.h"]),
+    shared_library = "lib/libexpat.so",
+    visibility = ["//visibility:public"],
+)
+cc_library(
+    name = "expat",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+    deps = [":expat-import"],
+    visibility = ["//visibility:public"],
+)
+""",
+    repository = "@nixpkgs",
+)
 
 nixpkgs_package(
     name = "lua",

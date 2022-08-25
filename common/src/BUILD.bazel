@@ -66,3 +66,15 @@ cc_binary(
     visibility = ["//visibility:public"],
     includes = ["."],
 )
+
+cc_binary(
+    name = "zonebuild",
+    srcs = glob(["zonebuild/*.hpp", "zonebuild/*.cpp"]),
+    deps = [
+        "//common/src:core",
+        "//common/src:physics",
+        "@expat",
+    ],
+    visibility = ["//visibility:public"],
+    includes = ["."],
+)
