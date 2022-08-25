@@ -27,7 +27,7 @@ PostOffice::~PostOffice()
 
 Job::RetType PostOffice::run()
 {
-    typedef std::auto_ptr<msg::Message> MsgPtr;
+    typedef std::unique_ptr<msg::Message> MsgPtr;
 
     AutoWriteLock<Src> srcLock(_srcsLock);
     AutoWriteLock<Dst> dstLock(_dstsLock);

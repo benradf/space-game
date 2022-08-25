@@ -13,7 +13,6 @@
 
 #include <physics/sim.hpp>
 #include <core/timer.hpp>
-#include <core/foreach.hpp>
 #include "msgjob.hpp"
 #include <physics/quadtree.hpp>
 #include "typedefs.hpp"

@@ -261,7 +261,7 @@ class ScriptModule : public Job {
         lua_State* _lua;
         std::string _name;
         
-        std::auto_ptr<Call> nextCall();
+        std::unique_ptr<Call> nextCall();
         CallQueue _callQueue;
         Lock<CallQueue> _lock;
         

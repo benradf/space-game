@@ -28,7 +28,7 @@ class luaR_base {
 
         void operator()(lua_State* lua);
 
-    protected:
+    //protected:
         const char* copyString(const char* s) const;
         void deleteString(const char* s) const;
 
@@ -369,7 +369,7 @@ inline luaR_base::luaR_base(const luaR_base& that)
 
 inline luaR_base& luaR_base::operator=(const luaR_base& that)
 {
-    memcpy(this, &that, sizeof(*this));
+    memcpy(reinterpret_cast<void*>(this), &that, sizeof(*this));
     copy(that);
     return *this;
 }

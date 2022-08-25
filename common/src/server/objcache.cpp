@@ -16,8 +16,8 @@
 
 ObjectCache::~ObjectCache()
 {
-    foreach (ObjectMap::value_type& object, _objects) 
-        std::auto_ptr<CachedObjectInfo>(object.second);
+    for (auto& object : _objects) 
+        std::unique_ptr<CachedObjectInfo>(object.second);
 }
 
 const CachedObjectInfo* ObjectCache::getCachedObjectInfo(ObjectID id) const
@@ -39,7 +39,7 @@ void ObjectCache::handleZoneSaysObjectLeave(ObjectID object)
 {
     CachedObjectInfo& info = getObjectInfo(object);
 
-    foreach (ObjectID id, info.getCloseObjects()) {
+    for (auto id : info.getCloseObjects()) {
         CachedObjectInfo& obj = getObjectInfo(id);
         tellPlayerObjectLeave(obj.getAttachedPlayer(), object);
     }
@@ -75,7 +75,7 @@ void ObjectCache::handleZoneSaysObjectPos(ObjectID object, Vector3 pos)
 
     info.setPosition(pos);
 
-    foreach (ObjectID id, info.getCloseObjects()) {
+    for (auto id : info.getCloseObjects()) {
         CachedObjectInfo& obj = getObjectInfo(id);
         tellPlayerObjectPos(obj.getAttachedPlayer(), info);
     }
@@ -91,7 +91,7 @@ void ObjectCache::handleZoneSaysObjectAll(ObjectID object, Vector3 pos,
     info.setRotation(rot);
     info.setControlState(state);
 
-    foreach (ObjectID id, info.getCloseObjects()) {
+    for (auto id : info.getCloseObjects()) {
         CachedObjectInfo& obj = getObjectInfo(id);
         tellPlayerObjectAll(obj.getAttachedPlayer(), info);
     }
@@ -103,7 +103,7 @@ CachedObjectInfo& ObjectCache::getObjectInfo(ObjectID id)
     if (iter != _objects.end()) 
         return *iter->second;
 
-    std::auto_ptr<CachedObjectInfo> info(new CachedObjectInfo(id));
+    auto info = std::make_unique<CachedObjectInfo>(id);
     _objects.insert(std::make_pair(id, info.get()));
 
     return *info.release();
@@ -115,7 +115,7 @@ void ObjectCache::removeObjectInfo(ObjectID id)
     if (iter == _objects.end()) 
         return;
 
-    std::auto_ptr<CachedObjectInfo>(iter->second);
+    std::unique_ptr<CachedObjectInfo>(iter->second);
 
     _objects.erase(id);
 }

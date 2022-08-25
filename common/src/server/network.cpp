@@ -165,8 +165,8 @@ NetworkInterface::~NetworkInterface()
 {
     Log::log->info("NetworkInterface: shutdown");
 
-    foreach (Clients::value_type& client, _clients) 
-        std::auto_ptr<net::Peer>(client.second);
+    for (auto& client : _clients) 
+        std::unique_ptr<net::Peer>(client.second);
 }
 
 Job::RetType NetworkInterface::main()
@@ -245,13 +245,13 @@ void NetworkInterface::handlePeerLoginDenied(PeerID peer)
 
 void NetworkInterface::handleChatBroadcast(const std::string& text)
 {
-    foreach (Clients::value_type& client, _clients) 
+    for (auto& client : _clients) 
         client.second->sendMsgPubChat(text.c_str());
 }
 
 net::Peer* NetworkInterface::handleConnect(void* data)
 {
-    std::auto_ptr<RemoteClient> peer(new RemoteClient(*this, newMessageSender(), data));
+    auto peer = std::make_unique<RemoteClient>(*this, newMessageSender(), data);
     _clients.insert(std::make_pair(peer->getID(), peer.get()));
     return peer.release();
 }

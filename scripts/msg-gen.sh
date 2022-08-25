@@ -66,7 +66,7 @@ echo
 echo "class Message {"
 echo "    public:"
 echo "        virtual ~Message();"
-echo "        virtual std::auto_ptr<Message> clone() const = 0;"
+echo "        virtual std::unique_ptr<Message> clone() const = 0;"
 echo "        virtual void dispatch(MessageHandler& handler) = 0;"
 echo "        virtual bool matches(int subscription) = 0;"
 echo
@@ -135,7 +135,7 @@ while read MSG <&3; do
     echo "    public:"
     echo "        $MSG;"
     echo "        virtual ~$MSGNAME();"
-    echo "        virtual std::auto_ptr<Message> clone() const;"
+    echo "        virtual std::unique_ptr<Message> clone() const;"
     echo "        virtual void dispatch(MessageHandler& handler);"
     echo "        virtual bool matches(int subscription);"
     echo
@@ -168,9 +168,9 @@ while read MSG <&3; do
     echo
     echo "}"
     echo
-    echo "std::auto_ptr<msg::Message> msg::$MSGNAME::clone() const"
+    echo "std::unique_ptr<msg::Message> msg::$MSGNAME::clone() const"
     echo "{"
-    echo "    return std::auto_ptr<Message>(new $MSGNAME(*this));"
+    echo "    return std::unique_ptr<Message>(new $MSGNAME(*this));"
     echo "}"
     echo
     echo "void msg::$MSGNAME::dispatch(MessageHandler& handler)"

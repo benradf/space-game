@@ -31,7 +31,7 @@
 class Job {
     public:
         friend class JobPool;
-        typedef std::auto_ptr<Job> Ptr;
+        typedef std::unique_ptr<Job> Ptr;
         
         enum RetType {
             YIELD,  ///< The job is temporarily yielding.

@@ -1,9 +1,9 @@
 /// \file msghandler.hpp
 /// \brief Auto-generated message handler.
 /// \author Ben Radford
-/// \date 16th May 2009
+/// \date 25th August 2022
 ///
-/// Copyright (c) 2009 Ben Radford. All rights reserved.
+/// Copyright (c) 2022 Ben Radford. All rights reserved.
 ///
 
 

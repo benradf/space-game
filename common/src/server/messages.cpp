@@ -1,9 +1,9 @@
 /// \file messages.cpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 16th May 2009
+/// \date 25th August 2022
 ///
-/// Copyright (c) 2009 Ben Radford. All rights reserved.
+/// Copyright (c) 2022 Ben Radford. All rights reserved.
 ///
 
 
@@ -32,9 +32,9 @@ msg::ZoneTellObjectPos::~ZoneTellObjectPos()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneTellObjectPos::clone() const
+std::unique_ptr<msg::Message> msg::ZoneTellObjectPos::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneTellObjectPos(*this));
+    return std::unique_ptr<Message>(new ZoneTellObjectPos(*this));
 }
 
 void msg::ZoneTellObjectPos::dispatch(MessageHandler& handler)
@@ -61,9 +61,9 @@ msg::ZoneTellObjectAll::~ZoneTellObjectAll()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneTellObjectAll::clone() const
+std::unique_ptr<msg::Message> msg::ZoneTellObjectAll::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneTellObjectAll(*this));
+    return std::unique_ptr<Message>(new ZoneTellObjectAll(*this));
 }
 
 void msg::ZoneTellObjectAll::dispatch(MessageHandler& handler)
@@ -90,9 +90,9 @@ msg::ZoneSaysObjectEnter::~ZoneSaysObjectEnter()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneSaysObjectEnter::clone() const
+std::unique_ptr<msg::Message> msg::ZoneSaysObjectEnter::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneSaysObjectEnter(*this));
+    return std::unique_ptr<Message>(new ZoneSaysObjectEnter(*this));
 }
 
 void msg::ZoneSaysObjectEnter::dispatch(MessageHandler& handler)
@@ -119,9 +119,9 @@ msg::ZoneSaysObjectLeave::~ZoneSaysObjectLeave()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneSaysObjectLeave::clone() const
+std::unique_ptr<msg::Message> msg::ZoneSaysObjectLeave::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneSaysObjectLeave(*this));
+    return std::unique_ptr<Message>(new ZoneSaysObjectLeave(*this));
 }
 
 void msg::ZoneSaysObjectLeave::dispatch(MessageHandler& handler)
@@ -148,9 +148,9 @@ msg::ZoneSaysObjectClearClose::~ZoneSaysObjectClearClose()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneSaysObjectClearClose::clone() const
+std::unique_ptr<msg::Message> msg::ZoneSaysObjectClearClose::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneSaysObjectClearClose(*this));
+    return std::unique_ptr<Message>(new ZoneSaysObjectClearClose(*this));
 }
 
 void msg::ZoneSaysObjectClearClose::dispatch(MessageHandler& handler)
@@ -177,9 +177,9 @@ msg::ZoneSaysObjectsClose::~ZoneSaysObjectsClose()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneSaysObjectsClose::clone() const
+std::unique_ptr<msg::Message> msg::ZoneSaysObjectsClose::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneSaysObjectsClose(*this));
+    return std::unique_ptr<Message>(new ZoneSaysObjectsClose(*this));
 }
 
 void msg::ZoneSaysObjectsClose::dispatch(MessageHandler& handler)
@@ -206,9 +206,9 @@ msg::ZoneSaysObjectAttach::~ZoneSaysObjectAttach()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneSaysObjectAttach::clone() const
+std::unique_ptr<msg::Message> msg::ZoneSaysObjectAttach::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneSaysObjectAttach(*this));
+    return std::unique_ptr<Message>(new ZoneSaysObjectAttach(*this));
 }
 
 void msg::ZoneSaysObjectAttach::dispatch(MessageHandler& handler)
@@ -235,9 +235,9 @@ msg::ZoneSaysObjectName::~ZoneSaysObjectName()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneSaysObjectName::clone() const
+std::unique_ptr<msg::Message> msg::ZoneSaysObjectName::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneSaysObjectName(*this));
+    return std::unique_ptr<Message>(new ZoneSaysObjectName(*this));
 }
 
 void msg::ZoneSaysObjectName::dispatch(MessageHandler& handler)
@@ -264,9 +264,9 @@ msg::ZoneSaysObjectPos::~ZoneSaysObjectPos()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneSaysObjectPos::clone() const
+std::unique_ptr<msg::Message> msg::ZoneSaysObjectPos::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneSaysObjectPos(*this));
+    return std::unique_ptr<Message>(new ZoneSaysObjectPos(*this));
 }
 
 void msg::ZoneSaysObjectPos::dispatch(MessageHandler& handler)
@@ -293,9 +293,9 @@ msg::ZoneSaysObjectAll::~ZoneSaysObjectAll()
 
 }
 
-std::auto_ptr<msg::Message> msg::ZoneSaysObjectAll::clone() const
+std::unique_ptr<msg::Message> msg::ZoneSaysObjectAll::clone() const
 {
-    return std::auto_ptr<Message>(new ZoneSaysObjectAll(*this));
+    return std::unique_ptr<Message>(new ZoneSaysObjectAll(*this));
 }
 
 void msg::ZoneSaysObjectAll::dispatch(MessageHandler& handler)
@@ -322,9 +322,9 @@ msg::PlayerRequestZoneSwitch::~PlayerRequestZoneSwitch()
 
 }
 
-std::auto_ptr<msg::Message> msg::PlayerRequestZoneSwitch::clone() const
+std::unique_ptr<msg::Message> msg::PlayerRequestZoneSwitch::clone() const
 {
-    return std::auto_ptr<Message>(new PlayerRequestZoneSwitch(*this));
+    return std::unique_ptr<Message>(new PlayerRequestZoneSwitch(*this));
 }
 
 void msg::PlayerRequestZoneSwitch::dispatch(MessageHandler& handler)
@@ -351,9 +351,9 @@ msg::PlayerEnterZone::~PlayerEnterZone()
 
 }
 
-std::auto_ptr<msg::Message> msg::PlayerEnterZone::clone() const
+std::unique_ptr<msg::Message> msg::PlayerEnterZone::clone() const
 {
-    return std::auto_ptr<Message>(new PlayerEnterZone(*this));
+    return std::unique_ptr<Message>(new PlayerEnterZone(*this));
 }
 
 void msg::PlayerEnterZone::dispatch(MessageHandler& handler)
@@ -380,9 +380,9 @@ msg::PlayerLeaveZone::~PlayerLeaveZone()
 
 }
 
-std::auto_ptr<msg::Message> msg::PlayerLeaveZone::clone() const
+std::unique_ptr<msg::Message> msg::PlayerLeaveZone::clone() const
 {
-    return std::auto_ptr<Message>(new PlayerLeaveZone(*this));
+    return std::unique_ptr<Message>(new PlayerLeaveZone(*this));
 }
 
 void msg::PlayerLeaveZone::dispatch(MessageHandler& handler)
@@ -409,9 +409,9 @@ msg::PlayerName::~PlayerName()
 
 }
 
-std::auto_ptr<msg::Message> msg::PlayerName::clone() const
+std::unique_ptr<msg::Message> msg::PlayerName::clone() const
 {
-    return std::auto_ptr<Message>(new PlayerName(*this));
+    return std::unique_ptr<Message>(new PlayerName(*this));
 }
 
 void msg::PlayerName::dispatch(MessageHandler& handler)
@@ -438,9 +438,9 @@ msg::PeerRequestLogin::~PeerRequestLogin()
 
 }
 
-std::auto_ptr<msg::Message> msg::PeerRequestLogin::clone() const
+std::unique_ptr<msg::Message> msg::PeerRequestLogin::clone() const
 {
-    return std::auto_ptr<Message>(new PeerRequestLogin(*this));
+    return std::unique_ptr<Message>(new PeerRequestLogin(*this));
 }
 
 void msg::PeerRequestLogin::dispatch(MessageHandler& handler)
@@ -467,9 +467,9 @@ msg::PeerRequestLogout::~PeerRequestLogout()
 
 }
 
-std::auto_ptr<msg::Message> msg::PeerRequestLogout::clone() const
+std::unique_ptr<msg::Message> msg::PeerRequestLogout::clone() const
 {
-    return std::auto_ptr<Message>(new PeerRequestLogout(*this));
+    return std::unique_ptr<Message>(new PeerRequestLogout(*this));
 }
 
 void msg::PeerRequestLogout::dispatch(MessageHandler& handler)
@@ -496,9 +496,9 @@ msg::PeerLoginGranted::~PeerLoginGranted()
 
 }
 
-std::auto_ptr<msg::Message> msg::PeerLoginGranted::clone() const
+std::unique_ptr<msg::Message> msg::PeerLoginGranted::clone() const
 {
-    return std::auto_ptr<Message>(new PeerLoginGranted(*this));
+    return std::unique_ptr<Message>(new PeerLoginGranted(*this));
 }
 
 void msg::PeerLoginGranted::dispatch(MessageHandler& handler)
@@ -525,9 +525,9 @@ msg::PeerLoginDenied::~PeerLoginDenied()
 
 }
 
-std::auto_ptr<msg::Message> msg::PeerLoginDenied::clone() const
+std::unique_ptr<msg::Message> msg::PeerLoginDenied::clone() const
 {
-    return std::auto_ptr<Message>(new PeerLoginDenied(*this));
+    return std::unique_ptr<Message>(new PeerLoginDenied(*this));
 }
 
 void msg::PeerLoginDenied::dispatch(MessageHandler& handler)
@@ -554,9 +554,9 @@ msg::ChatSayPublic::~ChatSayPublic()
 
 }
 
-std::auto_ptr<msg::Message> msg::ChatSayPublic::clone() const
+std::unique_ptr<msg::Message> msg::ChatSayPublic::clone() const
 {
-    return std::auto_ptr<Message>(new ChatSayPublic(*this));
+    return std::unique_ptr<Message>(new ChatSayPublic(*this));
 }
 
 void msg::ChatSayPublic::dispatch(MessageHandler& handler)
@@ -583,9 +583,9 @@ msg::ChatBroadcast::~ChatBroadcast()
 
 }
 
-std::auto_ptr<msg::Message> msg::ChatBroadcast::clone() const
+std::unique_ptr<msg::Message> msg::ChatBroadcast::clone() const
 {
-    return std::auto_ptr<Message>(new ChatBroadcast(*this));
+    return std::unique_ptr<Message>(new ChatBroadcast(*this));
 }
 
 void msg::ChatBroadcast::dispatch(MessageHandler& handler)

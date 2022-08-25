@@ -13,7 +13,10 @@
 ////////// SpatialCanvas //////////
 
 SpatialCanvas::SpatialCanvas(const vol::AABB& bounds, int scale, Axis plane) :
-    _bounds(bounds), _scale(scale), _plane(plane), _bitmap(1, 1)
+    _plane(plane),
+    _bounds(bounds),
+    _scale(scale),
+    _bitmap(1, 1)
 {
     switch (_plane) {
         case X_AXIS:

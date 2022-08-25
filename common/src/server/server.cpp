@@ -81,19 +81,19 @@ int Server::main()
 int Server::safeMain()
 {
     // Create standard jobs.
-    std::auto_ptr<Idle> jobIdle(new Idle(CYCLE_PERIOD));
-    std::auto_ptr<PostOffice> jobPostOffice(new PostOffice);
-    std::auto_ptr<NetworkInterface> jobNetwork(new NetworkInterface(*jobPostOffice));
-    std::auto_ptr<LoginManager> jobLogin(new LoginManager(*jobPostOffice));
-    std::auto_ptr<Zone> testZone(new Zone(*jobPostOffice));
+    auto jobIdle = std::make_unique<Idle>(CYCLE_PERIOD);
+    auto jobPostOffice = std::make_unique<PostOffice>();
+    auto jobNetwork = std::make_unique<NetworkInterface>(*jobPostOffice);
+    auto jobLogin = std::make_unique<LoginManager>(*jobPostOffice);
+    auto testZone = std::make_unique<Zone>(*jobPostOffice);
 
     // Add to pool.
     JobPool pool;
-    pool.add(Job::Ptr(jobIdle));
-    pool.add(Job::Ptr(jobPostOffice));
-    pool.add(Job::Ptr(jobNetwork));
-    pool.add(Job::Ptr(jobLogin));
-    pool.add(Job::Ptr(testZone));
+    pool.add(std::move(jobIdle));
+    pool.add(std::move(jobPostOffice));
+    pool.add(std::move(jobNetwork));
+    pool.add(std::move(jobLogin));
+    pool.add(std::move(testZone));
 
     // Create worker threads.
     std::vector<boost::shared_ptr<Worker> > workers;

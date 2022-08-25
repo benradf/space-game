@@ -84,7 +84,7 @@ T& LocalStore<T>::operator*()
 template<typename T>
 void LocalStore<T>::destructor(void* data)
 {
-    std::auto_ptr<Node> node(reinterpret_cast<Node*>(data));
+    auto node = std::unique_ptr<Node>(reinterpret_cast<Node*>(data));
     
     if (node->prev != 0)
         node->prev->next = node->next;
@@ -103,7 +103,7 @@ T* LocalStore<T>::getObjectPointer()
     if (data != 0)
         return reinterpret_cast<T*>(data);
     
-    std::auto_ptr<Node> node(new Node);
+    auto node = std::make_unique<Node>();
     
     if (pthread_setspecific(_key, node.get()) != 0)
         throw MemoryException("out of thread local memory");

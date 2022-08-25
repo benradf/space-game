@@ -43,9 +43,11 @@ Instance::~Instance()
 
 ////////// VirtualMachine //////////
 
-VirtualMachine::VirtualMachine(VMSet& vmSet, Instance::ID baseID)
-    : _lua(lua_open()), _instanceToVMLock(_instanceToVM),
-      _vmSet(vmSet), _nextID(baseID)
+VirtualMachine::VirtualMachine(VMSet& vmSet, Instance::ID baseID) :
+    _lua(lua_open()),
+    _nextID(baseID),
+    _vmSet(vmSet),
+    _instanceToVMLock(_instanceToVM)
 {
     loadLibraries();
     storeFunctions();
@@ -192,7 +194,7 @@ int VirtualMachine::luaSendMessage(lua_State* lua)
     rpc->push_back(luaR_getglobal(lua_tostring(lua, 2)));
 
     size_t top = lua_gettop(lua);
-    for (int i = 3; i <= top; i++)
+    for (size_t i = 3; i <= top; i++)
         pushLuaValue(rpc, lua, i - top - 1);
 
     rpc->push_back(luaR_pcall(top - 2, 0, -top));
@@ -382,10 +384,10 @@ void ScriptLoader::loadModules(JobPool& pool)
     std::string moduleName;
     
     while (std::getline(moduleList, moduleName)) {
-        std::auto_ptr<Job> module(new ScriptModule(moduleName));
+        auto module = std::unique_ptr<Job>(new ScriptModule(moduleName));
         ScriptModule* refined = static_cast<ScriptModule*>(module.get());
         _modules.insert(std::make_pair(moduleName, refined));
-        pool.add(module);
+        pool.add(std::move(module));
     }
     
     moduleList.close();
@@ -393,7 +395,7 @@ void ScriptLoader::loadModules(JobPool& pool)
 
 void ScriptLoader::linkModules()
 {
-    foreach (ModulePair& module, _modules) {
+    for (auto& module : _modules) {
         lua_State* lua = module.second->lua();
         new(lua) ModuleCaller(lua, _modules);
     }
@@ -560,7 +562,7 @@ ScriptModule::~ScriptModule()
     lua_close(_lua);
     
     while (!_callQueue.empty()) {
-        std::auto_ptr<Call> temp(_callQueue.front());
+        auto temp = std::unique_ptr<Call>(_callQueue.front());
         _callQueue.pop();
     }
 }
@@ -599,7 +601,7 @@ void ScriptModule::scriptMain()
 
 void ScriptModule::handleMessages()
 {
-    std::auto_ptr<Call> next;
+    std::unique_ptr<Call> next;
     
     while ((next = nextCall()).get() != 0)
         next->process(_lua);
@@ -626,14 +628,14 @@ void ScriptModule::loadLibraries()
     luaL_openlibs(lua());
 }
 
-std::auto_ptr<Call> ScriptModule::nextCall()
+std::unique_ptr<Call> ScriptModule::nextCall()
 {
     AutoWriteLock<CallQueue> queue(callQueue());
     
     if (queue->empty())
-        return std::auto_ptr<Call>();
+        return std::unique_ptr<Call>();
     
-    std::auto_ptr<Call> next(queue->front());
+    auto next = std::unique_ptr<Call>(queue->front());
     queue->pop();
     
     return next;

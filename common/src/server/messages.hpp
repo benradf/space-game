@@ -1,9 +1,9 @@
 /// \file messages.hpp
 /// \brief Auto-generated message definitions.
 /// \author Ben Radford
-/// \date 16th May 2009
+/// \date 25th August 2022
 ///
-/// Copyright (c) 2009 Ben Radford. All rights reserved.
+/// Copyright (c) 2022 Ben Radford. All rights reserved.
 ///
 
 
@@ -33,7 +33,7 @@ enum MsgType {
 class Message {
     public:
         virtual ~Message();
-        virtual std::auto_ptr<Message> clone() const = 0;
+        virtual std::unique_ptr<Message> clone() const = 0;
         virtual void dispatch(MessageHandler& handler) = 0;
         virtual bool matches(int subscription) = 0;
 
@@ -46,7 +46,7 @@ class ZoneTellObjectPos : public Message {
     public:
         ZoneTellObjectPos(PlayerID player, ObjectID object, Vector3 pos);
         virtual ~ZoneTellObjectPos();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -61,7 +61,7 @@ class ZoneTellObjectAll : public Message {
     public:
         ZoneTellObjectAll(PlayerID player, ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state);
         virtual ~ZoneTellObjectAll();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -79,7 +79,7 @@ class ZoneSaysObjectEnter : public Message {
     public:
         ZoneSaysObjectEnter(ObjectID object);
         virtual ~ZoneSaysObjectEnter();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -92,7 +92,7 @@ class ZoneSaysObjectLeave : public Message {
     public:
         ZoneSaysObjectLeave(ObjectID object);
         virtual ~ZoneSaysObjectLeave();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -105,7 +105,7 @@ class ZoneSaysObjectClearClose : public Message {
     public:
         ZoneSaysObjectClearClose(ObjectID object);
         virtual ~ZoneSaysObjectClearClose();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -118,7 +118,7 @@ class ZoneSaysObjectsClose : public Message {
     public:
         ZoneSaysObjectsClose(ObjectID a, ObjectID b);
         virtual ~ZoneSaysObjectsClose();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -132,7 +132,7 @@ class ZoneSaysObjectAttach : public Message {
     public:
         ZoneSaysObjectAttach(ObjectID object, PlayerID player);
         virtual ~ZoneSaysObjectAttach();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -146,7 +146,7 @@ class ZoneSaysObjectName : public Message {
     public:
         ZoneSaysObjectName(ObjectID object, const std::string& name);
         virtual ~ZoneSaysObjectName();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -160,7 +160,7 @@ class ZoneSaysObjectPos : public Message {
     public:
         ZoneSaysObjectPos(ObjectID object, Vector3 pos);
         virtual ~ZoneSaysObjectPos();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -174,7 +174,7 @@ class ZoneSaysObjectAll : public Message {
     public:
         ZoneSaysObjectAll(ObjectID object, Vector3 pos, Vector3 vel, float rot, ControlState state);
         virtual ~ZoneSaysObjectAll();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -191,7 +191,7 @@ class PlayerRequestZoneSwitch : public Message {
     public:
         PlayerRequestZoneSwitch(PlayerID player, ZoneID zone);
         virtual ~PlayerRequestZoneSwitch();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -205,7 +205,7 @@ class PlayerEnterZone : public Message {
     public:
         PlayerEnterZone(PlayerID player, ZoneID zone);
         virtual ~PlayerEnterZone();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -219,7 +219,7 @@ class PlayerLeaveZone : public Message {
     public:
         PlayerLeaveZone(PlayerID player, ZoneID zone);
         virtual ~PlayerLeaveZone();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -233,7 +233,7 @@ class PlayerName : public Message {
     public:
         PlayerName(PlayerID player, const std::string& username);
         virtual ~PlayerName();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -247,7 +247,7 @@ class PeerRequestLogin : public Message {
     public:
         PeerRequestLogin(PeerID peer, const std::string& username, const MD5Hash& password);
         virtual ~PeerRequestLogin();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -262,7 +262,7 @@ class PeerRequestLogout : public Message {
     public:
         PeerRequestLogout(PeerID peer, PlayerID player);
         virtual ~PeerRequestLogout();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -276,7 +276,7 @@ class PeerLoginGranted : public Message {
     public:
         PeerLoginGranted(PeerID peer, PlayerID player);
         virtual ~PeerLoginGranted();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -290,7 +290,7 @@ class PeerLoginDenied : public Message {
     public:
         PeerLoginDenied(PeerID peer);
         virtual ~PeerLoginDenied();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -303,7 +303,7 @@ class ChatSayPublic : public Message {
     public:
         ChatSayPublic(PlayerID player, const std::string& text);
         virtual ~ChatSayPublic();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 
@@ -317,7 +317,7 @@ class ChatBroadcast : public Message {
     public:
         ChatBroadcast(const std::string& text);
         virtual ~ChatBroadcast();
-        virtual std::auto_ptr<Message> clone() const;
+        virtual std::unique_ptr<Message> clone() const;
         virtual void dispatch(MessageHandler& handler);
         virtual bool matches(int subscription);
 

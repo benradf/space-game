@@ -8,11 +8,11 @@
 
 
 #include "control.hpp"
-#include <boost/spirit.hpp>
+//#include <boost/spirit/include/classic.hpp>
 
 
-using namespace boost;
-using namespace boost::spirit;
+//using namespace boost;
+//using namespace boost::spirit;
 
 
 void ControlCentre::parseCommand(const char* string)

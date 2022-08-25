@@ -46,7 +46,7 @@ Zone::RetType Zone::main()
     if (sendUpdates)
         _timer.reset();
 
-    foreach (ObjectMap::value_type& pair, _objectIdMap) {
+    for (auto& pair : _objectIdMap) {
         ObjectID objectID = pair.first;
         MovableObject* object = pair.second;
 
@@ -58,7 +58,7 @@ Zone::RetType Zone::main()
         _quadTree.process(visitor/*, vol::AABB(pos - offset, pos + offset)*/);
     }
 
-    foreach (ObjectMap::value_type& pair, _objectIdMap) {
+    for (auto& pair : _objectIdMap) {
         ObjectID objectID = pair.first;
         MovableObject* object = pair.second;
 
@@ -83,7 +83,7 @@ void Zone::handlePlayerEnterZone(PlayerID player, ZoneID zone)
 
     ObjectID objectID = _nextObjectID++;
 
-    std::auto_ptr<Ship> ship(new Ship(objectID));
+    auto ship = std::make_unique<Ship>(objectID);
     ship->setSystem(_physicsSystem);
     MovableObject* object = ship.get();
     _objectIdMap.insert(std::make_pair(objectID, object));
@@ -114,7 +114,7 @@ void Zone::handlePlayerLeaveZone(PlayerID player, ZoneID zone)
 
         if (objectIter != _objectIdMap.end()) {
             _quadTree.remove(objectIter->second);
-            std::auto_ptr<sim::MovableObject>(objectIter->second);
+            std::unique_ptr<sim::MovableObject>(objectIter->second);
             _objectIdMap.erase(objectIter);
         }
 

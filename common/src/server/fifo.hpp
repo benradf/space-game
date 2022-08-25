@@ -81,7 +81,7 @@ class Get {
 
         void clear();
         void transfer();
-        std::auto_ptr<T> get();
+        std::unique_ptr<T> get();
         void connectTo(Put<T>& put);
         bool closed() const;
         bool empty() const;
@@ -98,7 +98,7 @@ class Get {
         Lock<Get> _lock;  ///< Lock for this half of pipe.
         Put<T>* _put;     ///< Pointer to other end of pipe.
         Vector _vec;      ///< Holds objects to be read from pipe.
-        int _index;       ///< Index of next object to be read.
+        size_t _index;    ///< Index of next object to be read.
 
         class LockFIFO {
             public:
@@ -123,7 +123,7 @@ class Get {
 /// Create the writable end of a FIFO pipe.
 template<typename T>
 fifo::Put<T>::Put() :
-    _get(0), _lock(*this)
+    _lock(*this), _get(0)
 {
     WriteLock(_vec)->reserve(FIFOSIZE);
 }
@@ -141,7 +141,7 @@ void fifo::Put<T>::clear()
 {
     WriteLock vec(_vec);
 
-    foreach (T*& p, *vec)
+    for (auto& p : *vec)
         delete p;
 
     vec->clear();
@@ -169,7 +169,7 @@ void fifo::Put<T>::put(const T& object)
     if (closed()) 
         return;
 
-    std::auto_ptr<T> p(object.clone());
+    auto p = object.clone();
     WriteLock(_vec)->push_back(p.get());
     p.release();
 }
@@ -215,7 +215,7 @@ void fifo::Put<T>::disconnect()
 /// Create the readable end of a FIFO pipe.
 template<typename T>
 fifo::Get<T>::Get() :
-    _put(0), _index(0), _lock(*this)
+    _lock(*this), _put(0), _index(0)
 {
     WriteLock(_vec)->reserve(FIFOSIZE);
 }
@@ -233,7 +233,7 @@ void fifo::Get<T>::clear()
 {
     WriteLock vec(_vec);
 
-    foreach (T*& p, *vec)
+    for (auto& p : *vec)
         delete p;
 
     vec->clear();
@@ -254,13 +254,13 @@ void fifo::Get<T>::transfer()
 /// \return The object got from the pipe.
 /// \pre !empty()
 template<typename T>
-std::auto_ptr<T> fifo::Get<T>::get()
+std::unique_ptr<T> fifo::Get<T>::get()
 {
     assert(!empty());
 
     WriteLock vec(_vec);
 
-    std::auto_ptr<T> p((*vec)[_index]);
+    auto p = std::unique_ptr<T>((*vec)[_index]);
     (*vec)[_index++] = 0;
 
     return p;
@@ -346,7 +346,7 @@ void fifo::Get<T>::disconnect(bool referred)
 
 template<typename T>
 fifo::Get<T>::LockFIFO::LockFIFO(Get* get, bool bothEnds) :
-    _get(get), _put(0), _bothEnds(bothEnds)
+    _bothEnds(bothEnds), _get(get), _put(0)
 {
     assert(_get != 0);
 
