@@ -51,7 +51,7 @@ void VisibleObject::update()
     ControlState state = _objectSim->getControlState();
     const Vector3& position = getApparentPosition();
     const Vector3& velocity = _objectSim->getVelocity();
-    const Vector3& acceleration = _objectSim->getAcceleration();
+    //const Vector3& acceleration = _objectSim->getAcceleration();
     const Quaternion& rotation = getApparentRotation();
 
     _objectGfx->setPosition(Ogre::Vector3(position.x, position.y, position.z));

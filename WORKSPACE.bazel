@@ -54,12 +54,33 @@ cc_library(
 
 nixpkgs_package(
     name = "boost",
-    attribute_path = "boost155.dev",
+    nix_file_content = """\
+with import <nixpkgs> {
+  config = { };
+  overlays = [ ];
+};
+buildEnv {
+  name = "boost";
+  paths = [ boost155 boost155.dev ];
+  postBuild = ''
+    mkdir -p $out
+  '';
+}
+""",
     build_file_content = """\
+cc_import(
+    name = "boost-system",
+    hdrs = glob(["include/**/*.h"]),
+    shared_library = "lib/libboost_system.so",
+    visibility = ["//visibility:public"],
+)
 cc_library(
     name = "boost",
     hdrs = glob(["include/**/*.hpp"]),
     includes = ["include"],
+    deps = [
+        ":boost-system",
+    ],
     visibility = ["//visibility:public"],
 )
 """,
@@ -71,16 +92,25 @@ nixpkgs_package(
     build_file_content = """\
 load("@rules_cc//cc:defs.bzl", "cc_import")
 cc_import(
-    name = "cegui-import",
+    name = "cegui-base",
     hdrs = glob(["include/**/*.h"]),
     shared_library = "lib/libCEGUIBase-0.so",
+    visibility = ["//visibility:public"],
+)
+cc_import(
+    name = "cegui-ogre",
+    hdrs = glob(["include/**/*.h"]),
+    shared_library = "lib/libCEGUIOgreRenderer-0.so",
     visibility = ["//visibility:public"],
 )
 cc_library(
     name = "cegui",
     hdrs = glob(["include/**/*.h"]),
     includes = ["include/cegui-0"],
-    deps = [":cegui-import"],
+    deps = [
+        ":cegui-base",
+        ":cegui-ogre",
+    ],
     visibility = ["//visibility:public"],
 )
 """,
@@ -170,9 +200,15 @@ nixpkgs_package(
     build_file_content = """\
 load("@rules_cc//cc:defs.bzl", "cc_import")
 cc_import(
-    name = "ogre-import",
+    name = "ogre-main",
     hdrs = glob(["include/**/*.h"]),
     shared_library = "lib/libOgreMain.so",
+    visibility = ["//visibility:public"],
+)
+cc_import(
+    name = "ogre-overlay",
+    hdrs = glob(["include/**/*.h"]),
+    shared_library = "lib/libOgreOverlay.so",
     visibility = ["//visibility:public"],
 )
 cc_library(
@@ -183,7 +219,10 @@ cc_library(
         "include/OGRE",
         "include/OGRE/Overlay",
     ],
-    deps = [":ogre-import"],
+    deps = [
+        ":ogre-main",
+        ":ogre-overlay",
+    ],
     visibility = ["//visibility:public"],
 )
 """,

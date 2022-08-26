@@ -49,7 +49,7 @@ Zone::RetType Zone::main()
 
     for (auto& pair : _objectIdMap) {
         ObjectID objectID = pair.first;
-        MovableObject* object = pair.second;
+        //MovableObject* object = pair.second;
 
         sendMessage(msg::ZoneSaysObjectClearClose(objectID));
 

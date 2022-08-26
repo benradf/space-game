@@ -116,10 +116,10 @@ void checkIntersection(KDTree::Ptr& tree, const vol::AABB& bounds)
 
 struct DisplayKDTrees {
     DisplayKDTrees(const char* filename, const vol::AABB& bounds) :
+        _filename(filename),
         _canvasX(bounds, 1, SpatialCanvas::X_AXIS),
         _canvasY(bounds, 1, SpatialCanvas::Y_AXIS),
-        _canvasZ(bounds, 1, SpatialCanvas::Z_AXIS),
-        _filename(filename)
+        _canvasZ(bounds, 1, SpatialCanvas::Z_AXIS)
     {
         _splits.push(bounds);
     }
