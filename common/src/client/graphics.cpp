@@ -12,7 +12,7 @@
 #include "login.hpp"
 #include "graphics.hpp"
 #include <core/core.hpp>
-#include <CEGUIDefaultResourceProvider.h>
+#include <CEGUI/DefaultResourceProvider.h>
 
 
 ////////// MovableParticleSystem //////////

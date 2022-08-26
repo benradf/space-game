@@ -152,6 +152,7 @@ struct DisplayKDTrees {
             case SPLIT_AXIS_X: max.x = position; break;
             case SPLIT_AXIS_Y: max.y = position; break;
             case SPLIT_AXIS_Z: max.z = position; break;
+            case SPLIT_LEAF: break;
         }
         _splits.push(vol::AABB(min, max));
         _canvasX.drawAABB(_splits.top(), SpatialCanvas::Colour(0, 0, 0, 0));
@@ -165,6 +166,7 @@ struct DisplayKDTrees {
             case SPLIT_AXIS_X: min.x = position; break;
             case SPLIT_AXIS_Y: min.y = position; break;
             case SPLIT_AXIS_Z: min.z = position; break;
+            case SPLIT_LEAF: break;
         }
         _splits.push(vol::AABB(min, max));
         _canvasX.drawAABB(_splits.top(), SpatialCanvas::Colour(0, 0, 0, 0));

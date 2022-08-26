@@ -14,8 +14,11 @@
 #include <stdint.h>
 
 
-namespace clr {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreorder"
 
+
+namespace clr {
 
 #define TAKE1(X1, X2, X3, X4) X1
 #define TAKE2(X1, X2, X3, X4) X2
@@ -128,6 +131,8 @@ typedef BGRA<8, 8, 8, 8> BGRA8888;
 
 };  // namespace clr
 
+
+#pragma GCC diagnostic push
 
 #endif  // COLOUR_HPP
 

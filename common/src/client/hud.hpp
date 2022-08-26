@@ -12,9 +12,9 @@
 
 
 #include "chat.hpp"
-#include <OIS/OIS.h>
-#include <CEGUI.h>
-#include <Ogre.h>
+#include <ois/OIS.h>
+#include <CEGUI/CEGUI.h>
+#include <OGRE/Ogre.h>
 #include <memory>
 
 

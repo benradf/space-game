@@ -11,7 +11,7 @@
 #include <core/core.hpp>
 #include <sstream>
 #include <physics/object.hpp>
-#include <CEGUI.h>
+#include <CEGUI/CEGUI.h>
 
 
 using namespace sim;

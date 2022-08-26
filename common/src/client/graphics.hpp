@@ -13,10 +13,10 @@
 
 #include <memory>
 #include <vector>
-#include <Ogre.h>
-#include <OgreCEGUIRenderer.h>
-#include <CEGUI.h>
-#include <CEGUILua.h>
+#include <OGRE/Ogre.h>
+#include <CEGUI/RendererModules/Ogre/Renderer.h>
+#include <CEGUI/CEGUI.h>
+//#include <CEGUI/CEGUILua.h>
 #include <boost/shared_ptr.hpp>
 
 

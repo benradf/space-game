@@ -105,6 +105,8 @@ int Server::safeMain()
     do {
         pause();
     } while (_running);
+
+    return 0;
 }
 
 void Server::handle_SIGINT()

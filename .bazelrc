@@ -1,2 +1,2 @@
 build:nix --host_platform=@io_tweag_rules_nixpkgs//nixpkgs/platforms:host
-build --cxxopt='-std=c++20'
+build --cxxopt='-std=c++20' --cxxopt='-DNO_BOOST_DATE_TIME_INLINE'

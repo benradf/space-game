@@ -53,6 +53,21 @@ cc_library(
 )
 
 cc_binary(
+    name = "client",
+    srcs = glob(["client/*.hpp", "client/*.cpp"]),
+    deps = [
+        "//common/src:core",
+        "//common/src:net",
+        "//common/src:physics",
+        "@cegui",
+        "@ogre",
+        "@ois",
+    ],
+    visibility = ["//visibility:public"],
+    includes = ["."],
+)
+
+cc_binary(
     name = "server",
     srcs = glob(["server/*.hpp", "server/*.cpp"]),
     deps = [

@@ -8,7 +8,7 @@
 
 
 #include "login.hpp"
-#include <CEGUI.h>
+#include <CEGUI/CEGUI.h>
 
 
 using namespace CEGUI;

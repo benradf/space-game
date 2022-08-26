@@ -11,7 +11,7 @@
 #define INPUT_HPP
 
 
-#include <OIS/OIS.h>
+#include <ois/OIS.h>
 #include <math/vecmath.hpp>
 #include <tr1/unordered_map>
 #include "graphics.hpp"
