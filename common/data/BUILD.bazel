@@ -1,0 +1,9 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+
+load("//common/data:resources.bzl", "enumerate_resources")
+
+write_file(
+    name = "resources",
+    out = "resources.cfg",
+    content = enumerate_resources(),
+)
