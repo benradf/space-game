@@ -1,0 +1,3 @@
+load(":maps.bzl", "assemble_map")
+
+assemble_map("base03")
