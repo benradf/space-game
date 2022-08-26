@@ -139,6 +139,8 @@ bool intersects2d(const Triangle& a, const vol::Circle& b)
     // TODO: Write a 2D optimised version of above.
 
     assert(false);
+
+    return false;
 }
 
 bool intersects2d(const vol::Circle& a, const Triangle& b)

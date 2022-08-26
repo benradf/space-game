@@ -1,60 +1,68 @@
+copts = ["-std=c++17", "-DNO_BOOST_DATE_TIME_INLINE"]
+
 cc_library(
     name = "core",
     hdrs = glob(["core/*.hpp"]),
     srcs = glob(["core/*.hpp", "core/*.cpp"]),
-    visibility = ["//visibility:public"],
     includes = ["."],
+    copts = copts,
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
     name = "math",
     hdrs = glob(["math/*.hpp"]),
     srcs = glob(["math/*.hpp", "math/*.cpp"]),
-    visibility = ["//visibility:public"],
     includes = ["."],
+    copts = copts,
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
     name = "net",
     hdrs = glob(["net/*.hpp"]),
     srcs = glob(["net/*.hpp", "net/*.cpp"]),
+    includes = ["."],
+    copts = copts,
     deps = [
         "//common/src:core",
         "@boost",
         "@enet",
     ],
     visibility = ["//visibility:public"],
-    includes = ["."],
 )
 
 cc_library(
     name = "physics",
     hdrs = glob(["physics/*.hpp"]),
     srcs = glob(["physics/*.hpp", "physics/*.cpp"]),
+    includes = ["."],
+    copts = copts,
     deps = [
         "//common/src:core",
         "//common/src:math",
     ],
     visibility = ["//visibility:public"],
-    includes = ["."],
 )
 
 cc_library(
     name = "script",
     hdrs = glob(["script/*.hpp"]),
     srcs = glob(["script/*.hpp", "script/*.cpp"]),
+    includes = ["."],
+    copts = copts,
     deps = [
         "//common/src:core",
         "//common/src:math",
         "@lua",
     ],
     visibility = ["//visibility:public"],
-    includes = ["."],
 )
 
 cc_binary(
     name = "client",
     srcs = glob(["client/*.hpp", "client/*.cpp"]),
+    copts = copts,
     deps = [
         "//common/src:core",
         "//common/src:net",
@@ -70,6 +78,7 @@ cc_binary(
 cc_binary(
     name = "server",
     srcs = glob(["server/*.hpp", "server/*.cpp"]),
+    copts = copts,
     linkopts = ["-lpthread"],
     deps = [
         "//common/src:core",
@@ -86,6 +95,7 @@ cc_binary(
 cc_binary(
     name = "zonebuild",
     srcs = glob(["zonebuild/*.hpp", "zonebuild/*.cpp"]),
+    copts = copts,
     deps = [
         "//common/src:core",
         "//common/src:physics",
