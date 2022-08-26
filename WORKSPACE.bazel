@@ -68,7 +68,7 @@ buildEnv {
 cc_import(
     name = "boost-system",
     hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libboost_system.so",
+    shared_library = "lib/libboost_system.so.1.55.0",
     visibility = ["//visibility:public"],
 )
 cc_library(
@@ -91,13 +91,13 @@ load("@rules_cc//cc:defs.bzl", "cc_import")
 cc_import(
     name = "cegui-base",
     hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libCEGUIBase-0.so",
+    shared_library = "lib/libCEGUIBase-0.so.2",
     visibility = ["//visibility:public"],
 )
 cc_import(
     name = "cegui-ogre",
     hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libCEGUIOgreRenderer-0.so",
+    shared_library = "lib/libCEGUIOgreRenderer-0.so.2",
     visibility = ["//visibility:public"],
 )
 cc_library(
@@ -121,7 +121,7 @@ load("@rules_cc//cc:defs.bzl", "cc_import")
 cc_import(
     name = "enet-import",
     hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libenet.so",
+    shared_library = "lib/libenet.so.7",
     visibility = ["//visibility:public"],
 )
 cc_library(
@@ -199,13 +199,13 @@ load("@rules_cc//cc:defs.bzl", "cc_import")
 cc_import(
     name = "ogre-main",
     hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libOgreMain.so",
+    shared_library = "lib/libOgreMain.so.1.9.0",
     visibility = ["//visibility:public"],
 )
 cc_import(
     name = "ogre-overlay",
     hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libOgreOverlay.so",
+    shared_library = "lib/libOgreOverlay.so.1.9.0",
     visibility = ["//visibility:public"],
 )
 cc_library(
@@ -233,7 +233,7 @@ load("@rules_cc//cc:defs.bzl", "cc_import")
 cc_import(
     name = "ois-import",
     hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libOIS.so",
+    shared_library = "lib/libOIS.so.1.5.0",
     visibility = ["//visibility:public"],
 )
 cc_library(
