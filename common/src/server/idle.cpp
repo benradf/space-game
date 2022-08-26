@@ -1,4 +1,5 @@
 #include "idle.hpp"
+#include <unistd.h>
 
 
 ////////// Idle //////////

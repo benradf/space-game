@@ -51,7 +51,7 @@ class VisibleObject {
         void updateApparentRotation();
         void updateBankedTurnRoll();
 
-        static const int INTERP_TIME = 200000;
+        static const uint64_t INTERP_TIME = 200000;
 
         std::unique_ptr<sim::MovableObject> _objectSim;
         std::unique_ptr<gfx::Entity> _objectGfx;
@@ -60,13 +60,13 @@ class VisibleObject {
         Vector3 _predictedPos;
         Vector3 _apparentPos;
         bool _shouldInterpPos;
-        int _timeToInterpPos;
+        uint64_t _timeToInterpPos;
         Timer _interpPosTimer;
 
         Quaternion _predictedRot;
         Quaternion _apparentRot;
         bool _shouldInterpRot;
-        int _timeToInterpRot;
+        uint64_t _timeToInterpRot;
         Timer _interpRotTimer;
 
         Quaternion _roll;

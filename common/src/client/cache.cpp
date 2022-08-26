@@ -26,13 +26,13 @@ ObjectCache::ObjectCache() :
 
 ObjectCache::~ObjectCache()
 {
-    foreach (ObjectMap::value_type& objPair, _objects) 
+    for (auto& objPair : _objects) 
         std::unique_ptr<VisibleObject>(objPair.second);
 }
 
 void ObjectCache::updateCachedObjects()
 {
-    foreach (ObjectMap::value_type& objPair, _objects) 
+    for (auto& objPair : _objects) 
         objPair.second->update();
 
     updateAttachedObject();

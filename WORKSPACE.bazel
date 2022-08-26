@@ -178,7 +178,11 @@ cc_import(
 cc_library(
     name = "ogre",
     hdrs = glob(["include/**/*.h"]),
-    includes = ["include"],
+    includes = [
+        "include",
+        "include/OGRE",
+        "include/OGRE/Overlay",
+    ],
     deps = [":ogre-import"],
     visibility = ["//visibility:public"],
 )

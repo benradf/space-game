@@ -14,6 +14,7 @@
 #include <memory>
 #include <vector>
 #include <OGRE/Ogre.h>
+#include <OGRE/Overlay/OgreOverlaySystem.h>
 #include <CEGUI/RendererModules/Ogre/Renderer.h>
 #include <CEGUI/CEGUI.h>
 //#include <CEGUI/CEGUILua.h>
@@ -169,9 +170,9 @@ class GUI {
         std::unique_ptr<Login> createLogin();
 
     private:
-        std::unique_ptr<CEGUI::OgreCEGUIRenderer> _ceguiRenderer;
-        std::unique_ptr<CEGUI::System> _ceguiSystem;
         std::unique_ptr<CEGUIInput> _ceguiInput;
+        CEGUI::OgreRenderer* _ceguiRenderer;
+        CEGUI::System* _ceguiSystem;
 };
 
 
@@ -188,7 +189,7 @@ class Scene {
         void addBackdrop(const char* material, float scroll, float depth, float size);
 
         void updateBackdropPositions(const Ogre::Vector3& centre);
-        void setCEGUIRenderer(CEGUI::OgreCEGUIRenderer* renderer);
+        void setCEGUIRenderer(CEGUI::OgreRenderer* renderer);
 
     private:
         Scene(const Scene&);

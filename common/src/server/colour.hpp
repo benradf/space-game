@@ -132,7 +132,7 @@ typedef BGRA<8, 8, 8, 8> BGRA8888;
 };  // namespace clr
 
 
-#pragma GCC diagnostic push
+#pragma GCC diagnostic pop
 
 #endif  // COLOUR_HPP
 

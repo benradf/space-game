@@ -16,10 +16,11 @@ using namespace sim;
 
 
 Zone::Zone(PostOffice& po) :
-    MessagableJob(po, MSG_ZONETELL | MSG_PLAYER), _nextObjectID(1), _thisZone(1),
+    MessagableJob(po, MSG_ZONETELL | MSG_PLAYER),
     _quadTree(vol::AABB(Vector3(-500.0f, -500.0f, -10.0f), Vector3(500.0f, 500.0f, 10.0f))),
-    _physicsSystem(vol::AABB(Vector3(-500.0f, -500.0f, -10.0f), Vector3(500.0f, 500.0f, 10.0f)),
-        "maps/base03.dat")
+    _physicsSystem(vol::AABB(Vector3(-500.0f, -500.0f, -10.0f), Vector3(500.0f, 500.0f, 10.0f)), "maps/base03.dat"),
+    _nextObjectID(1),
+    _thisZone(1)
 {
     Log::log->info("creating zone");
 }
@@ -31,7 +32,7 @@ Zone::~Zone()
 
 struct SendCloseMsg {
     SendCloseMsg(ObjectID id, MessageSender sender) :
-        objectID(id), sendMessage(sender) {}
+        sendMessage(sender), objectID(id) {}
     void visit(const sim::MovableObject* object) {
         if (objectID != object->getID())
             sendMessage(msg::ZoneSaysObjectsClose(objectID, object->getID()));
@@ -53,7 +54,7 @@ Zone::RetType Zone::main()
         sendMessage(msg::ZoneSaysObjectClearClose(objectID));
 
         Vector3 offset(150.0f, 150.0f, 0.0f);
-        const Vector3& pos = object->getPosition();
+        //const Vector3& pos = object->getPosition();
         SendCloseMsg visitor(objectID, newMessageSender());
         _quadTree.process(visitor/*, vol::AABB(pos - offset, pos + offset)*/);
     }

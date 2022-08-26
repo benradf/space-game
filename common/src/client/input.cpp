@@ -14,6 +14,10 @@
 #include <CEGUI/CEGUI.h>
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+
+
 using namespace sim;
 
 
@@ -135,28 +139,28 @@ CEGUIInput::CEGUIInput(CEGUI::System& system) :
 
 bool CEGUIInput::keyPressed(const OIS::KeyEvent& arg)
 {
-    _system.injectChar(arg.text);
-    return _system.injectKeyDown(arg.key);
+    _system.getDefaultGUIContext().injectChar(arg.text);
+    return _system.getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
 }
 
 bool CEGUIInput::keyReleased(const OIS::KeyEvent& arg)
 {
-    return _system.injectKeyUp(arg.key);
+    return _system.getDefaultGUIContext().injectKeyUp(static_cast<CEGUI::Key::Scan>(arg.key));
 }
 
 bool CEGUIInput::mouseMoved(const OIS::MouseEvent &arg)
 {
-    return _system.injectMousePosition(arg.state.X.abs, arg.state.Y.abs);
+    return _system.getDefaultGUIContext().injectMousePosition(arg.state.X.abs, arg.state.Y.abs);
 }
 
 bool CEGUIInput::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 {
-    return _system.injectMouseButtonDown(convertButton(id));
+    return _system.getDefaultGUIContext().injectMouseButtonDown(convertButton(id));
 }
 
 bool CEGUIInput::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 {
-    return _system.injectMouseButtonUp(convertButton(id));
+    return _system.getDefaultGUIContext().injectMouseButtonUp(convertButton(id));
 }
 
 
@@ -218,34 +222,42 @@ void Input::capture()
 
 bool Input::keyPressed(const OIS::KeyEvent& arg)
 {
-    foreach (OIS::KeyListener* listener, _keyListeners) 
+    for (auto listener : _keyListeners) 
         listener->keyPressed(arg);
+
+    return true;
 }
 
 bool Input::keyReleased(const OIS::KeyEvent& arg)
 {
-
-    foreach (OIS::KeyListener* listener, _keyListeners) 
+    for (auto listener : _keyListeners) 
         listener->keyReleased(arg);
+
+    return true;
 }
 
 bool Input::mouseMoved(const OIS::MouseEvent &arg)
 {
-
-    foreach (OIS::MouseListener* listener, _mouseListeners) 
+    for (auto listener : _mouseListeners) 
         listener->mouseMoved(arg);
+
+    return true;
 }
 
 bool Input::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 {
-
-    foreach (OIS::MouseListener* listener, _mouseListeners) 
+    for (auto listener : _mouseListeners) 
         listener->mousePressed(arg, id);
+
+    return true;
 }
 
 bool Input::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 {
-    foreach (OIS::MouseListener* listener, _mouseListeners) 
+    for (auto listener : _mouseListeners) 
         listener->mouseReleased(arg, id);
+
+    return true;
 }
 
+#pragma GCC diagnostic pop

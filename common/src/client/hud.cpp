@@ -21,13 +21,13 @@ gfx::HUD::HUD(CEGUI::System& cegui, NetworkInterface& network, LocalController& 
 {
     WindowManager& wmgr = WindowManager::getSingleton();
 
-    _hudRoot = wmgr.loadWindowLayout("HUD.layout");
-    _cegui.setGUISheet(_hudRoot);
+    _hudRoot = wmgr.loadLayoutFromFile("HUD.layout");
+    _cegui.getDefaultGUIContext().setRootWindow(_hudRoot);
     _hudRoot->setVisible(true);
 
-    _message = static_cast<Editbox*>(wmgr.getWindow("Root/Message"));
-    _console = static_cast<Listbox*>(wmgr.getWindow("Root/Console"));
-    _radar = wmgr.getWindow("Root/Radar");
+    _message = static_cast<Editbox*>(_hudRoot->getChild("Root/Message"));
+    _console = static_cast<Listbox*>(_hudRoot->getChild("Root/Console"));
+    _radar = _hudRoot->getChild("Root/Radar");
 
     _console->setVisible(true);
     _radar->setVisible(true);
@@ -40,7 +40,7 @@ gfx::HUD::~HUD()
 
 void gfx::HUD::activate()
 {
-    _cegui.setGUISheet(_hudRoot);
+    _cegui.getDefaultGUIContext().setRootWindow(_hudRoot);
 }
 
 void gfx::HUD::update()
@@ -52,11 +52,13 @@ bool gfx::HUD::keyPressed(const OIS::KeyEvent& arg)
 {
     if (arg.key == OIS::KC_RETURN) 
         toggleChatMessageEditbox();
+
+    return true;
 }
 
 bool gfx::HUD::keyReleased(const OIS::KeyEvent& arg)
 {
-
+    return true;
 }
 
 void gfx::HUD::toggleChatMessageEditbox()
@@ -94,7 +96,7 @@ void gfx::HUD::updateConsoleText()
 
     while (chatSystem.haveConsoleText()) {
         ListboxTextItem* line = new ListboxTextItem(chatSystem.getConsoleText());
-        line->setSelectionColours(colour(1.00f, 1.00f, 1.00f));
+        line->setSelectionColours(CEGUI::Colour(1.00f, 1.00f, 1.00f));
         _console->addItem(static_cast<ListboxItem*>(line));
         chatSystem.moveToNextConsoleText();
     }

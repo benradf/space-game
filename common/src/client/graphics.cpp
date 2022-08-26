@@ -88,7 +88,7 @@ void gfx::MovableParticleSystem::setPaused(bool paused)
 ////////// Camera //////////
 
 gfx::Camera::Camera(const char* name, Ogre::SceneManager* sceneManager) :
-    _camera(0), _sceneManager(sceneManager)
+    _sceneManager(sceneManager), _camera(0)
 {
     _camera = _sceneManager->createCamera(name);
     _camera->setNearClipDistance(1.0f);
@@ -285,7 +285,7 @@ gfx::Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* scen
 
 gfx::Entity::~Entity()
 {
-    foreach (MovableParticleSystem* system, _particleSystems) 
+    for (auto system : _particleSystems) 
         std::unique_ptr<MovableParticleSystem> p(system);
 
     _node->detachObject(_entity);
@@ -335,7 +335,7 @@ gfx::MovableParticleSystem* gfx::Entity::attachParticleSystem(
 
 void gfx::Entity::updateParticleSystems(const Ogre::Vector3& velocity)
 {
-    foreach (MovableParticleSystem* system, _particleSystems) 
+    for (auto system : _particleSystems) 
         system->update(velocity);
 }
 
@@ -353,7 +353,7 @@ gfx::ObjectOverlay& gfx::Entity::getObjectOverlay()
 
 void gfx::Entity::attachObjectOverlay(std::unique_ptr<ObjectOverlay> overlay)
 {
-    _objectOverlay = overlay;
+    _objectOverlay = std::move(overlay);
 }
 
 void gfx::Entity::updateObjectOverlay()
@@ -426,29 +426,33 @@ void gfx::Backdrop::update(const Ogre::Vector3& centre)
 
 gfx::GUI::GUI(Ogre::RenderWindow* window, Ogre::SceneManager* sceneManager, Input& input)
 {
-    if (_ceguiSystem.get() != 0) 
+    if (_ceguiSystem != 0) 
         return;
 
     assert(sceneManager != 0);
 
-    _ceguiRenderer.reset(new CEGUI::OgreCEGUIRenderer(
-        window, Ogre::RENDER_QUEUE_OVERLAY, false, 3000, sceneManager));
+    //_ceguiRenderer.reset(new CEGUI::OgreRenderer(
+    //    window, Ogre::RENDER_QUEUE_OVERLAY, false, 3000, sceneManager));
     //_ceguiRenderer->setTargetSceneManager(sceneManager);
+    _ceguiRenderer = &CEGUI::OgreRenderer::create(*window);
 
-    _ceguiSystem.reset(new CEGUI::System(_ceguiRenderer.get()));
+    //_ceguiSystem.reset(new CEGUI::System(*_ceguiRenderer.get()));
+    _ceguiSystem = &CEGUI::System::create(*_ceguiRenderer);
 
     CEGUI::Logger *logger = &CEGUI::Logger::getSingleton();
     logger->setLoggingLevel(CEGUI::Insane);
 
-    CEGUI::SchemeManager::getSingleton().loadScheme("SciFiLook.scheme");
+    CEGUI::SchemeManager::getSingleton().createFromFile("SciFiLook.scheme");
 
-    if(! CEGUI::FontManager::getSingleton().isFontPresent( "Commonwealth-10" ) )
+    //if(! CEGUI::FontManager::getSingleton().isFontPresent( "Commonwealth-10" ) )
     //CEGUI::FontManager::getSingleton().createFont("Commonwealth-10.font");
-    CEGUI::FontManager::getSingleton().createFont("DejaVuSans-8.font");
+    CEGUI::FontManager::getSingleton().createFreeTypeFont(
+        "DejaVuSans-8", 8.0f, true, "DejaVuSans-8.font");
     
     //_ceguiSystem->setDefaultFont("Commonwealth-10");
-    _ceguiSystem->setDefaultFont("DejaVuSans-8");
-    _ceguiSystem->setDefaultMouseCursor("SciFiLook", "MouseArrow");
+    _ceguiSystem->getDefaultGUIContext().setDefaultFont("DejaVuSans-8");
+    //_ceguiSystem->getDefaultGUIContext().setDefaultMouseCursor("SciFiLook", "MouseArrow");
+    _ceguiSystem->getDefaultGUIContext().getMouseCursor().setDefaultImage("SciFiLook");
     //_ceguiSystem->setDefaultTooltip("Vanilla/Tooltip");
 
     _ceguiInput.reset(new CEGUIInput(*_ceguiSystem));
@@ -458,12 +462,13 @@ gfx::GUI::GUI(Ogre::RenderWindow* window, Ogre::SceneManager* sceneManager, Inpu
 
 gfx::GUI::~GUI()
 {
-
+    CEGUI::System::destroy();
+    CEGUI::OgreRenderer::destroy(*_ceguiRenderer);
 }
 
 void gfx::GUI::render()
 {
-    _ceguiSystem->renderGUI();
+    _ceguiSystem->renderAllGUIContexts();
 }
 
 std::unique_ptr<gfx::HUD> gfx::GUI::createHUD(
@@ -531,7 +536,7 @@ void gfx::Scene::addBackdrop(const char* material, float scroll, float depth, fl
 
 void gfx::Scene::updateBackdropPositions(const Ogre::Vector3& centre)
 {
-    foreach (Backdrop* backdrop, _backdrops) 
+    for (auto backdrop : _backdrops) 
         backdrop->update(centre);
 }
 
@@ -588,7 +593,7 @@ std::unique_ptr<gfx::GUI> gfx::Viewport::createGUI()
 {
     assert(_camera != 0);
 
-    return std::make_unique<GUID>(_window, _camera->getSceneManager(),  *_input);
+    return std::make_unique<GUI>(_window, _camera->getSceneManager(),  *_input);
 }
 
 void gfx::Viewport::updateAspectRatio()

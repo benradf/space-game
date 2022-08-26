@@ -21,11 +21,20 @@ VisibleObject::VisibleObject(
         std::unique_ptr<gfx::Entity> entity, 
         std::unique_ptr<sim::MovableObject> object,
         gfx::MovableParticleSystem* exhaust) :
-    _objectSim(object), _objectGfx(entity), _exhaust(exhaust), 
-    _predictedPos(Vector3::ZERO), _apparentPos(Vector3::ZERO), 
-    _shouldInterpPos(false), _timeToInterpPos(0), _predictedRot(Quaternion::IDENTITY), 
-    _apparentRot(Quaternion::IDENTITY),_shouldInterpRot(false), _timeToInterpRot(0),
-    _roll(Quaternion::IDENTITY), _rollFrom(0.0f), _rollTo(0.0f)
+    _objectSim(std::move(object)),
+    _objectGfx(std::move(entity)),
+    _exhaust(exhaust), 
+    _predictedPos(Vector3::ZERO),
+    _apparentPos(Vector3::ZERO), 
+    _shouldInterpPos(false),
+    _timeToInterpPos(0),
+    _predictedRot(Quaternion::IDENTITY), 
+    _apparentRot(Quaternion::IDENTITY),
+    _shouldInterpRot(false),
+    _timeToInterpRot(0),
+    _roll(Quaternion::IDENTITY),
+    _rollFrom(0.0f),
+    _rollTo(0.0f)
 {
     assert(_objectSim.get() != 0);
     assert(_objectGfx.get() != 0);

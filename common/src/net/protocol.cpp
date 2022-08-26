@@ -12,6 +12,10 @@
 #include <memory.h>
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wparentheses"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 #define htonq(x) x  // needs implementing
 #define ntohq(x) x  // needs implementing
 
@@ -641,3 +645,4 @@ void net::ProtocolUser::sendMsgInfo(const char* text)
     sendPacket(packet);
 }
 
+#pragma GCC diagnostic pop

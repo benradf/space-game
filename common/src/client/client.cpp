@@ -68,9 +68,9 @@ std::unique_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
     overlay->setText("username");
     overlay->setVisible(true);
     overlay->setColour(Ogre::ColourValue(1.0f, 1.0f, 1.0f));
-    entity->attachObjectOverlay(overlay);
+    entity->attachObjectOverlay(std::move(overlay));
 
-    return std::make_unique<VisibleObject>(entity, object, exhaust);
+    return std::make_unique<VisibleObject>(std::move(entity), std::move(object), std::move(exhaust));
 }
 
 //Vector3 cameraPos = Vector3::ZERO;
@@ -200,7 +200,7 @@ void clientMain()
         Ogre::WindowEventUtilities::messagePump();
 
         if (fpsTimer.elapsed() > 5000000) {
-            int fps = frameCount / 5;
+            //int fps = frameCount / 5;
             //if (fps < targetFPS - 1) 
             //    printf("WARNING: Failed to meet target of %dfps\n", int(targetFPS));
             //printf("fps = %d\n", fps);
@@ -231,6 +231,7 @@ int main(int argc, char* argv[])
     int rval = 0;//chdir("mingw/share/client");
 #else
     int rval = chdir("linux/share/client");
+    (void)rval;
 #endif
     //assert(rval == 0);
 
