@@ -70,6 +70,7 @@ cc_binary(
 cc_binary(
     name = "server",
     srcs = glob(["server/*.hpp", "server/*.cpp"]),
+    linkopts = ["-lpthread"],
     deps = [
         "//common/src:core",
         "//common/src:net",
