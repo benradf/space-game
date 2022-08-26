@@ -48,7 +48,7 @@ gfx::HUD* hudPtr = 0;
 
 gfx::Camera* camPtr = 0;
 
-std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
+std::unique_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
 {
     assert(theScene != 0);
     assert(physics != 0);
@@ -59,18 +59,18 @@ std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID)
     snprintf(nameBuffer, sizeof(nameBuffer), "object_%d", objectID);
     sim::Ship* ship = new sim::Ship(objectID);
     ship->setSystem(*physics);
-    std::auto_ptr<sim::MovableObject> object(ship);
-    std::auto_ptr<Entity> entity = theScene->createEntity(nameBuffer, "spider.mesh");
+    auto object = std::unique_ptr<sim::MovableObject>(ship);
+    auto entity = theScene->createEntity(nameBuffer, "spider.mesh");
     MovableParticleSystem* exhaust = entity->attachParticleSystem(
         "Effects/EngineExhaust", Ogre::Vector3(0.0f, -7.0f, 0.0f));
-    std::auto_ptr<ObjectOverlay> overlay = theScene->createObjectOverlay(nameBuffer);
+    auto overlay = theScene->createObjectOverlay(nameBuffer);
     overlay->attachCamera(*camPtr);
     overlay->setText("username");
     overlay->setVisible(true);
     overlay->setColour(Ogre::ColourValue(1.0f, 1.0f, 1.0f));
     entity->attachObjectOverlay(overlay);
 
-    return std::auto_ptr<VisibleObject>(new VisibleObject(entity, object, exhaust));
+    return std::make_unique<VisibleObject>(entity, object, exhaust);
 }
 
 //Vector3 cameraPos = Vector3::ZERO;
@@ -89,8 +89,8 @@ void clientMain()
     physics = new Physics(worldBounds, "maps/base03.dat");
 
     GFXManager gfx;
-    std::auto_ptr<Scene> scene = gfx.createScene();
-    std::auto_ptr<Camera> camera = scene->createCamera("cam1");
+    auto scene = gfx.createScene();
+    auto camera = scene->createCamera("cam1");
     gfx.getViewport().attachCamera(*camera);
     camPtr = camera.get();
 
@@ -105,14 +105,14 @@ void clientMain()
     //Ship ship(*scene, "username", "spider.mesh");
     //Input input(gfx.getViewport().getRenderWindow());
     Input& input = gfx.getViewport().getInput();
-    std::auto_ptr<LocalController> ctrl(new LocalController);
+    auto ctrl = std::make_unique<LocalController>();
     input.addKeyboardListener(*ctrl);
     //localController = ctrl.get();
     //ctrl->setObject(&ship);
     theScene = scene.get();
 
-    std::auto_ptr<gfx::GUI> gui(gfx.getViewport().createGUI());
-    std::auto_ptr<Login> login(gui->createLogin());
+    auto gui = gfx.getViewport().createGUI();
+    auto login = gui->createLogin();
 
 #if 0
     while (clientRunning) {
@@ -129,14 +129,14 @@ void clientMain()
 
     Ogre::Vector3 cameraPos = Ogre::Vector3::ZERO;
 
-    std::auto_ptr<Entity> map = scene->createEntity("map", "base03.mesh");
+    auto map = scene->createEntity("map", "base03.mesh");
     map->setPosition(Ogre::Vector3(0.0f, 0.0f, 0.0f));
     //loadCollisionGeom("maps/base03.dat");
 
     NetworkInterface network(*login);
 
     network.maintainServerConnection(true);
-    std::auto_ptr<gfx::HUD> hud(gui->createHUD(network, *ctrl));
+    auto hud = gui->createHUD(network, *ctrl);
     input.addKeyboardListener(*hud);
     hudPtr = hud.get();
 

@@ -18,8 +18,8 @@
 
 class VisibleObject {
     public:
-        VisibleObject(std::auto_ptr<gfx::Entity> entity,
-            std::auto_ptr<sim::MovableObject> object,
+        VisibleObject(std::unique_ptr<gfx::Entity> entity,
+            std::unique_ptr<sim::MovableObject> object,
             gfx::MovableParticleSystem* exhaust);
 
         void update();
@@ -53,8 +53,8 @@ class VisibleObject {
 
         static const int INTERP_TIME = 200000;
 
-        std::auto_ptr<sim::MovableObject> _objectSim;
-        std::auto_ptr<gfx::Entity> _objectGfx;
+        std::unique_ptr<sim::MovableObject> _objectSim;
+        std::unique_ptr<gfx::Entity> _objectGfx;
         gfx::MovableParticleSystem* _exhaust;
 
         Vector3 _predictedPos;
@@ -77,7 +77,7 @@ class VisibleObject {
 };
 
 
-std::auto_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID);
+std::unique_ptr<VisibleObject> createVisibleObject(sim::ObjectID objectID);
 
 
 #endif  // VISOBJECT_HPP

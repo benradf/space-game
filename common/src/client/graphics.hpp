@@ -120,7 +120,7 @@ class Entity {
         bool hasObjectOverlay() const;
         ObjectOverlay& getObjectOverlay();
 
-        void attachObjectOverlay(std::auto_ptr<ObjectOverlay> overlay);
+        void attachObjectOverlay(std::unique_ptr<ObjectOverlay> overlay);
         void updateObjectOverlay();
 
     private:
@@ -133,7 +133,7 @@ class Entity {
         std::string _name;
 
         std::vector<MovableParticleSystem*> _particleSystems;
-        std::auto_ptr<ObjectOverlay> _objectOverlay;
+        std::unique_ptr<ObjectOverlay> _objectOverlay;
 };
 
 
@@ -152,7 +152,7 @@ class Backdrop {
 
         std::string _name;
         Ogre::MeshPtr _mesh;
-        std::auto_ptr<Entity> _entity;
+        std::unique_ptr<Entity> _entity;
 };
 
 
@@ -163,15 +163,15 @@ class GUI {
 
         void render();
 
-        std::auto_ptr<class HUD> createHUD(NetworkInterface& network, 
+        std::unique_ptr<class HUD> createHUD(NetworkInterface& network, 
             LocalController& localController);
 
-        std::auto_ptr<Login> createLogin();
+        std::unique_ptr<Login> createLogin();
 
     private:
-        std::auto_ptr<CEGUI::OgreCEGUIRenderer> _ceguiRenderer;
-        std::auto_ptr<CEGUI::System> _ceguiSystem;
-        std::auto_ptr<CEGUIInput> _ceguiInput;
+        std::unique_ptr<CEGUI::OgreCEGUIRenderer> _ceguiRenderer;
+        std::unique_ptr<CEGUI::System> _ceguiSystem;
+        std::unique_ptr<CEGUIInput> _ceguiInput;
 };
 
 
@@ -180,9 +180,9 @@ class Scene {
         Scene(boost::shared_ptr<Ogre::Root> root);
         ~Scene();
 
-        std::auto_ptr<Camera> createCamera(const char* name);
-        std::auto_ptr<Entity> createEntity(const char* name, const char* mesh);
-        std::auto_ptr<ObjectOverlay> createObjectOverlay(const char* name);
+        std::unique_ptr<Camera> createCamera(const char* name);
+        std::unique_ptr<Entity> createEntity(const char* name, const char* mesh);
+        std::unique_ptr<ObjectOverlay> createObjectOverlay(const char* name);
 
         void setSkyPlane(const char* material, const Ogre::Vector3& normal, float dist);
         void addBackdrop(const char* material, float scroll, float depth, float size);
@@ -216,7 +216,7 @@ class Viewport {
 
         Ogre::RenderWindow* getRenderWindow();
 
-        std::auto_ptr<GUI> createGUI();
+        std::unique_ptr<GUI> createGUI();
 
     private:
         Viewport(const Viewport&);
@@ -225,7 +225,7 @@ class Viewport {
         void updateAspectRatio();
 
         boost::shared_ptr<Ogre::Root> _root;
-        std::auto_ptr<Input> _input;
+        std::unique_ptr<Input> _input;
         Ogre::RenderWindow* _window;
         Ogre::Viewport* _viewport;
         Ogre::Camera* _camera;
@@ -241,8 +241,8 @@ class GFXManager {
 
         Viewport& getViewport();
 
-        std::auto_ptr<Scene> createScene();
-        std::auto_ptr<Viewport> createViewport();
+        std::unique_ptr<Scene> createScene();
+        std::unique_ptr<Viewport> createViewport();
 
     private:
         GFXManager(const GFXManager&);
@@ -251,7 +251,7 @@ class GFXManager {
         void initResources();
 
         boost::shared_ptr<Ogre::Root> _root;
-        std::auto_ptr<Viewport> _viewport;
+        std::unique_ptr<Viewport> _viewport;
 };
 
 

@@ -20,15 +20,15 @@ Login::Login(CEGUI::System& cegui) :
 {
     WindowManager& wmgr = WindowManager::getSingleton();
 
-    _loginRoot = wmgr.loadWindowLayout("Login.layout");
-    _cegui.setGUISheet(_loginRoot);
+    _loginRoot = wmgr.loadLayoutFromFile("Login.layout");
+    _cegui.getDefaultGUIContext().setRootWindow(_loginRoot);
     _loginRoot->setVisible(true);
 
-    _usernameBox = static_cast<Editbox*>(wmgr.getWindow("Root/Login/Username"));
-    _passwordBox = static_cast<Editbox*>(wmgr.getWindow("Root/Login/Password"));
-    _hostnameBox = static_cast<Editbox*>(wmgr.getWindow("Root/Login/Hostname"));
+    _usernameBox = static_cast<Editbox*>(_loginRoot->getChild("Root/Login/Username"));
+    _passwordBox = static_cast<Editbox*>(_loginRoot->getChild("Root/Login/Password"));
+    _hostnameBox = static_cast<Editbox*>(_loginRoot->getChild("Root/Login/Hostname"));
 
-    Window* connectButton = wmgr.getWindow("Root/Login/Connect");
+    Window* connectButton = _loginRoot->getChild("Root/Login/Connect");
     connectButton->subscribeEvent(PushButton::EventClicked,
         Event::Subscriber(&Login::connectClicked, this));
 
@@ -40,8 +40,8 @@ void Login::promptForLoginDetails()
     if (_prompting) 
         return;
 
-    _previousRoot = _cegui.getGUISheet();
-    _cegui.setGUISheet(_loginRoot);
+    _previousRoot = _cegui.getDefaultGUIContext().getRootWindow();
+    _cegui.getDefaultGUIContext().setRootWindow(_loginRoot);
 
     _usernameBox->activate();
     _usernameBox->setText("");
@@ -76,7 +76,7 @@ bool Login::connectClicked(const CEGUI::EventArgs& args)
 {
     assert(_prompting);
 
-    _cegui.setGUISheet(_previousRoot);
+    _cegui.getDefaultGUIContext().setRootWindow(_previousRoot);
 
     _username = _usernameBox->getText().c_str();
     _password = _passwordBox->getText().c_str();

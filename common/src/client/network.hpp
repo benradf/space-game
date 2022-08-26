@@ -56,7 +56,7 @@ class NetworkInterface : public net::Interface {
         virtual net::Peer* handleConnect(void* data);
         virtual void handleDisconnect(net::Peer* peer);
 
-        std::auto_ptr<RemoteServer> _server;
+        std::unique_ptr<RemoteServer> _server;
 
         bool _maintainConnection;
         void* _connectingHandle;

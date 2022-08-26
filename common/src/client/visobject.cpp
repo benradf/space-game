@@ -18,8 +18,8 @@ using namespace sim;
 ////////// VisibleObject //////////
 
 VisibleObject::VisibleObject(
-        std::auto_ptr<gfx::Entity> entity, 
-        std::auto_ptr<sim::MovableObject> object,
+        std::unique_ptr<gfx::Entity> entity, 
+        std::unique_ptr<sim::MovableObject> object,
         gfx::MovableParticleSystem* exhaust) :
     _objectSim(object), _objectGfx(entity), _exhaust(exhaust), 
     _predictedPos(Vector3::ZERO), _apparentPos(Vector3::ZERO), 

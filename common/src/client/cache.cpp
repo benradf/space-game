@@ -27,7 +27,7 @@ ObjectCache::ObjectCache() :
 ObjectCache::~ObjectCache()
 {
     foreach (ObjectMap::value_type& objPair, _objects) 
-        std::auto_ptr<VisibleObject>(objPair.second);
+        std::unique_ptr<VisibleObject>(objPair.second);
 }
 
 void ObjectCache::updateCachedObjects()
@@ -123,7 +123,7 @@ VisibleObject& ObjectCache::getObject(ObjectID objectID)
     if (iter != _objects.end()) 
         return *iter->second;
 
-    std::auto_ptr<VisibleObject> object(createVisibleObject(objectID));
+    auto object = createVisibleObject(objectID);
     _objects.insert(std::make_pair(objectID, object.get()));
 
     sendGetObjectName(objectID);
@@ -137,7 +137,7 @@ void ObjectCache::removeObject(sim::ObjectID objectID)
     if (iter == _objects.end()) 
         return;
 
-    std::auto_ptr<VisibleObject>(iter->second);
+    std::unique_ptr<VisibleObject>(iter->second);
 
     _objects.erase(iter);
 }

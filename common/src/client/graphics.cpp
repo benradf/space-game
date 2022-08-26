@@ -286,7 +286,7 @@ gfx::Entity::Entity(const char* name, const char* mesh, Ogre::SceneManager* scen
 gfx::Entity::~Entity()
 {
     foreach (MovableParticleSystem* system, _particleSystems) 
-        std::auto_ptr<MovableParticleSystem> p(system);
+        std::unique_ptr<MovableParticleSystem> p(system);
 
     _node->detachObject(_entity);
     _sceneManager->destroyEntity(_entity);
@@ -325,9 +325,8 @@ gfx::MovableParticleSystem* gfx::Entity::attachParticleSystem(
     snprintf(name, sizeof(name), "_particlesystem_%s_%s_%d", 
         _name.c_str(), system, int(_particleSystems.size() + 1));
 
-    std::auto_ptr<MovableParticleSystem> particleSystem(
-        new MovableParticleSystem( name, system, 
-        offset, _node, _sceneManager));
+    auto particleSystem = std::make_unique<MovableParticleSystem>(
+        name, system, offset, _node, _sceneManager);
 
     _particleSystems.push_back(particleSystem.get());
 
@@ -352,7 +351,7 @@ gfx::ObjectOverlay& gfx::Entity::getObjectOverlay()
     return *_objectOverlay;
 }
 
-void gfx::Entity::attachObjectOverlay(std::auto_ptr<ObjectOverlay> overlay)
+void gfx::Entity::attachObjectOverlay(std::unique_ptr<ObjectOverlay> overlay)
 {
     _objectOverlay = overlay;
 }
@@ -467,15 +466,15 @@ void gfx::GUI::render()
     _ceguiSystem->renderGUI();
 }
 
-std::auto_ptr<gfx::HUD> gfx::GUI::createHUD(
+std::unique_ptr<gfx::HUD> gfx::GUI::createHUD(
     NetworkInterface& network, LocalController& localController)
 {
-    return std::auto_ptr<HUD>(new HUD(*_ceguiSystem, network, localController));
+    return std::make_unique<HUD>(*_ceguiSystem, network, localController);
 }
 
-std::auto_ptr<Login> gfx::GUI::createLogin()
+std::unique_ptr<Login> gfx::GUI::createLogin()
 {
-    return std::auto_ptr<Login>(new Login(*_ceguiSystem));
+    return std::make_unique<Login>(*_ceguiSystem);
 }
 
 
@@ -498,19 +497,19 @@ gfx::Scene::~Scene()
     _root->destroySceneManager(_sceneManager);
 }
 
-std::auto_ptr<gfx::Camera> gfx::Scene::createCamera(const char* name)
+std::unique_ptr<gfx::Camera> gfx::Scene::createCamera(const char* name)
 {
-    return std::auto_ptr<Camera>(new Camera(name, _sceneManager));
+    return std::make_unique<Camera>(name, _sceneManager);
 }
 
-std::auto_ptr<gfx::Entity> gfx::Scene::createEntity(const char* name, const char* mesh)
+std::unique_ptr<gfx::Entity> gfx::Scene::createEntity(const char* name, const char* mesh)
 {
-    return std::auto_ptr<Entity>(new Entity(name, mesh, _sceneManager));
+    return std::make_unique<Entity>(name, mesh, _sceneManager);
 }
 
-std::auto_ptr<gfx::ObjectOverlay> gfx::Scene::createObjectOverlay(const char* name)
+std::unique_ptr<gfx::ObjectOverlay> gfx::Scene::createObjectOverlay(const char* name)
 {
-    return std::auto_ptr<ObjectOverlay>(new ObjectOverlay(_objectOverlay, name));
+    return std::make_unique<ObjectOverlay>(_objectOverlay, name);
 }
 
 void gfx::Scene::setSkyPlane(const char* material, const Ogre::Vector3& normal, float dist)
@@ -524,8 +523,8 @@ void gfx::Scene::addBackdrop(const char* material, float scroll, float depth, fl
     char name[16];
     snprintf(name, sizeof(name), "_backdrop%02d", int(_backdrops.size() + 1));
 
-    std::auto_ptr<Backdrop> backdrop(new Backdrop(name, 
-        material, scroll, depth, size, _sceneManager));
+    auto backdrop = std::make_unique<Backdrop>(name, 
+        material, scroll, depth, size, _sceneManager);
     _backdrops.push_back(backdrop.get());
     backdrop.release();
 }
@@ -585,11 +584,11 @@ Ogre::RenderWindow* gfx::Viewport::getRenderWindow()
     return _window;
 }
 
-std::auto_ptr<gfx::GUI> gfx::Viewport::createGUI()
+std::unique_ptr<gfx::GUI> gfx::Viewport::createGUI()
 {
     assert(_camera != 0);
 
-    return std::auto_ptr<GUI>(new GUI(_window, _camera->getSceneManager(),  *_input));
+    return std::make_unique<GUID>(_window, _camera->getSceneManager(),  *_input);
 }
 
 void gfx::Viewport::updateAspectRatio()
@@ -629,9 +628,9 @@ gfx::Viewport& gfx::GFXManager::getViewport()
     return *_viewport;
 }
 
-std::auto_ptr<gfx::Scene> gfx::GFXManager::createScene()
+std::unique_ptr<gfx::Scene> gfx::GFXManager::createScene()
 {
-    return std::auto_ptr<Scene>(new Scene(_root));
+    return std::make_unique<Scene>(_root);
 }
 
 void gfx::GFXManager::initResources()
