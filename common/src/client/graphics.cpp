@@ -426,18 +426,22 @@ void gfx::Backdrop::update(const Ogre::Vector3& centre)
 
 gfx::GUI::GUI(Ogre::RenderWindow* window, Ogre::SceneManager* sceneManager, Input& input)
 {
-    if (_ceguiSystem != 0) 
-        return;
+    //if (_ceguiSystem != 0) 
+    //    return;
 
     assert(sceneManager != 0);
 
     //_ceguiRenderer.reset(new CEGUI::OgreRenderer(
     //    window, Ogre::RENDER_QUEUE_OVERLAY, false, 3000, sceneManager));
     //_ceguiRenderer->setTargetSceneManager(sceneManager);
-    _ceguiRenderer = &CEGUI::OgreRenderer::create(*window);
+    //_ceguiRenderer = &CEGUI::OgreRenderer::create(*window);
+    _ceguiRenderer = &CEGUI::OgreRenderer::bootstrapSystem(*window);
+    _ceguiSystem = CEGUI::System::getSingletonPtr();
+    std::cout << "_ceguiSystem = " << _ceguiSystem << std::endl;
+    assert(false);
 
     //_ceguiSystem.reset(new CEGUI::System(*_ceguiRenderer.get()));
-    _ceguiSystem = &CEGUI::System::create(*_ceguiRenderer);
+    //_ceguiSystem = &CEGUI::System::create(*_ceguiRenderer);
 
     CEGUI::Logger *logger = &CEGUI::Logger::getSingleton();
     logger->setLoggingLevel(CEGUI::Insane);
@@ -491,6 +495,10 @@ gfx::Scene::Scene(boost::shared_ptr<Ogre::Root> root) :
     _sceneManager = _root->createSceneManager(
         Ogre::ST_EXTERIOR_CLOSE, "ExteriorSceneManager");
 
+    _overlaySystem = new Ogre::OverlaySystem();
+    _sceneManager->addRenderQueueListener(_overlaySystem);
+
+    std::cout << "overlayManager = " << Ogre::OverlayManager::getSingletonPtr() << std::endl;
     _objectOverlay = Ogre::OverlayManager::getSingleton().create("objectOverlay");
     _objectOverlay->show();
 }

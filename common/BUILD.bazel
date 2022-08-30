@@ -4,6 +4,7 @@ write_file(
     name = "write-run-client-sh",
     out = "run-client.sh",
     content = [
+        "set -eux",
         "cp -f common/data/config/*.cfg ./",
         "sed -i \"s|^PluginFolder=.*|PluginFolder=$1|\" plugins.cfg",
         "scripts/enum-resources.sh ./ | tee resources.cfg",
@@ -12,7 +13,14 @@ write_file(
         "cat -n plugins.cfg",
         "tree",
         #"apitrace trace --api gl common/src/client",
-        "common/src/client",
+        #"export MESA_GL_VERSION_OVERRIDE=4.0",
+        #"export LIBGL_ALWAYS_SOFTWARE=true",
+        #"export LIBGL_DEBUG=verbose",
+        "export LIBGL_DRIVERS_PATH=/nix/store/s9gc3ngzid3hla67s64j72nm6ckbvgnk-mesa-22.1.4-drivers/lib/dri:/nix/store/v0gvjvc4aa8dhrgz7d6ks732l2gpgnh8-mesa-22.1.4-drivers/lib/dri",
+        "export LIBVA_DRIVERS_PATH=/nix/store/rfrpw0mirgjksa0shl82qhx6bv44sr0m-intel-media-driver-22.5.0/lib/dri:/nix/store/sbca69ay0sm1rivjwmqdg25ij996ns97-intel-vaapi-driver-2.4.1/lib/dri:/nix/store/3170alzcsz39qzwapy7ibz6q4b2f6vgk-intel-vaapi-driver-2.4.1/lib/dri",
+        "export __EGL_VENDOR_LIBRARY_FILENAMES=/nix/store/s9gc3ngzid3hla67s64j72nm6ckbvgnk-mesa-22.1.4-drivers/share/glvnd/egl_vendor.d/50_mesa.json:/nix/store/v0gvjvc4aa8dhrgz7d6ks732l2gpgnh8-mesa-22.1.4-drivers/share/glvnd/egl_vendor.d/50_mesa.json",
+        "export LD_LIBRARY_PATH=/nix/store/s9gc3ngzid3hla67s64j72nm6ckbvgnk-mesa-22.1.4-drivers/lib:/nix/store/v0gvjvc4aa8dhrgz7d6ks732l2gpgnh8-mesa-22.1.4-drivers/lib:/nix/store/ckxpj0w1bbacvdpyr624n9p1gcwk3giv-libvdpau-va-gl-0.4.2/lib/vdpau:/nix/store/bxjjckyhz19w35k9aa6wnf1hdnhd54fk-libvdpau-va-gl-0.4.2/lib/vdpau:/nix/store/kci7hyyb4lk4vq1mjdxs87a7kgq3s8m6-mesa_glxindirect/lib:/nix/store/2cspydj47k7glhz814nqfmmbrgqll9z7-libglvnd-1.4.0/lib",
+        "gdb common/src/client",
     ]
 )
 

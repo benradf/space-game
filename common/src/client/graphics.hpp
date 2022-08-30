@@ -197,6 +197,7 @@ class Scene {
 
         boost::shared_ptr<Ogre::Root> _root;
         Ogre::SceneManager* _sceneManager;
+        Ogre::OverlaySystem* _overlaySystem;
 
         std::vector<Backdrop*> _backdrops;
 
