@@ -288,3 +288,13 @@ cc_library(
 """,
     repository = "@nixpkgs",
 )
+
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+
+new_git_repository(
+    name = "nixgl",
+    remote = "https://github.com/guibou/nixGL",
+    commit = "7165ffbccbd2cf4379b6cd6d2edd1620a427e5ae",
+    shallow_since = "1661367362 +0200",
+    build_file_content = "exports_files(glob([\"**/*\"]))",
+)

@@ -28,7 +28,8 @@ write_file(
         "scripts/enum-resources.sh ./ | tee resources.cfg",
         "ln -sf resources.cfg resources_d.cfg",
         "ln -sf plugins.cfg plugins_d.cfg",
-        "/nix/store/bwk12qa17hgwm4b27c5ia840xqwqr8hm-nixGLIntel/bin/nixGLIntel common/src/client",
+        "nix-build \"$2\" -A auto.nixGLDefault -o nixgl",
+        "nixgl/bin/nixGL common/src/client",
     ]
 )
 
@@ -48,9 +49,11 @@ sh_binary(
         "//common/data:textures.zip",
         "//common/src:client",
         "//scripts:enum-resources.sh",
+        "@nixgl//:default.nix",
         "@ogre//:lib/OGRE",
     ],
     args = [
-        "$(location @ogre//:lib/OGRE)"
+        "$(location @ogre//:lib/OGRE)",
+        "$(location @nixgl//:default.nix)",
     ],
 )
