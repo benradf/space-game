@@ -11,7 +11,7 @@ material Material/TEXFACE/bomber.tga
 			texture_unit
 			{
 				texture bomber.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass

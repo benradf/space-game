@@ -11,7 +11,7 @@ material Material/TEXFACE/spider.tga
 			texture_unit
 			{
 				texture spider.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass

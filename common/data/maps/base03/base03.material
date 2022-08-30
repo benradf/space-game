@@ -11,7 +11,7 @@ material wall5/TEXFACE/wall4.tga
 			texture_unit
 			{
 				texture wall4.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -36,7 +36,7 @@ material base1.003/TEXFACE/base1.tga
 			texture_unit
 			{
 				texture base1.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -61,7 +61,7 @@ material base1/TEXFACE/base4.tga
 			texture_unit
 			{
 				texture base4.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -86,7 +86,7 @@ material base1/TEXFACE/trim4.tga
 			texture_unit
 			{
 				texture trim4.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -111,7 +111,7 @@ material wall_top/TEXFACE/ceil2.tga
 			texture_unit
 			{
 				texture ceil2.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -136,7 +136,7 @@ material wall3/TEXFACE/ceil3.tga
 			texture_unit
 			{
 				texture ceil3.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -161,7 +161,7 @@ material base1/TEXFACE/base2.tga
 			texture_unit
 			{
 				texture base2.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -186,7 +186,7 @@ material base1/TEXFACE/sci_fidoor.tga
 			texture_unit
 			{
 				texture sci_fidoor.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -213,7 +213,7 @@ material grating/TEXFACE/floor5_alpha.tga
 			texture_unit
 			{
 				texture floor5_alpha.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -238,7 +238,7 @@ material dome_inside/TEXFACE/floor4.tga
 			texture_unit
 			{
 				texture floor4.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -263,7 +263,7 @@ material floor2/TEXFACE/base4.tga
 			texture_unit
 			{
 				texture base4.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -288,7 +288,7 @@ material wall4/TEXFACE/ceil1.tga
 			texture_unit
 			{
 				texture ceil1.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -313,7 +313,7 @@ material dome_inside/TEXFACE/wall1.tga
 			texture_unit
 			{
 				texture wall1.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -338,7 +338,7 @@ material base1.002/TEXFACE/modular5.tga
 			texture_unit
 			{
 				texture modular5.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -363,7 +363,7 @@ material base1/TEXFACE/ceil1.tga
 			texture_unit
 			{
 				texture ceil1.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -388,7 +388,7 @@ material wall2.002/TEXFACE/modular1.tga
 			texture_unit
 			{
 				texture modular1.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -413,7 +413,7 @@ material wall2/TEXFACE/dome_inside.tga
 			texture_unit
 			{
 				texture dome_inside.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -452,7 +452,7 @@ material base1.001/TEXFACE/modular1.tga
 			texture_unit
 			{
 				texture modular1.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -477,7 +477,7 @@ material wall_top2/TEXFACE/trim1.tga
 			texture_unit
 			{
 				texture trim1.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
@@ -502,7 +502,7 @@ material wall2.001/TEXFACE/wall_1.tga
 			texture_unit
 			{
 				texture wall_1.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass

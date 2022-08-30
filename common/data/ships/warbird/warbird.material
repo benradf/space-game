@@ -11,7 +11,7 @@ material Material/TEXFACE/warbird.tga
 			texture_unit
 			{
 				texture warbird.tga
-				colour_op modulate
+				colour_op replace
 			}
 		}
 		pass
