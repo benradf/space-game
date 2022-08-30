@@ -26,7 +26,13 @@ pkg_zip(
 
 filegroup(
     name = "cegui",
-    srcs = glob(["cegui/**/*"]),
+    srcs = glob([
+        "cegui/fonts/*",
+        "cegui/imagesets/*",
+        "cegui/layouts/*.layout",
+        "cegui/looknfeel/*.looknfeel",
+        "cegui/schemes/*.scheme",
+    ]),
     visibility = ["//visibility:public"],
 )
 

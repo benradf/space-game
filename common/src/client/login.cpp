@@ -9,6 +9,7 @@
 
 #include "login.hpp"
 #include <CEGUI/CEGUI.h>
+#include <unistd.h>
 
 
 using namespace CEGUI;
@@ -24,19 +25,27 @@ Login::Login(CEGUI::System& cegui) :
     _cegui.getDefaultGUIContext().setRootWindow(_loginRoot);
     _loginRoot->setVisible(true);
 
-    _usernameBox = static_cast<Editbox*>(_loginRoot->getChild("Root/Login/Username"));
-    _passwordBox = static_cast<Editbox*>(_loginRoot->getChild("Root/Login/Password"));
-    _hostnameBox = static_cast<Editbox*>(_loginRoot->getChild("Root/Login/Hostname"));
+    _usernameBox = static_cast<Editbox*>(_loginRoot->getChildRecursive("Root/Login/Username"));
+    _passwordBox = static_cast<Editbox*>(_loginRoot->getChildRecursive("Root/Login/Password"));
+    _hostnameBox = static_cast<Editbox*>(_loginRoot->getChildRecursive("Root/Login/Hostname"));
 
-    Window* connectButton = _loginRoot->getChild("Root/Login/Connect");
+    Window* connectButton = _loginRoot->getChildRecursive("Root/Login/Connect");
     connectButton->subscribeEvent(PushButton::EventClicked,
         Event::Subscriber(&Login::connectClicked, this));
 
-    _hostname = "mmoserv.username.co.uk";
+    _hostname = "localhost";
 }
 
 void Login::promptForLoginDetails()
 {
+    // 2022-08-30: autologin hack
+    _username = "pilot-" + std::to_string(getpid());
+    _password = "password";
+    _detailsAvailable = true;
+    _prompting = false;
+    return;
+    // 2022-08-30: autologin hack
+
     if (_prompting) 
         return;
 

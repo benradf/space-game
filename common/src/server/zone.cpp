@@ -18,7 +18,7 @@ using namespace sim;
 Zone::Zone(PostOffice& po) :
     MessagableJob(po, MSG_ZONETELL | MSG_PLAYER),
     _quadTree(vol::AABB(Vector3(-500.0f, -500.0f, -10.0f), Vector3(500.0f, 500.0f, 10.0f))),
-    _physicsSystem(vol::AABB(Vector3(-500.0f, -500.0f, -10.0f), Vector3(500.0f, 500.0f, 10.0f)), "maps/base03.dat"),
+    _physicsSystem(vol::AABB(Vector3(-500.0f, -500.0f, -10.0f), Vector3(500.0f, 500.0f, 10.0f)), "common/data/maps/base03.dat"),
     _nextObjectID(1),
     _thisZone(1)
 {

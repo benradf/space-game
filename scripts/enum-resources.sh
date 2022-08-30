@@ -9,6 +9,4 @@ printf "[General]\n"
 find $1 -name "*.zip" -exec printf "Zip=%s\n" "{}" \; | grep -vF ogrecore.zip | sed "s;$1;;"
 
 printf "\n[CEGUI]\n"
-for f in `ls -d common/data/cegui/datafiles/*`; do
-    printf "FileSystem=$f\n"
-done
+find common/data/cegui/* -type d | sed 's/.*/FileSystem=&/'

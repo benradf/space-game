@@ -46,31 +46,3 @@ def assemble_map(name):
         outs = ["{}.dat".format(name)],
         visibility = ["//visibility:public"],
     )
-
-
-
-#def enumerate_resources():
-#    config = []
-#
-#    config.append("[Bootstrap]")
-#    config.append("Zip=ogrecore.zip")
-#
-#    config.append("[General]")
-#    #for zip in native.glob([":data/maps/*.zip"]):
-#    #for zip in native.glob(["data/maps/*/*"]):
-#    for zip in native.glob(["src/*/*.hpp"]):
-#        config.append("Zip=" + zip)
-#    #print(str(native.glob(["**/*"])))
-#
-#    config.append("[CEGUI]")
-#
-##[Bootstrap]
-##Zip=ogrecore.zip
-##
-##[General]
-##find $1 -name "*.zip" -exec printf "Zip=%s\n" "{}" \; | sed "s;$1;;"
-##
-##[CEGUI]
-##FileSystem=
-#
-#    return config

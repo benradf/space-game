@@ -144,7 +144,7 @@ gfx::ObjectOverlay::ObjectOverlay(Ogre::Overlay* overlay, const char* name) :
         _text->setMetricsMode(Ogre::GMM_PIXELS);
         _text->setPosition(0.0f, 0.0f);
 
-        _text->setParameter("font_name", "BlueBold");
+        //_text->setParameter("font_name", "BlueBold");
         _text->setParameter("char_height", "16");
         _text->setParameter("horz_align", "center");
 
@@ -444,17 +444,17 @@ gfx::GUI::GUI(Ogre::RenderWindow* window, Ogre::SceneManager* sceneManager, Inpu
     CEGUI::Logger *logger = &CEGUI::Logger::getSingleton();
     logger->setLoggingLevel(CEGUI::Insane);
 
-    CEGUI::SchemeManager::getSingleton().createFromFile("SciFiLook.scheme");
+    CEGUI::SchemeManager::getSingleton().createFromFile("VanillaSkin.scheme");
 
     //if(! CEGUI::FontManager::getSingleton().isFontPresent( "Commonwealth-10" ) )
     //CEGUI::FontManager::getSingleton().createFont("Commonwealth-10.font");
     CEGUI::FontManager::getSingleton().createFreeTypeFont(
-        "DejaVuSans-8", 8.0f, true, "DejaVuSans-8.font");
+        "DejaVuSans-10", 10.0f, true, "DejaVuSans.ttf");
     
     //_ceguiSystem->setDefaultFont("Commonwealth-10");
-    _ceguiSystem->getDefaultGUIContext().setDefaultFont("DejaVuSans-8");
+    _ceguiSystem->getDefaultGUIContext().setDefaultFont("DejaVuSans-10");
     //_ceguiSystem->getDefaultGUIContext().setDefaultMouseCursor("SciFiLook", "MouseArrow");
-    _ceguiSystem->getDefaultGUIContext().getMouseCursor().setDefaultImage("SciFiLook");
+    _ceguiSystem->getDefaultGUIContext().getMouseCursor().setDefaultImage("Vanilla-Images/MouseArrow");
     //_ceguiSystem->setDefaultTooltip("Vanilla/Tooltip");
 
     _ceguiInput.reset(new CEGUIInput(*_ceguiSystem));

@@ -25,9 +25,9 @@ gfx::HUD::HUD(CEGUI::System& cegui, NetworkInterface& network, LocalController& 
     _cegui.getDefaultGUIContext().setRootWindow(_hudRoot);
     _hudRoot->setVisible(true);
 
-    _message = static_cast<Editbox*>(_hudRoot->getChild("Root/Message"));
-    _console = static_cast<Listbox*>(_hudRoot->getChild("Root/Console"));
-    _radar = _hudRoot->getChild("Root/Radar");
+    _message = static_cast<Editbox*>(_hudRoot->getChildRecursive("Root/Message"));
+    _console = static_cast<Listbox*>(_hudRoot->getChildRecursive("Root/Console"));
+    _radar = _hudRoot->getChildRecursive("Root/Radar");
 
     _console->setVisible(true);
     _radar->setVisible(true);
