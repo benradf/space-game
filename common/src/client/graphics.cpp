@@ -613,7 +613,7 @@ gfx::GFXManager::GFXManager()
     //_root->showConfigDialog();
     _root->restoreConfig();
 
-    _viewport.reset(new Viewport("mmoclient", _root));
+    _viewport.reset(new Viewport("space-game", _root));
 
     initResources();
 }

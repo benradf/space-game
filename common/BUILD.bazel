@@ -1,0 +1,39 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+
+write_file(
+    name = "write-run-client-sh",
+    out = "run-client.sh",
+    content = [
+        "cp -f common/data/config/*.cfg ./",
+        "sed -i \"s|^PluginFolder=.*|PluginFolder=$1|\" plugins.cfg",
+        "scripts/enum-resources.sh ./ | tee resources.cfg",
+        "ln -sf resources.cfg resources_d.cfg",
+        "ln -sf plugins.cfg plugins_d.cfg",
+        "cat -n plugins.cfg",
+        "tree",
+        #"apitrace trace --api gl common/src/client",
+        "common/src/client",
+    ]
+)
+
+sh_binary(
+    name = "run-client",
+    srcs = [":run-client.sh"],
+    data = [
+        "//common/data/maps:base03.dat",
+        "//common/data/maps:base03.zip",
+        "//common/data/ships:bomber.zip",
+        "//common/data/ships:spider.zip",
+        "//common/data/ships:warbird.zip",
+        "//common/data:cegui",
+        "//common/data:config",
+        "//common/data:materials.zip",
+        "//common/data:particles.zip",
+        "//common/src:client",
+        "//scripts:enum-resources.sh",
+        "@ogre//:lib/OGRE",
+    ],
+    args = [
+        "$(location @ogre//:lib/OGRE)"
+    ],
+)

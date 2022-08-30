@@ -1,14 +1,14 @@
 #!/bin/bash
+set -eu
 
 printf "[Bootstrap]\n"
-printf "Zip=ogrecore.zip\n"
+printf "Zip=common/data/config/ogrecore.zip\n"
 printf "\n"
 
 printf "[General]\n"
-find $1 -name "*.zip" -exec printf "Zip=%s\n" "{}" \; | sed "s;$1;;"
+find $1 -name "*.zip" -exec printf "Zip=%s\n" "{}" \; | grep -vF ogrecore.zip | sed "s;$1;;"
 
 printf "\n[CEGUI]\n"
-cd common/data/cegui
-for f in `ls -d datafiles/*`; do
+for f in `ls -d common/data/cegui/datafiles/*`; do
     printf "FileSystem=$f\n"
 done

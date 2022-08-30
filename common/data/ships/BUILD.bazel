@@ -1,0 +1,5 @@
+load("//common/data:resources.bzl", "assemble_assets")
+
+assemble_assets("bomber")
+assemble_assets("spider")
+assemble_assets("warbird")

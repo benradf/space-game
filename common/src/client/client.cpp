@@ -86,7 +86,7 @@ void clientMain()
         Vector3(-2000.0f, -2000.0f, 0.0f), 
         Vector3(2000.0f, 2000.0f, 0.0f));
 
-    physics = new Physics(worldBounds, "maps/base03.dat");
+    physics = new Physics(worldBounds, "common/data/maps/base03.dat");
 
     GFXManager gfx;
     auto scene = gfx.createScene();

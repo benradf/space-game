@@ -1,9 +1,29 @@
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
 
-load("//common/data:resources.bzl", "enumerate_resources")
+pkg_zip(
+    name = "materials-zip",
+    out = "materials.zip",
+    strip_prefix = "materials",
+    srcs = glob(["materials/*.material"]),
+    visibility = ["//visibility:public"],
+)
 
-write_file(
-    name = "resources",
-    out = "resources.cfg",
-    content = enumerate_resources(),
+pkg_zip(
+    name = "particles-zip",
+    out = "particles.zip",
+    strip_prefix = "particles",
+    srcs = glob(["particles/*.particle"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "cegui",
+    srcs = glob(["cegui/**/*"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "config",
+    srcs = glob(["config/*"]),
+    visibility = ["//visibility:public"],
 )
