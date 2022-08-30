@@ -14,7 +14,10 @@
 #include <memory>
 #include <vector>
 #include <OGRE/Ogre.h>
+#include <OGRE/Overlay/OgreOverlay.h>
 #include <OGRE/Overlay/OgreOverlaySystem.h>
+#include <OGRE/Overlay/OgreOverlayManager.h>
+#include <OGRE/Overlay/OgreOverlayContainer.h>
 #include <CEGUI/RendererModules/Ogre/Renderer.h>
 #include <CEGUI/CEGUI.h>
 //#include <CEGUI/CEGUILua.h>

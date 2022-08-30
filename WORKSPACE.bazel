@@ -231,19 +231,19 @@ cc_library(
 
 nixpkgs_package(
     name = "ogre",
-    attribute_path = "ogre1_9",
+    attribute_path = "ogre1_10",
     build_file_content = """\
 load("@rules_cc//cc:defs.bzl", "cc_import")
 cc_import(
     name = "ogre-main",
     hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libOgreMain.so.1.9.0",
+    shared_library = "lib/libOgreMain.so.1.10.11",
     visibility = ["//visibility:public"],
 )
 cc_import(
     name = "ogre-overlay",
     hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libOgreOverlay.so.1.9.0",
+    shared_library = "lib/libOgreOverlay.so.1.10.11",
     visibility = ["//visibility:public"],
 )
 cc_library(

@@ -1,4 +1,8 @@
-copts = ["-std=c++17", "-DNO_BOOST_DATE_TIME_INLINE"]
+copts = [
+    "-std=c++17",
+    "-DNO_BOOST_DATE_TIME_INLINE",
+    "-Wno-deprecated-declarations",
+]
 
 cc_library(
     name = "core",
