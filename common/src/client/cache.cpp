@@ -65,6 +65,18 @@ const Vector3& ObjectCache::getAttachedObjectPosition() const
     return object->getApparentPosition();
 }
 
+const Vector3& ObjectCache::getAttachedObjectVelocity() const
+{
+    assert(hasAttachedObject());
+
+    const VisibleObject* object = getObject(_attachedObject);
+
+    if (object == 0) 
+        return Vector3::ZERO;
+
+    return object->getVelocity();
+}
+
 bool ObjectCache::hasAttachedObject() const
 {
     return _haveAttachedObject;

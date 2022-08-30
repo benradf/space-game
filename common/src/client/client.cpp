@@ -176,7 +176,13 @@ void clientMain()
 
         if (network.hasServer() && network.getServer().hasAttachedObject()) {
             const Vector3& pos = network.getServer().getAttachedObjectPosition();
-            cameraPos.x = pos.x, cameraPos.y = pos.y, cameraPos.z = pos.z + 300.0f;
+            cameraPos.x = pos.x;
+            cameraPos.y = pos.y;
+
+            const Vector3& vel = network.getServer().getAttachedObjectVelocity();
+            const auto zoom = std::min(magnitude(vel), 700.0f);
+            cameraPos.z = pos.z + 300.0f + zoom;
+
             camera->setPosition(cameraPos);
         }
 

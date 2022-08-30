@@ -27,6 +27,7 @@ class ObjectCache : public virtual net::ProtocolUser {
 
         void setControlState(sim::ControlState state);
         const Vector3& getAttachedObjectPosition() const;
+        const Vector3& getAttachedObjectVelocity() const;
         bool hasAttachedObject() const;
 
     private:
