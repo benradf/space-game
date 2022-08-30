@@ -9,6 +9,14 @@ pkg_zip(
 )
 
 pkg_zip(
+    name = "textures-zip",
+    out = "textures.zip",
+    strip_prefix = "textures",
+    srcs = glob(["textures/*.tga"]),
+    visibility = ["//visibility:public"],
+)
+
+pkg_zip(
     name = "particles-zip",
     out = "particles.zip",
     strip_prefix = "particles",

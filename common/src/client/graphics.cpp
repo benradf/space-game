@@ -437,8 +437,6 @@ gfx::GUI::GUI(Ogre::RenderWindow* window, Ogre::SceneManager* sceneManager, Inpu
     //_ceguiRenderer = &CEGUI::OgreRenderer::create(*window);
     _ceguiRenderer = &CEGUI::OgreRenderer::bootstrapSystem(*window);
     _ceguiSystem = CEGUI::System::getSingletonPtr();
-    std::cout << "_ceguiSystem = " << _ceguiSystem << std::endl;
-    assert(false);
 
     //_ceguiSystem.reset(new CEGUI::System(*_ceguiRenderer.get()));
     //_ceguiSystem = &CEGUI::System::create(*_ceguiRenderer);
@@ -498,7 +496,6 @@ gfx::Scene::Scene(boost::shared_ptr<Ogre::Root> root) :
     _overlaySystem = new Ogre::OverlaySystem();
     _sceneManager->addRenderQueueListener(_overlaySystem);
 
-    std::cout << "overlayManager = " << Ogre::OverlayManager::getSingletonPtr() << std::endl;
     _objectOverlay = Ogre::OverlayManager::getSingleton().create("objectOverlay");
     _objectOverlay->show();
 }

@@ -37,6 +37,7 @@ sh_binary(
         "//common/data:config",
         "//common/data:materials.zip",
         "//common/data:particles.zip",
+        "//common/data:textures.zip",
         "//common/src:client",
         "//scripts:enum-resources.sh",
         "@ogre//:lib/OGRE",
