@@ -942,7 +942,7 @@ std::unique_ptr<TemporaryNode> constructKDTree(const std::vector<Triangle>& tria
     SplitList list;
     SplitPlaneFactory factory;
 
-    for (const auto triangle : triangles) 
+    for (const auto& triangle : triangles)
         factory.createFromTriangle(triangle, bounds, std::inserter(list, list.begin()));
 
     list.sort(LessThanPtrs());
