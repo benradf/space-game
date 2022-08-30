@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout >
+    <Window Type="DefaultWindow" Name="LoginRoot" >
+        <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Type="SciFiLook/FrameWindow" Name="Root/Login" >
+            <Property Name="Text" Value="Login" />
+            <Property Name="TitlebarFont" Value="Commonwealth-10" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="TitlebarEnabled" Value="True" />
+            <Property Name="UnifiedAreaRect" Value="{{0.306471,0},{0.25,0},{0.681696,0},{0.597873,0}}" />
+            <Window Type="SciFiLook/Editbox" Name="Root/Login/Username" >
+                <Property Name="MaxTextLength" Value="4294967295" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.270212,0},{0.219168,0},{0.947524,0},{0.353625,0}}" />
+            </Window>
+            <Window Type="SciFiLook/StaticText" Name="Root/Login/UsernameLabel" >
+                <Property Name="Font" Value="DejaVuSans-8" />
+                <Property Name="Text" Value="Username:" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0396116,0},{0.237904,0},{0.239401,0},{0.330281,0}}" />
+            </Window>
+            <Window Type="SciFiLook/StaticText" Name="Root/Login/PasswordLabel" >
+                <Property Name="Font" Value="DejaVuSans-8" />
+                <Property Name="Text" Value="Password:" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0530145,0},{0.435711,0},{0.239745,0},{0.53584,0}}" />
+            </Window>
+            <Window Type="SciFiLook/Editbox" Name="Root/Login/Password" >
+                <Property Name="MaxTextLength" Value="4294967295" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.269896,0},{0.429294,0},{0.94611,0},{0.561166,0}}" />
+            </Window>
+            <Window Type="SciFiLook/StaticText" Name="Root/Login/ServerLabel" >
+                <Property Name="Font" Value="DejaVuSans-8" />
+                <Property Name="Text" Value="Server:" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.102071,0},{0.649152,0},{0.238467,0},{0.731193,0}}" />
+            </Window>
+            <Window Type="SciFiLook/Editbox" Name="Root/Login/Hostname" >
+                <Property Name="MaxTextLength" Value="4294967295" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.270345,0},{0.634379,0},{0.948546,0},{0.766251,0}}" />
+            </Window>
+            <Window Type="SciFiLook/Button" Name="Root/Login/Connect" >
+                <Property Name="Text" Value="Connect" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.631809,0},{0.822502,0},{0.944531,0},{0.943303,0}}" />
+            </Window>
+        </Window>
+    </Window>
+</GUILayout>

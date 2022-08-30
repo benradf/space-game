@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout >
+    <Window Type="DefaultWindow" Name="HUDRoot" >
+        <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Type="SciFiLook/Editbox" Name="Root/Message" >
+            <Property Name="Font" Value="DejaVuSans-6" />
+            <Property Name="Alpha" Value="0.8" />
+            <Property Name="Visible" Value="False" />
+            <Property Name="MaxTextLength" Value="4294967295" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0,64},{0.5,96},{1,-64},{0.5,128}}" />
+        </Window>
+        <Window Type="SciFiLook/StaticImage" Name="Root/Radar" >
+            <Property Name="Alpha" Value="0.8" />
+            <Property Name="Visible" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{1,-192},{1,-192},{1,-4},{1,-4}}" />
+        </Window>
+        <Window Type="SciFiLook/Listbox" Name="Root/Console" >
+            <Property Name="Alpha" Value="0.8" />
+            <Property Name="Visible" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0,4},{1,-128},{1,-192},{1,-4}}" />
+        </Window>
+    </Window>
+</GUILayout>
