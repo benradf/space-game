@@ -22,6 +22,7 @@ write_file(
     name = "write-run-client-sh",
     out = "run-client.sh",
     content = [
+        "#!/bin/bash",
         "set -eux",
         "cp -f common/data/config/*.cfg ./",
         "sed -i \"s|^PluginFolder=.*|PluginFolder=$1|\" plugins.cfg",
@@ -29,7 +30,7 @@ write_file(
         "ln -sf resources.cfg resources_d.cfg",
         "ln -sf plugins.cfg plugins_d.cfg",
         "nix-build \"$2\" -A auto.nixGLDefault -o nixgl",
-        "nixgl/bin/nixGL common/src/client",
+        "nixgl/bin/nixGL common/src/client ${SERVER_IP:-}",
     ]
 )
 

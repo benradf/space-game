@@ -15,6 +15,9 @@
 using namespace CEGUI;
 
 
+extern std::string serverHostname;
+
+
 Login::Login(CEGUI::System& cegui) :
     _prompting(false), _detailsAvailable(false), _cegui(cegui), 
     _loginRoot(0), _usernameBox(0), _passwordBox(0), _hostnameBox(0)
@@ -33,7 +36,7 @@ Login::Login(CEGUI::System& cegui) :
     connectButton->subscribeEvent(PushButton::EventClicked,
         Event::Subscriber(&Login::connectClicked, this));
 
-    _hostname = "localhost";
+    _hostname = serverHostname;
 }
 
 void Login::promptForLoginDetails()

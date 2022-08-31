@@ -48,7 +48,7 @@ void RemoteClient::handleKeyExchange(uint64_t key)
 
 void RemoteClient::handleLogin(const char* username, uint8_t (&password)[16])
 {
-    sendKeyExchange(0x19862009);
+    sendKeyExchange(0x12345678);
     Log::log->info("got login message");
     _sendMsg(msg::PeerRequestLogin(getID(), username, 0));
 }
