@@ -32,12 +32,12 @@ load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_depende
 
 rules_nixpkgs_dependencies()
 
-load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_cc_configure")
+load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_local_repository", "nixpkgs_cc_configure")
 
-nixpkgs_git_repository(
+nixpkgs_local_repository(
     name = "nixpkgs",
-    revision = "22.05",
-    sha256 = "0f8c25433a6611fa5664797cd049c80faefec91575718794c701f3b033f2db01",
+    nix_file = "//:nixpkgs.nix",
+    nix_file_deps = ["//:nixpkgs.json"],
 )
 
 nixpkgs_cc_configure(
@@ -155,7 +155,6 @@ cc_library(
 nixpkgs_package(
     name = "enet",
     build_file_content = """\
-load("@rules_cc//cc:defs.bzl", "cc_import")
 cc_import(
     name = "enet-import",
     hdrs = glob(["include/**/*.h"]),

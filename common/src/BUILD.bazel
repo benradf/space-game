@@ -90,7 +90,6 @@ cc_binary(
         "//common/src:physics",
         "//common/src:script",
         "@argtable",
-        "@lua",
     ],
     visibility = ["//visibility:public"],
     includes = ["."],

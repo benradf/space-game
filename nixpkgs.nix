@@ -5,7 +5,4 @@ let
       "https://github.com/${spec.owner}/${spec.repo}/archive/${spec.rev}.tar.gz";
     sha256 = spec.sha256;
   };
-in import nixpkgs {
-  config = { };
-  overlays = [ ];
-}
+in import nixpkgs
