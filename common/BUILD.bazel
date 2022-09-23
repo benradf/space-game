@@ -54,7 +54,7 @@ sh_binary(
         "@ogre//:lib/OGRE",
     ],
     args = [
-        "$(location @ogre//:lib/OGRE)",
-        "$(location @nixgl//:default.nix)",
+        "$(rootpath @ogre//:lib/OGRE)",
+        "$(rootpath @nixgl//:default.nix)",
     ],
 )
