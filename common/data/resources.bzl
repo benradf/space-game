@@ -9,7 +9,7 @@ def assemble_assets(name):
         srcs = [":{name}/{name}.mesh.xml".format(name = name)],
         tools = [mesh_converter],
         cmd = """$(execpath {mesh_converter}) \
-            $(rootpath {name}/{name}.mesh.xml) \
+            $(execpath {name}/{name}.mesh.xml) \
             $(execpath {name}.mesh)
         """.format(
             name = name,
@@ -40,7 +40,7 @@ def assemble_map(name):
         srcs = [":{name}/{name}.collision.xml".format(name = name)],
         tools = ["//common/src:zonebuild"],
         cmd = """$(execpath //common/src:zonebuild) \
-            $(rootpath {name}/{name}.collision.xml) \
+            $(execpath {name}/{name}.collision.xml) \
             $(execpath {name}.dat)
         """.format(name = name),
         outs = ["{}.dat".format(name)],
