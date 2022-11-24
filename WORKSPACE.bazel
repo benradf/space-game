@@ -69,18 +69,11 @@ load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_package")
 nixpkgs_package(
     name = "argtable",
     build_file_content = """\
-load("@rules_cc//cc:defs.bzl", "cc_import")
-cc_import(
-    name = "argtable-import",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libargtable3.so.0",
-    visibility = ["//visibility:public"],
-)
 cc_library(
     name = "argtable",
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
-    deps = [":argtable-import"],
+    srcs = ["lib/libargtable3.so.0"],
     visibility = ["//visibility:public"],
 )
 """,
@@ -103,19 +96,11 @@ buildEnv {
 }
 """,
     build_file_content = """\
-cc_import(
-    name = "boost-system",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libboost_system.so.1.55.0",
-    visibility = ["//visibility:public"],
-)
 cc_library(
     name = "boost",
     hdrs = glob(["include/**/*.hpp"]),
     includes = ["include"],
-    deps = [
-        ":boost-system",
-    ],
+    srcs = ["lib/libboost_system.so.1.55.0"],
     visibility = ["//visibility:public"],
 )
 """,
@@ -125,26 +110,13 @@ cc_library(
 nixpkgs_package(
     name = "cegui",
     build_file_content = """\
-load("@rules_cc//cc:defs.bzl", "cc_import")
-cc_import(
-    name = "cegui-base",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libCEGUIBase-0.so.2",
-    visibility = ["//visibility:public"],
-)
-cc_import(
-    name = "cegui-ogre",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libCEGUIOgreRenderer-0.so.2",
-    visibility = ["//visibility:public"],
-)
 cc_library(
     name = "cegui",
     hdrs = glob(["include/**/*.h"]),
     includes = ["include/cegui-0"],
-    deps = [
-        ":cegui-base",
-        ":cegui-ogre",
+    srcs = [
+        "lib/libCEGUIBase-0.so.2",
+        "lib/libCEGUIOgreRenderer-0.so.2",
     ],
     visibility = ["//visibility:public"],
 )
@@ -155,17 +127,11 @@ cc_library(
 nixpkgs_package(
     name = "enet",
     build_file_content = """\
-cc_import(
-    name = "enet-import",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libenet.so.7",
-    visibility = ["//visibility:public"],
-)
 cc_library(
     name = "enet",
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
-    deps = [":enet-import"],
+    srcs = ["lib/libenet.so.7"],
     visibility = ["//visibility:public"],
 )
 """,
@@ -188,18 +154,11 @@ buildEnv {
 }
 """,
     build_file_content = """\
-load("@rules_cc//cc:defs.bzl", "cc_import")
-cc_import(
-    name = "expat-import",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libexpat.so.1",
-    visibility = ["//visibility:public"],
-)
 cc_library(
     name = "expat",
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
-    deps = [":expat-import"],
+    srcs = ["lib/libexpat.so.1"],
     visibility = ["//visibility:public"],
 )
 """,
@@ -210,18 +169,11 @@ nixpkgs_package(
     name = "lua",
     attribute_path = "lua5_1",
     build_file_content = """\
-load("@rules_cc//cc:defs.bzl", "cc_import")
-cc_import(
-    name = "lua-import",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/liblua.so.5.1",
-    visibility = ["//visibility:public"],
-)
 cc_library(
     name = "lua",
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
-    deps = [":lua-import"],
+    srcs = ["lib/liblua.so.5.1"],
     visibility = ["//visibility:public"],
 )
 """,
@@ -232,19 +184,6 @@ nixpkgs_package(
     name = "ogre",
     attribute_path = "ogre1_10",
     build_file_content = """\
-load("@rules_cc//cc:defs.bzl", "cc_import")
-cc_import(
-    name = "ogre-main",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libOgreMain.so.1.10.11",
-    visibility = ["//visibility:public"],
-)
-cc_import(
-    name = "ogre-overlay",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libOgreOverlay.so.1.10.11",
-    visibility = ["//visibility:public"],
-)
 cc_library(
     name = "ogre",
     hdrs = glob(["include/**/*.h"]),
@@ -253,9 +192,9 @@ cc_library(
         "include/OGRE",
         "include/OGRE/Overlay",
     ],
-    deps = [
-        ":ogre-main",
-        ":ogre-overlay",
+    srcs = [
+        "lib/libOgreMain.so.1.10.11",
+        "lib/libOgreOverlay.so.1.10.11",
     ],
     visibility = ["//visibility:public"],
 )
@@ -270,18 +209,11 @@ exports_files([
 nixpkgs_package(
     name = "ois",
     build_file_content = """\
-load("@rules_cc//cc:defs.bzl", "cc_import")
-cc_import(
-    name = "ois-import",
-    hdrs = glob(["include/**/*.h"]),
-    shared_library = "lib/libOIS.so.1.5.0",
-    visibility = ["//visibility:public"],
-)
 cc_library(
     name = "ois",
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
-    deps = [":ois-import"],
+    srcs = ["lib/libOIS.so.1.5.0"],
     visibility = ["//visibility:public"],
 )
 """,
