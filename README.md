@@ -31,7 +31,7 @@ the same server on localhost. It should work across a network too but you will
 need to pass the IP address of the server when you run the client, e.g.
 
 ```
-SERVER_IP=192.168.0.10 nix-shell --run 'bazel run //common:run-client
+SERVER_IP=192.168.0.10 nix-shell --run 'bazel run //common:run-client'
 ```
 
 Please do not expose the server to an untrusted network because it is not secure.
