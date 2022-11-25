@@ -41,3 +41,4 @@ Please do not expose the server to an untrusted network because it is not secure
 * *Left/Right*: rotate ship
 * *Up*: engage thrusters to move forward
 * *Ctrl*: hold together with *Up* to boost speed
+* *Enter*: open chat message input

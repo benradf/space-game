@@ -200,7 +200,7 @@ void clientMain()
         gfx.render();
         hud->update();
         gui->render();
-        gfx.getViewport().update();
+        //gfx.getViewport().update();
         frameCount++;
 
         Ogre::WindowEventUtilities::messagePump();
