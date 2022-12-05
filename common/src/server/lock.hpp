@@ -3,7 +3,7 @@
 /// \author Ben Radford 
 /// \date 18th September 2007
 ///
-/// Copyright (c) 2007 Ben Radford. All rights reserved.
+/// Copyright (c) 2007 Ben Radford.
 ///
 /// Modifications (most recent first):
 /// - 08/10/07 Made the try locks fully atomic using the assembly lock prefix.

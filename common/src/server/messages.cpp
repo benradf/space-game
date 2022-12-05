@@ -3,7 +3,7 @@
 /// \author Ben Radford
 /// \date 25th August 2022
 ///
-/// Copyright (c) 2022 Ben Radford. All rights reserved.
+/// Copyright (c) 2022 Ben Radford.
 ///
 
 

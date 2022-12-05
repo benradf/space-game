@@ -3,7 +3,7 @@
 /// \author Ben Radford 
 /// \date 26th March 2009
 ///
-/// Copyright (c) 2009 Ben Radford. All rights reserved.
+/// Copyright (c) 2009 Ben Radford.
 ///
 /// Modifications (most recent first):
 

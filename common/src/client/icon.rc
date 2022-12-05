@@ -11,7 +11,7 @@ BEGIN
       VALUE "FileDescription", "Client for mmoengine project."
       VALUE "FileVersion", "1.0"
       VALUE "InternalName", "mmoclient"
-      VALUE "LegalCopyright", "2007-2009, Ben Radford. All Rights Reserved."
+      VALUE "LegalCopyright", "2007-2009, Ben Radford."
       VALUE "OriginalFilename", "client.exe"
       VALUE "ProductName", "mmoclient"
       VALUE "ProductVersion", "1.0"

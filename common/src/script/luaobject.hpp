@@ -3,7 +3,7 @@
 /// \author Ben Radford 
 /// \date 27th July 2007
 ///
-/// Copyright (c) 2007 Ben Radford. All rights reserved.
+/// Copyright (c) 2007 Ben Radford.
 ///
 /// Modifications (most recent first):
 
@@ -29,7 +29,6 @@
 // metamethods anyway. Also use rawseti when setting an array.
 
 // Ben Radford - 1st December 2006
-// All rights reserved
 
 
 #ifndef LUAOBJECT_HPP

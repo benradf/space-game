@@ -3,7 +3,7 @@
 /// \author Ben Radford 
 /// \date 19th September 2007
 ///
-/// Copyright (c) 2007 Ben Radford. All rights reserved.
+/// Copyright (c) 2007 Ben Radford.
 ///
 /// Modifications (most recent first):
 /// - 27/10/07 Implemented read-only run jobs and added thread local storage.

@@ -1,5 +1,4 @@
 // Ben Radford - 1st December 2006
-// All rights reserved
 
 
 #ifndef LUAEXTLIB_HPP

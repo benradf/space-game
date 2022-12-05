@@ -3,7 +3,7 @@
 /// \author Ben Radford 
 /// \date 1st October 2007
 ///
-/// Copyright (c) 2007 Ben Radford. All rights reserved.
+/// Copyright (c) 2007 Ben Radford.
 ///
 /// Modifications (most recent first):
 /// - 17/05/08 Refactored code into seperate read and write locks.

@@ -3,7 +3,7 @@
 /// \author 
 /// \date 16th May 2009
 ///
-/// Copyright (c) 2009 . All rights reserved.
+/// Copyright (c) 2009 .
 ///
 
 
