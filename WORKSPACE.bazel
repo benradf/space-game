@@ -183,6 +183,73 @@ cc_library(
 nixpkgs_package(
     name = "ogre",
     attribute_path = "ogre1_10",
+    nix_file_content = """\
+      import <nixpkgs> {
+        config = { };
+        overlays = [
+          (self: super: {
+            ogre1_10 = super.ogre1_10.overrideAttrs (previous: {
+              patches = [
+                "${super.writeTextFile {
+                  name = "debug-ogre-crash";
+                  text = ''
+                    --- ./RenderSystems/GLSupport/src/GLX/OgreGLXWindow.cpp.original	2023-02-09 10:23:56.774671229 +0000
+                    +++ ./RenderSystems/GLSupport/src/GLX/OgreGLXWindow.cpp	2023-02-09 11:13:30.838707706 +0000
+                    @@ -48,6 +48,8 @@
+                     
+                     #include "OgreGLRenderSystemCommon.h"
+                     
+                    +#include <iostream>
+                    +
+                     namespace {
+                         int safeXErrorHandler (Display *display, XErrorEvent *event)
+                         {
+                    @@ -271,15 +273,18 @@
+                             // Derive fbConfig
+                     
+                             ::GLXFBConfig fbConfig = 0;
+                    +        std::cerr << "\\x1b[1;36mAttempting to derive fbConfig\\x1b[0m" << std::endl;
+                     
+                             if (glxDrawable)
+                             {
+                                 fbConfig = mGLSupport->getFBConfigFromDrawable (glxDrawable, &width, &height);
+                    +            std::cerr << "\\x1b[1;36mgetFBConfigFromDrawable: fbConfig = " << fbConfig << "\\x1b[0m" << std::endl;
+                             }
+                     
+                             if (! fbConfig && glxContext)
+                             {
+                                 fbConfig = mGLSupport->getFBConfigFromContext (glxContext);
+                    +            std::cerr << "\\x1b[1;36mgetFBConfigFromContext: fbConfig = " << fbConfig << "\\x1b[0m" << std::endl;
+                             }
+                     
+                             mIsExternal = (glxDrawable != 0);
+                    @@ -310,8 +315,11 @@
+                                 };
+                     
+                                 fbConfig = mGLSupport->selectFBConfig(minAttribs, maxAttribs);
+                    +            std::cerr << "\\x1b[1;36mselectFBConfig: fbConfig = " << fbConfig << "\\x1b[0m" << std::endl;
+                             }
+                     
+                    +        std::cerr << "\\x1b[1;36mfbConfig = " << fbConfig << "\\x1b[0m" << std::endl;
+                    +
+                             if (fbConfig)
+                             {
+                                 // Now check the actual fsaa and gamma value
+                    @@ -333,6 +341,7 @@
+                             else
+                             {
+                                 // This should never happen.
+                    +            std::cerr << "\\x1b[1;36mabout to throw ERR_RENDERINGAPI_ERROR\\x1b[0m" << std::endl;
+                                 OGRE_EXCEPT(Exception::ERR_RENDERINGAPI_ERROR, "Unexpected failure to determine a GLXFBConfig","GLXWindow::create");
+                             }
+                  '';
+                }}"
+              ];
+            });
+          })
+        ];
+      }
+    """,
     build_file_content = """\
 cc_library(
     name = "ogre",
